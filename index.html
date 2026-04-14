@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#ef4444">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Champions">
+<meta name="description" content="Competitive Pokémon team builder — build, track, and analyse">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+<title>Champions Testing</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+<nav class="sb" id="sb">
+  <div class="sb-brand"><div class="sb-logo"><img src="icons/logo.png" alt="PC"></div><div><div class="sb-brand-text">Champions</div><div class="sb-brand-sub">Competitive Builder</div></div></div>
+  <div class="sb-nav">
+    <div class="sb-item active" data-p="dash"><div class="sb-icon">📊</div><span class="sb-label">Dashboard</span></div>
+    <div class="sb-item" data-p="dex"><div class="sb-icon">📋</div><span class="sb-label">Pokédex</span><span class="sb-count" id="nc0">—</span></div>
+    <div class="sb-item" data-p="items"><div class="sb-icon">🎒</div><span class="sb-label">Items</span><span class="sb-count" id="nc3">—</span></div>
+    <div class="sb-item" data-p="builds"><div class="sb-icon">⚔️</div><span class="sb-label">Builds</span><span class="sb-count" id="nc1">—</span></div>
+    <div class="sb-item" data-p="teams"><div class="sb-icon">🏆</div><span class="sb-label">Teams</span><span class="sb-count" id="nc2">—</span></div>
+    <div class="sb-item" data-p="natures"><div class="sb-icon">🧬</div><span class="sb-label">Natures</span></div>
+    <div class="sb-item" data-p="profile"><div class="sb-icon">👤</div><span class="sb-label">Profile</span></div>
+  </div>
+  <div class="sb-foot">
+    <div id="authEl"><div class="auth-c"><input type="email" id="eIn" placeholder="Email"></div><div class="auth-c" style="margin-top:3px"><input type="password" id="pIn" placeholder="Password"><button class="ab ab-red" onclick="login()">Go</button></div></div>
+    <div class="theme-row"><button class="theme-btn" id="tbLight" onclick="setTheme('light')" title="Light mode">☀️</button><button class="theme-btn active" id="tbDark" onclick="setTheme('dark')" title="Dark mode">🌙</button></div>
+    <div class="sb-toggle" onclick="togSb()" id="sbTog">◀</div>
+  </div>
+</nav>
+
+<div class="main">
+  <!-- Dashboard -->
+  <div class="page show" id="pg-dash">
+    <div class="ph"><div class="ph-title">📊 Trainer Dashboard</div><div class="ph-sub">Welcome back, Trainer. Here's your competitive overview.</div></div>
+    <div class="dash-stats" id="dashStats"></div>
+    <div class="dash-section"><div class="dash-row"><div><h3>⚡ Recent Builds</h3><div id="recentBuilds"><div style="color:var(--muted);font-size:.85rem">Sign in to see your builds</div></div></div><div><h3>💡 Quick Actions</h3><div class="qa-card"><h4>🧬 Pro Tip</h4><p>When building for Doubles, consider Pokémon with "Intimidate" or "Fake Out" to control early game tempo.</p></div><div class="qa-card"><h4>📊 Meta Trends</h4><p>Track which Pokémon and archetypes are most popular in your builds to refine your competitive strategy.</p></div></div></div></div>
+  </div>
+
+  <!-- Pokédex -->
+  <div class="page" id="pg-dex">
+    <div class="ph"><div class="ph-top"><div><div class="ph-title">📋 Pokédex</div><div class="ph-sub">Browse the collection of 258 Pokémon. Track progress and discover competitive variants.</div></div><div class="progress-badge" id="progBadge" style="display:none"><div><div class="pb-label">Collection Progress</div><div class="pb-val" id="progVal">0 / 258</div></div><div class="pb-icon">🏆</div></div></div></div>
+    <div class="dex-filters">
+      <input class="search-box" id="dexSearch" placeholder="Search by name or number...">
+      <div class="filter-row type-scroll" id="typeFilters"></div>
+      <div class="filter-row"><span class="flabel">Form</span><div id="formFilters"></div><span class="flabel" style="margin-left:.6rem">Status</span><button class="fpill" data-obt="all" onclick="togObtFilter('all')">All</button><button class="fpill" data-obt="yes" onclick="togObtFilter('yes')">Obtained</button><button class="fpill" data-obt="no" onclick="togObtFilter('no')">Not Obtained</button><span class="flabel" style="margin-left:.6rem">View</span><button class="shiny-btn" id="shinyAll" onclick="togShinyAll()">✦ Shiny</button></div>
+    </div>
+    <div class="dex-grid" id="dexGrid"><div class="empty"><div class="em">⏳</div>Loading Pokédex...</div></div>
+  </div>
+
+  <!-- Items -->
+  <div class="page" id="pg-items">
+    <div class="ph"><div class="ph-title">🎒 Items</div><div class="ph-sub">Track your held items collection</div></div>
+    <div style="padding:.6rem 2rem"><input class="search-box" id="itemSearch" placeholder="Search items..."></div>
+    <div class="items-grid" id="itemsGrid"><div class="empty"><div class="em">⏳</div>Loading...</div></div>
+  </div>
+
+  <!-- Builds -->
+  <div class="page" id="pg-builds">
+    <div id="buildsView"></div>
+  </div>
+
+  <!-- Teams -->
+  <div class="page" id="pg-teams">
+    <div id="teamsView"></div>
+  </div>
+
+  <!-- Natures -->
+  <div class="page" id="pg-natures">
+    <div class="ph"><div class="ph-title">🧬 Natures</div><div class="ph-sub">All 25 natures with stat modifiers</div></div>
+    <div class="nat-grid" id="natGrid"><div class="empty"><div class="em">⏳</div>Loading...</div></div>
+  </div>
+
+  <!-- Profile -->
+  <div class="page" id="pg-profile">
+    <div class="ph"><div class="ph-title">👤 Trainer Profile</div><div class="ph-sub">Your stats, achievements, and activity</div></div>
+    <div style="padding:1.2rem 2rem" id="profileContent"><div class="empty"><div class="em">🔒</div>Sign in to view your profile</div></div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div class="modal-ov" id="confirmMod">
+    <div class="modal-box">
+      <div class="em" id="cmEmoji">⚠️</div>
+      <h3 id="cmTitle">Are you sure?</h3>
+      <p id="cmMsg"></p>
+      <div class="modal-btns">
+        <button class="btn btn-ghost" onclick="closeCm()">Cancel</button>
+        <button class="btn btn-red" id="cmBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Panel -->
+<div class="panel-ov" id="detP"><div class="panel-bd" onclick="closeDet()"></div><div class="panel-ct slide-in" id="detInner"></div></div>
+
+<div class="toast-c" id="toasts"></div>
+<script src="app.js"></script>
+</body>
+</html>
