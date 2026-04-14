@@ -1,3 +1,4 @@
+// #SECTION: APP CONFIG & GLOBAL STATE
 // ═══════════════════════════════════════
 // APP CONFIG & GLOBAL STATE
 // Supabase config, auth state, global app data,
@@ -6,66 +7,109 @@
 
 var API='https://hrxqhhjkhhlpafhfarbl.supabase.co',ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhyeHFoaGpraGhscGFmaGZhcmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMDAzNjYsImV4cCI6MjA5MTY3NjM2Nn0.AALRUAOd3WVj1vmu42RvDV-RGHCpa8ymplkXsx_NSW0';
 var tk=null,usr=null,allPkmn=[],allBuilds=[],allTeams=[],uDex={},uShinyDex={},activeType=null,activeForm=null,showShiny=false,obtFilter='all',shinyCards={};
+
+// #SECTION: POKÉMON TYPE CONSTANTS & MATCHUP DATA
 // ═══════════════════════════════════════
 // POKÉMON TYPE CONSTANTS & MATCHUP DATA
 // Type colours, type list, and effectiveness chart.
 // Used for badges, gradients, matchups, and coverage.
 // ═══════════════════════════════════════
+
 var TC={Normal:{m:'#A8A77A',l:'#D3D3B8',d:'#6D6D4E'},Fire:{m:'#EE8130',l:'#F5AC78',d:'#9C531F'},Water:{m:'#6390F0',l:'#9DB7F5',d:'#445E9C'},Electric:{m:'#F7D02C',l:'#FAE078',d:'#A1871F'},Grass:{m:'#7AC74C',l:'#A7DB8D',d:'#4E8234'},Ice:{m:'#96D9D6',l:'#BCE6E6',d:'#638D8D'},Fighting:{m:'#C22E28',l:'#D67873',d:'#7D1F1A'},Poison:{m:'#A33EA1',l:'#C183C1',d:'#6B2A6B'},Ground:{m:'#E2BF65',l:'#EBD69D',d:'#927D44'},Flying:{m:'#A98FF3',l:'#C6B7F5',d:'#6D5E9C'},Psychic:{m:'#F95587',l:'#FA92B2',d:'#A13959'},Bug:{m:'#A6B91A',l:'#C6D16E',d:'#6D7815'},Rock:{m:'#B6A136',l:'#D1C17D',d:'#786824'},Ghost:{m:'#735797',l:'#A292BC',d:'#4C3A65'},Dragon:{m:'#6F35FC',l:'#A27DFA',d:'#4924A1'},Dark:{m:'#705746',l:'#A29288',d:'#49392F'},Steel:{m:'#B7B7CE',l:'#D1D1E0',d:'#787887'},Fairy:{m:'#D685AD',l:'#F4BDC9',d:'#9B6470'}};
 var ALL_T=Object.keys(TC);
 var TCHART={Normal:{Rock:.5,Ghost:0,Steel:.5},Fire:{Fire:.5,Water:.5,Grass:2,Ice:2,Bug:2,Rock:.5,Dragon:.5,Steel:2},Water:{Fire:2,Water:.5,Grass:.5,Ground:2,Rock:2,Dragon:.5},Electric:{Water:2,Electric:.5,Grass:.5,Ground:0,Flying:2,Dragon:.5},Grass:{Fire:.5,Water:2,Grass:.5,Poison:.5,Ground:2,Flying:.5,Bug:.5,Rock:2,Dragon:.5,Steel:.5},Ice:{Fire:.5,Water:.5,Grass:2,Ice:.5,Ground:2,Flying:2,Dragon:2,Steel:.5},Fighting:{Normal:2,Ice:2,Poison:.5,Flying:.5,Psychic:.5,Bug:.5,Rock:2,Ghost:0,Dark:2,Steel:2,Fairy:.5},Poison:{Grass:2,Poison:.5,Ground:.5,Rock:.5,Ghost:.5,Steel:0,Fairy:2},Ground:{Fire:2,Electric:2,Grass:.5,Poison:2,Flying:0,Bug:.5,Rock:2,Steel:2},Flying:{Electric:.5,Grass:2,Fighting:2,Bug:2,Rock:.5,Steel:.5},Psychic:{Fighting:2,Poison:2,Psychic:.5,Dark:0,Steel:.5},Bug:{Fire:.5,Grass:2,Fighting:.5,Poison:.5,Flying:.5,Psychic:2,Ghost:.5,Dark:2,Steel:.5,Fairy:.5},Rock:{Fire:2,Ice:2,Fighting:.5,Ground:.5,Flying:2,Bug:2,Steel:.5},Ghost:{Normal:0,Psychic:2,Ghost:2,Dark:.5},Dragon:{Dragon:2,Steel:.5,Fairy:0},Dark:{Fighting:.5,Psychic:2,Ghost:2,Dark:.5,Fairy:.5},Steel:{Fire:.5,Water:.5,Electric:.5,Ice:2,Rock:2,Steel:.5,Fairy:2},Fairy:{Fire:.5,Fighting:2,Poison:.5,Dragon:2,Dark:2,Steel:.5}};
 
+// #SECTION: SHARED HELPERS
 // ═══════════════════════════════════════
 // SHARED HELPERS
 // Reusable utility functions for icons, toasts,
 // DOM helpers, API requests, inserts, deletes, etc.
 // ═══════════════════════════════════════
+
 function pb(s){return'<svg width="'+s+'" height="'+s+'" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#EF4444"/><path d="M5 50A45 45 0 0 0 95 50Z" fill="white"/><circle cx="50" cy="50" r="45" fill="none" stroke="#1E293B" stroke-width="4"/><line x1="5" y1="50" x2="95" y2="50" stroke="#1E293B" stroke-width="4"/><circle cx="50" cy="50" r="12" fill="white" stroke="#1E293B" stroke-width="4"/><circle cx="50" cy="50" r="5" fill="#1E293B"/></svg>'}
 function toast(m,t){var e=document.createElement('div');e.className='toast toast-'+(t||'ok');e.textContent=m;document.getElementById('toasts').appendChild(e);setTimeout(function(){e.remove()},3500)}
 function h(a){return{'apikey':ANON,'Content-Type':'application/json','Authorization':'Bearer '+(a&&tk?tk:ANON)}}
+// DEV ONLY: Persist the signed-in session in localStorage so the app
+// stays logged in across refreshes during development.
+// This is convenient for local testing, but it is not a production-
+// grade auth/session approach.
+
+function saveSession(){
+  try{
+    if(tk&&usr){localStorage.setItem('champions_session',JSON.stringify({tk:tk,usr:usr}))}
+    else{localStorage.removeItem('champions_session')}
+  }catch(e){}
+}
+// DEV ONLY: Restore the locally saved development session on page load.
+// This should be revisited later if the app moves to a more secure
+// production auth flow.
+
+function restoreSession(){
+  try{
+    var raw=localStorage.getItem('champions_session');
+    if(!raw)return false;
+    var s=JSON.parse(raw);
+    if(!s||!s.tk||!s.usr)return false;
+    tk=s.tk;usr=s.usr;
+    return true;
+  }catch(e){
+    localStorage.removeItem('champions_session');
+    return false;
+  }
+}
 async function q(t,p,a){var u=new URL(API+'/rest/v1/'+t);if(p)Object.entries(p).forEach(function(e){u.searchParams.set(e[0],e[1])});var r=await fetch(u.toString(),{headers:h(a)});if(!r.ok)throw new Error(t+': '+r.status);return r.json()}
 async function ins(t,b,a){var r=await fetch(API+'/rest/v1/'+t,{method:'POST',headers:Object.assign(h(a),{'Prefer':'return=representation'}),body:JSON.stringify(b)});if(!r.ok){var e=await r.json().catch(function(){return{}});throw new Error(e.message||r.status)}return r.json()}
 async function rm(t,m,a){var u=new URL(API+'/rest/v1/'+t);Object.entries(m).forEach(function(e){u.searchParams.set(e[0],e[1])});var r=await fetch(u.toString(),{method:'DELETE',headers:h(a)});if(!r.ok)throw new Error(r.status)}
 
+// #SECTION: THEME
 // ═══════════════════════════════════════
 // THEME
 // Light / dark mode handling.
 // ═══════════════════════════════════════
 
+
 function setTheme(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('tbLight').classList.toggle('active',t==='light');document.getElementById('tbDark').classList.toggle('active',t==='dark')}
 
+// #SECTION: SIDEBAR & PAGE NAVIGATION
 // ═══════════════════════════════════════
 // SIDEBAR & PAGE NAVIGATION
 // Sidebar collapse/expand and switching between pages.
 // ═══════════════════════════════════════
 
+
 var sbC=false;
 function togSb(){sbC=!sbC;document.getElementById('sb').classList.toggle('c',sbC);document.getElementById('sbTog').textContent=sbC?'▶':'◀'}
 document.querySelectorAll('.sb-item').forEach(function(i){i.addEventListener('click',function(){document.querySelectorAll('.sb-item').forEach(function(n){n.classList.remove('active')});i.classList.add('active');document.querySelectorAll('.page').forEach(function(p){p.classList.remove('show')});document.getElementById('pg-'+i.dataset.p).classList.add('show')})});
 
+// #SECTION: AUTH
 // ═══════════════════════════════════════
 // AUTH
 // Login, logout, and auth UI state.
 // ═══════════════════════════════════════
 
-async function login(){var e=document.getElementById('eIn').value,p=document.getElementById('pIn').value;if(!e||!p)return;try{var r=await fetch(API+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'apikey':ANON,'Content-Type':'application/json'},body:JSON.stringify({email:e,password:p})});var d=await r.json();if(!r.ok)throw new Error(d.error_description||d.msg||'Failed');tk=d.access_token;usr=d.user;updAuth();loadUser();toast('Welcome back!')}catch(x){toast(x.message,'err')}}
-function logout(){tk=null;usr=null;allBuilds=[];allTeams=[];uDex={};uShinyDex={};uItems={};updAuth();renderDash();renderDex();renderItems();toast('Signed out')}
+
+async function login(){var e=document.getElementById('eIn').value,p=document.getElementById('pIn').value;if(!e||!p)return;try{var r=await fetch(API+'/auth/v1/token?grant_type=password',{method:'POST',headers:{'apikey':ANON,'Content-Type':'application/json'},body:JSON.stringify({email:e,password:p})});var d=await r.json();if(!r.ok)throw new Error(d.error_description||d.msg||'Failed');tk=d.access_token;usr=d.user;saveSession();updAuth();loadUser();toast('Welcome back!')}catch(x){toast(x.message,'err')}}
+function logout(){tk=null;usr=null;allBuilds=[];allTeams=[];uDex={};uShinyDex={};uItems={};saveSession();updAuth();renderDash();renderDex();renderItems();renderBuilds();renderTeams();renderProfile();toast('Signed out')}
 function updAuth(){var el=document.getElementById('authEl');if(usr){el.innerHTML='<div class="user-p"><div class="user-av">⚡</div><span style="overflow:hidden;text-overflow:ellipsis;flex:1;font-weight:500">'+usr.email+'</span></div><button class="ab ab-ghost" onclick="logout()" style="margin-top:3px">Sign Out</button>'}else{el.innerHTML='<div class="auth-c"><input type="email" id="eIn" placeholder="Email"></div><div class="auth-c" style="margin-top:3px"><input type="password" id="pIn" placeholder="Password"><button class="ab ab-red" onclick="login()">Go</button></div>'}}
 
+// #SECTION: CORE DATA LOADING
 // ═══════════════════════════════════════
 // CORE DATA LOADING
 // Load user data, Pokémon, builds, teams, and Pokédex progress.
 // ═══════════════════════════════════════
+
 async function loadUser(){await Promise.all([loadBuilds(),loadTeams(),loadUDex()]);renderDash();renderDex()}
 async function loadPkmn(){try{allPkmn=await q('pokemon',{order:'dex_number.asc,form.asc',limit:'1000'});document.getElementById('nc0').textContent=allPkmn.length;renderTypeF();renderFormF();renderDex();renderDash()}catch(e){document.getElementById('dexGrid').innerHTML='<div class="empty"><div class="em">⚠️</div>'+e.message+'</div>'}}
 async function loadBuilds(){if(!tk)return;try{allBuilds=await q('build_details',{order:'created_at.desc',limit:'200'},true);document.getElementById('nc1').textContent=allBuilds.length;renderDash()}catch(e){}}
 async function loadTeams(){if(!tk)return;try{allTeams=await q('teams',{order:'created_at.desc'},true);document.getElementById('nc2').textContent=allTeams.length;renderDash()}catch(e){}}
 async function loadUDex(){if(!tk)return;try{var rows=await q('user_pokedex',{select:'pokemon_id,obtained,shiny_obtained'},true);uDex={};uShinyDex={};rows.forEach(function(r){if(r.obtained)uDex[r.pokemon_id]=true;if(r.shiny_obtained)uShinyDex[r.pokemon_id]=true});renderDex();renderDash()}catch(e){}}
 
+// #SECTION: DASHBOARD
 // ═══════════════════════════════════════
 // DASHBOARD
 // Dashboard stats and recent builds rendering.
 // ═══════════════════════════════════════
+
 function renderDash(){
   var obt=Object.keys(uDex).length,total=allPkmn.length;
   document.getElementById('dashStats').innerHTML=
@@ -86,11 +130,13 @@ function renderDash(){
   }).join('')
 }
 
+// #SECTION: POKÉDEX
 // ═══════════════════════════════════════
 // POKÉDEX
 // Filters, obtained/shiny toggles, card rendering,
 // detail panel, and Pokédex interactions.
 // ═══════════════════════════════════════
+
 function renderTypeF(){var ts={};allPkmn.forEach(function(p){ts[p.type_1]=1;if(p.type_2)ts[p.type_2]=1});document.getElementById('typeFilters').innerHTML='<span class="flabel">Type</span>'+Object.keys(ts).sort().map(function(t){return'<button class="fpill" data-type="'+t+'" onclick="togType(\''+t+'\')">'+t+'</button>'}).join('')}
 function renderFormF(){document.getElementById('formFilters').innerHTML='<button class="fpill" data-form="Base" onclick="togForm(\'Base\')">Base</button><button class="fpill" data-form="Mega" onclick="togForm(\'Mega\')">Mega</button><button class="fpill" data-form="Regional" onclick="togForm(\'Regional\')">Regional</button>'}
 function togType(t){activeType=activeType===t?null:t;document.querySelectorAll('[data-type]').forEach(function(b){b.classList.toggle('active',b.dataset.type===activeType)});renderDex()}
@@ -147,10 +193,12 @@ function renderDex(){
   }).join('')
 }
 
+// #SECTION: POKÉDEX DETAIL PANEL
 // ───────────────────────────────────────
 // POKÉDEX DETAIL PANEL
 // Slide-over detail view for a single Pokémon.
 // ───────────────────────────────────────
+
 function openDet(pid){
   var p=allPkmn.find(function(x){return x.id===pid});if(!p)return;
   var t1=TC[p.type_1]||TC.Normal,t2=p.type_2?TC[p.type_2]:null;
@@ -169,10 +217,12 @@ function dSwap(s,pid){var p=allPkmn.find(function(x){return x.id===pid});if(!p)r
 document.getElementById('dexSearch').addEventListener('input',renderDex);
 document.getElementById('itemSearch').addEventListener('input',renderItems);
 
+// #SECTION: ITEMS
 // ═══════════════════════════════════════
 // ITEMS
 // Load, render, and toggle collected items.
 // ═══════════════════════════════════════
+
 var allItems=[],uItems={};
 async function loadItems(){try{allItems=await q('items',{order:'name.asc',limit:'1000'});document.getElementById('nc3').textContent=allItems.length;renderItems()}catch(e){}}
 async function loadUItems(){if(!tk)return;try{var rows=await q('user_items',{select:'item_id,obtained'},true);uItems={};rows.forEach(function(r){if(r.obtained)uItems[r.item_id]=true});renderItems()}catch(e){}}
@@ -184,19 +234,23 @@ async function togItem(iid){if(!usr){toast('Sign in first','err');return}
     uItems[iid]=true;toast('Item obtained!')}renderItems()}catch(e){toast(e.message,'err')}}
 function renderItems(){var s=document.getElementById('itemSearch').value.toLowerCase();var f=allItems.filter(function(i){return!s||i.name.toLowerCase().indexOf(s)!==-1});document.getElementById('itemsGrid').innerHTML=f.map(function(i){var on=uItems[i.id];return'<div class="it-card" onclick="togItem(\''+i.id+'\')"><span class="it-name">'+i.name+'</span><div class="it-chk'+(on?' on':'')+'\">'+(on?'✓':'')+'</div></div>'}).join('')||'<div class="empty"><div class="em">🔍</div>No items match</div>'}
 
+// #SECTION: NATURES
 // ═══════════════════════════════════════
 // NATURES
 // Load and render nature data.
 // ═══════════════════════════════════════
+
 var allNatures=[];
 async function loadNatures(){try{allNatures=await q('natures',{order:'name.asc'});renderNatures()}catch(e){}}
 function renderNatures(){var sL={hp:'HP',attack:'Attack',defense:'Defense',sp_attack:'Sp.Atk',sp_defense:'Sp.Def',speed:'Speed'};document.getElementById('natGrid').innerHTML=allNatures.map(function(n){var d=n.increased_stat?'<span class="nat-up">▲ '+sL[n.increased_stat]+'</span> <span class="nat-down">▼ '+sL[n.decreased_stat]+'</span>':'<span class="nat-neutral">Neutral</span>';return'<div class="nat-card"><div class="nat-name">'+n.name+'</div><div class="nat-stat">'+d+'</div></div>'}).join('')}
 
+// #SECTION: BUILDS
 // ═══════════════════════════════════════
 // BUILDS
 // Build list, detail, editor, stat allocation,
 // save/update/delete, favourites, duplication, export.
 // ═══════════════════════════════════════
+
 var buildView='list',editBuildId=null,detailBuildId=null,spV={hp:0,atk:0,def:0,spa:0,spd:0,spe:0},selPkmnId='',SP_MAX=66;
 var statCols={hp:'#ef4444',atk:'#f08030',def:'#f7d02c',spa:'#6390f0',spd:'#7ac74c',spe:'#f95587'};
 var statNames={hp:'HP',atk:'ATTACK',def:'DEFENSE',spa:'SP. ATK',spd:'SP. DEF',spe:'SPEED'};
@@ -267,10 +321,12 @@ function renderBuildEditor(c){
     '</div>'
 }
 
+// #SECTION: MATCHUP & COVERAGE HELPERS
 // ═══════════════════════════════════════
 // MATCHUP & COVERAGE HELPERS
 // Shared type matchup and team coverage helpers.
 // ═══════════════════════════════════════
+
 function getMatchups(type1,type2){var gr={'4':[],'2':[],'0.5':[],'0.25':[],'0':[]};ALL_T.forEach(function(at){var mult=TCHART[at]&&TCHART[at][type1]!==undefined?TCHART[at][type1]:1;if(type2){mult*=(TCHART[at]&&TCHART[at][type2]!==undefined?TCHART[at][type2]:1)}if(mult===4)gr['4'].push(at);else if(mult===2)gr['2'].push(at);else if(mult===.5)gr['0.5'].push(at);else if(mult===.25)gr['0.25'].push(at);else if(mult===0)gr['0'].push(at)});return gr}
 function renderMatchupHtml(type1,type2){
   var gr=getMatchups(type1,type2);
@@ -283,10 +339,12 @@ function renderMatchupHtml(type1,type2){
   return html||'<p style="color:var(--muted);font-size:.85rem;font-style:italic">No notable type interactions</p>'
 }
 
+// #SECTION: BUILD DETAIL VIEW
 // ───────────────────────────────────────
 // BUILD DETAIL VIEW
 // Detailed single-build screen layout and rendering.
 // ───────────────────────────────────────
+
 function renderBuildDetail(c){
   var b=allBuilds.find(function(x){return x.id===detailBuildId});
   if(!b){showBuildList();return}
@@ -353,11 +411,13 @@ function confirmDelBuild(id,name){document.getElementById('cmEmoji').textContent
 async function delBuild(id){try{await rm('builds',{'id':'eq.'+id},true);closeCm();toast('Build deleted');await loadBuilds();renderBuilds();renderDash()}catch(e){toast(e.message,'err')}}
 function closeCm(){document.getElementById('confirmMod').classList.remove('open')}
 
+// #SECTION: TEAMS
 // ═══════════════════════════════════════
 // TEAMS
 // Team list, detail, editor, roster selection,
 // save/update/delete, and team composition logic.
 // ═══════════════════════════════════════
+
 var teamView='list',editTeamId=null,detailTeamId=null,selBuildIds=[];
 
 function showTeamList(){teamView='list';renderTeams()}
@@ -411,10 +471,12 @@ function renderTeamEditor(c){
     '<div><div class="ed-card"><h3>Select Builds</h3>'+(allBuilds.length?'<div class="te-builds">'+bpicker+'</div>':'<p style="color:var(--muted);font-size:.82rem">Create builds first</p>')+'</div></div></div></div>'
 }
 
+// #SECTION: TEAM DETAIL VIEW
 // ───────────────────────────────────────
 // TEAM DETAIL VIEW
 // Detailed single-team screen layout and rendering.
 // ───────────────────────────────────────
+
 function renderTeamDetail(c){
   var t=allTeams.find(function(x){return x.id===detailTeamId});
   if(!t){showTeamList();return}
@@ -471,11 +533,13 @@ async function saveTeam(){
 function confirmDelTeam(id,name){document.getElementById('cmEmoji').textContent='🏆';document.getElementById('cmTitle').textContent='Delete Team?';document.getElementById('cmMsg').textContent='Delete "'+name+'"? This cannot be undone.';document.getElementById('cmBtn').onclick=function(){delTeam(id)};document.getElementById('confirmMod').classList.add('open')}
 async function delTeam(id){try{await rm('teams',{'id':'eq.'+id},true);closeCm();toast('Team deleted');await loadTeamRoster();renderTeams();renderDash()}catch(e){toast(e.message,'err')}}
 
+// #SECTION: PROFILE & ACHIEVEMENTS
 // ═══════════════════════════════════════
 // PROFILE & ACHIEVEMENTS
 // Trainer profile, avatar, display name,
 // achievements, and activity history.
 // ═══════════════════════════════════════
+
 var allAch=[],userAch={},userProfile=null;
 
 async function loadAchievements(){try{allAch=await q('achievements',{order:'sort_order.asc'});return allAch}catch(e){return[]}}
@@ -567,10 +631,12 @@ function renderProfile(){
   c.innerHTML=card+achHtml+actHtml
 }
 
+// #SECTION: BUILD UTILITIES
 // ═══════════════════════════════════════
 // BUILD UTILITIES
 // Duplicate builds, favourites, export, and related helpers.
 // ═══════════════════════════════════════
+
 async function dupBuild(id){
   var b=allBuilds.find(function(x){return x.id===id});if(!b)return;
   var body={user_id:usr.id,pokemon_id:b.pokemon_id,name:b.build_name+' (Copy)',battle_format:b.battle_format,archetype:b.archetype,item_id:b.item_id||null,nature_id:b.nature_id||null,ability:b.ability,move_1:b.move_1,move_2:b.move_2,move_3:b.move_3,move_4:b.move_4,hp_sp:b.hp_sp,atk_sp:b.atk_sp,def_sp:b.def_sp,spa_sp:b.spa_sp,spd_sp:b.spd_sp,spe_sp:b.spe_sp,is_shiny:b.is_shiny||false,win_condition:b.win_condition,strengths:b.strengths,weaknesses:b.weaknesses,status:'Testing'};
@@ -583,10 +649,12 @@ async function togFav(ev,id){
   b.is_favourite=!b.is_favourite;toast(b.is_favourite?'⭐ Favourited!':'Unfavourited');renderBuilds()}catch(e){toast(e.message,'err')}
 }
 
+// #SECTION: TEAM COVERAGE ANALYZER
 // ═══════════════════════════════════════
 // TEAM COVERAGE ANALYZER
 // Analyse offensive coverage and defensive weaknesses.
 // ═══════════════════════════════════════
+
 function teamCoverageHtml(members){
   if(!members||!members.length)return'<p style="color:var(--muted);font-size:.85rem">Add members to see coverage</p>';
   var offHits={},defWeaks={};
@@ -632,10 +700,12 @@ function teamCoverageHtml(members){
   return html
 }
 
+// #SECTION: BATTLE LOG
 // ═══════════════════════════════════════
 // BATTLE LOG
 // Record wins/losses/draws and calculate team records.
 // ═══════════════════════════════════════
+
 var allBattles=[];
 async function loadBattles(){if(!tk)return;try{allBattles=await q('battle_log',{order:'battle_date.desc',limit:'200'},true)}catch(e){}}
 async function logBattle(teamId,result,notes){
@@ -646,10 +716,12 @@ async function logBattle(teamId,result,notes){
 async function delBattle(bid){try{await rm('battle_log',{'id':'eq.'+bid},true);toast('Removed');await loadBattles();renderTeams()}catch(e){toast(e.message,'err')}}
 function getTeamRecord(teamId){var w=0,l=0,d=0;allBattles.forEach(function(b){if(b.team_id===teamId){if(b.result==='win')w++;else if(b.result==='loss')l++;else d++}});return{w:w,l:l,d:d,total:w+l+d,rate:w+l+d>0?Math.round(w/(w+l+d)*100):0}}
 
+// #SECTION: SHOWDOWN EXPORT
 // ───────────────────────────────────────
 // SHOWDOWN EXPORT
 // Build a Showdown-friendly plaintext export.
 // ───────────────────────────────────────
+
 function exportShowdown(id){
   var b=allBuilds.find(function(x){return x.id===id});if(!b)return;
   var lines=[];
@@ -690,6 +762,8 @@ loadUser=async function(){await Promise.all([loadBuilds(),loadTeamRoster(),loadU
 // APP INITIALIZATION
 // Initial data loading and startup behavior.
 // ═══════════════════════════════════════
+updAuth();
+if(restoreSession()){updAuth();loadUser()}
 loadPkmn();loadItems();loadNatures();loadAchievements();
 
 // ═══════════════════════════════════════
