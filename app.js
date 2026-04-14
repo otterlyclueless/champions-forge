@@ -32,7 +32,7 @@ function h(a){return{'apikey':ANON,'Content-Type':'application/json','Authorizat
 
 // #SECTION: DEV SESSION PERSISTENCE
 // ═══════════════════════════════════════
-// // DEV ONLY: Persist the signed-in session in localStorage so the app
+// DEV ONLY: Persist the signed-in session in localStorage so the app
 // stays logged in across refreshes during development.
 // This is convenient for local testing, but it is not a production-
 // grade auth/session approach.
