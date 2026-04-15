@@ -1,0 +1,229 @@
+
+
+# 🧠 Champions App — Dev Playbook
+
+A living document to guide development, debugging, and decision-making.
+
+---
+
+# 🧩 Issue Log — Mobile Teams Layout (April 2026) - Session 1
+
+## ❌ Problem
+- Teams detail view looked broken on mobile
+- Cards stayed in desktop-style horizontal layout
+- CSS changes appeared to have no effect
+
+---
+
+## 🔍 What We Tried (That Didn’t Work)
+- Added mobile CSS targeting:
+  - `.member-card`
+  - `.member-main`
+  - `.member-right`
+  - `.team-detail-grid`
+- Forced stacking layouts using flex/grid
+- Adjusted spacing, buttons, and card styles
+
+Result:
+→ No visible change in UI
+
+---
+
+## 🧠 Root Cause
+
+### 1. CSS Was Targeting Assumed Classes
+- The class names used in CSS were not confirmed
+- Teams UI is not defined in `index.html`
+
+### 2. Teams Layout is Dynamically Rendered
+```html
+<div id="teamsView"></div>
+```
+- All team cards are injected via `app.js`
+- Real structure only exists in the rendered DOM
+
+### 3. We Were Styling Without Inspecting the DOM
+- CSS was written based on guesses
+- Not based on actual rendered markup
+
+---
+
+## 💡 Key Learnings
+
+### 🧭 The DOM is the Source of Truth
+- What you see in the browser = reality
+- Not what’s in your files
+
+---
+
+### 🎯 CSS Must Match Real Selectors
+- If a class does not exist in the DOM → CSS does nothing
+
+---
+
+### 🔍 Always Use DevTools → Elements
+- Inspect real structure
+- Confirm class names
+- Check applied styles
+
+---
+
+### 📱 Mobile Layout Requires Structural Change
+- Desktop layout ≠ mobile layout
+- Don’t squeeze horizontal layouts
+- Stack vertically instead
+
+---
+
+### ⚠️ “Nothing Changed” = Debug Signal
+Usually means:
+- Wrong selector
+- Dynamic HTML mismatch
+- CSS not targeting real elements
+
+---
+
+## 🛠️ Correct Debug Approach (Pattern)
+
+When UI changes don’t apply:
+
+1. Open DevTools → Elements
+2. Inspect the element
+3. Identify real class names
+4. Map DOM structure
+5. Write CSS based on reality
+6. Test immediately
+
+---
+
+## 🧱 Architecture Reminder
+
+| Layer        | Responsibility              |
+|--------------|-----------------------------|
+| `index.html` | Static layout               |
+| `app.js`     | Dynamic UI rendering        |
+| `styles.css` | Visual styling              |
+
+Teams view lives in `app.js`, not `index.html`
+
+---
+
+## 🧠 Core Principle
+
+> Don’t guess the UI — inspect it.
+
+> DOM → CSS → UI
+
+Not:
+
+> CSS → Guess → Hope
+
+---
+
+## 🚀 Next Step (Follow-up Work)
+
+- Inspect Teams rendering in `app.js`
+- Identify real class names
+- Rebuild mobile layout using correct selectors
+
+---
+
+_This playbook is updated per issue. Add new entries as patterns emerge._
+
+---
+
+## 🧩 Issue: Mobile Teams Layout Not Updating (April 2026) - Session 2
+
+### ❌ Problem
+
+- Teams detail view appeared broken on mobile  
+- Layout remained horizontal (desktop-style) instead of stacking  
+- UI felt cramped and unreadable on smaller screens  
+- CSS changes had no visible effect  
+
+Expected:  
+→ Clean vertical stacking layout for mobile  
+
+Actual:  
+→ No UI change despite multiple CSS updates  
+
+---
+
+### 🔍 What We Tried
+
+- Added mobile CSS targeting:
+  - `.member-card`
+  - `.member-main`
+  - `.member-right`
+  - `.team-detail-grid`
+- Forced stacking using flex and grid overrides  
+- Adjusted spacing, buttons, and layout rules  
+
+Result:
+
+→ No visible change in UI  
+
+---
+
+### 🧠 Root Cause
+
+#### 1. Incorrect Selector Assumptions
+
+- CSS targeted class names that were not confirmed in the DOM  
+- Styles applied to non-existent elements → no effect  
+
+#### 2. Dynamic Rendering Misunderstood
+
+- Teams UI is rendered via JavaScript (`app.js`)  
+- Not present in static `index.html`  
+- Structure only exists at runtime  
+
+#### 3. No DOM Inspection Step
+
+- CSS was written based on assumptions  
+- DevTools inspection was skipped  
+- Real structure was never verified  
+
+---
+
+### 💡 Key Learnings
+
+- The DOM is the single source of truth for UI structure  
+- CSS must target **real, rendered selectors**, not assumed ones  
+- Dynamically rendered UI requires inspection after render  
+- “No visual change” is a **diagnostic signal**, not a dead end  
+- Mobile layout fixes often require **structural changes**, not just styling tweaks  
+
+---
+
+### 🛠️ Pattern (Reusable Solution)
+
+1. Open DevTools → Elements  
+2. Inspect the actual rendered component  
+3. Identify real class names and hierarchy  
+4. Map the DOM structure  
+5. Write CSS against confirmed selectors  
+6. Test changes immediately in DevTools before committing  
+
+---
+
+### 🧱 Architecture Notes
+
+| Layer        | Responsibility              |
+|--------------|-----------------------------|
+| index.html   | Static layout               |
+| app.js       | Dynamic UI rendering        |
+| styles.css   | Visual styling              |
+
+Teams view is injected into:
+
+<div id="teamsView"></div>
+
+---
+
+### 🚀 Resolution
+
+- Inspected rendered DOM using DevTools  
+- Identified actual class structure generated by `app.js`  
+- Rewrote mobile CSS using correct selectors  
+- Shifted layout approach from “override desktop” → “design for mobile structure”  
