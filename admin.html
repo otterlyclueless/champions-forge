@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Champions Data — Admin Verification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface-2: #242836;
+  --border: #2e3345;
+  --text: #e4e7ef;
+  --text-2: #8b90a0;
+  --accent: #ef4444;
+  --green: #22c55e;
+  --amber: #f59e0b;
+  --blue: #3b82f6;
+  --purple: #8b5cf6;
+  --teal: #06b6d4;
+  --red-dim: rgba(239,68,68,0.12);
+  --green-dim: rgba(34,197,94,0.12);
+  --amber-dim: rgba(245,158,11,0.12);
+  --blue-dim: rgba(59,130,246,0.12);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+
+/* Layout */
+.app { max-width: 1200px; margin: 0 auto; padding: 16px; }
+@media(min-width:768px) { .app { padding: 24px 32px; } }
+
+/* Header */
+.header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:12px; }
+.header h1 { font-size:1.25rem; font-weight:800; letter-spacing:-0.02em; }
+.header h1 span { color:var(--accent); }
+.auth-bar { display:flex; align-items:center; gap:8px; }
+.auth-bar input {
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);
+  padding:8px 12px; color:var(--text); font-size:0.85rem; width:160px;
+}
+.auth-bar input::placeholder { color:var(--text-2); }
+.btn {
+  padding:8px 16px; border-radius:var(--radius-sm); border:none; font-size:0.85rem;
+  font-weight:600; transition:all 0.15s;
+}
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-primary:hover { background:#dc2626; }
+.btn-secondary { background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
+.btn-secondary:hover { background:var(--border); }
+.btn-small { padding:5px 10px; font-size:0.75rem; }
+.user-badge {
+  background:var(--green-dim); color:var(--green); padding:6px 12px;
+  border-radius:var(--radius-sm); font-size:0.8rem; font-weight:600;
+}
+
+/* Setup Banner */
+.setup-banner {
+  background:var(--amber-dim); border:1px solid rgba(245,158,11,0.3); border-radius:var(--radius);
+  padding:16px 20px; margin-bottom:20px;
+}
+.setup-banner h3 { color:var(--amber); font-size:0.9rem; margin-bottom:8px; }
+.setup-banner p { font-size:0.82rem; color:var(--text-2); line-height:1.5; margin-bottom:12px; }
+.setup-banner pre {
+  background:var(--bg); border-radius:var(--radius-sm); padding:12px; font-size:0.75rem;
+  overflow-x:auto; line-height:1.6; color:var(--teal); margin-bottom:12px;
+}
+.setup-banner code { font-family:'SF Mono',Consolas,monospace; }
+
+/* Overview Cards */
+.overview { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; margin-bottom:24px; }
+.stat-card {
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:16px 20px;
+}
+.stat-card .label { font-size:0.75rem; color:var(--text-2); text-transform:uppercase; letter-spacing:0.05em; font-weight:600; }
+.stat-card .row { display:flex; align-items:baseline; gap:8px; margin:8px 0 10px; }
+.stat-card .big { font-size:1.75rem; font-weight:800; letter-spacing:-0.03em; }
+.stat-card .sub { font-size:0.85rem; color:var(--text-2); }
+.progress-track { height:6px; background:var(--surface-2); border-radius:3px; overflow:hidden; }
+.progress-fill { height:100%; border-radius:3px; transition:width 0.5s ease; }
+.progress-fill.green { background:var(--green); }
+.progress-fill.amber { background:var(--amber); }
+.progress-fill.red { background:var(--accent); }
+.progress-fill.blue { background:var(--blue); }
+
+/* Tabs */
+.tabs { display:flex; gap:4px; margin-bottom:20px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:4px; }
+.tab {
+  padding:10px 18px; border-radius:var(--radius-sm); background:transparent; border:none;
+  color:var(--text-2); font-size:0.85rem; font-weight:600; white-space:nowrap; transition:all 0.15s;
+}
+.tab.active { background:var(--surface); color:var(--text); }
+.tab:hover:not(.active) { color:var(--text); }
+.tab .count {
+  display:inline-block; background:var(--surface-2); padding:2px 7px; border-radius:10px;
+  font-size:0.7rem; margin-left:4px;
+}
+.tab.active .count { background:var(--accent); color:#fff; }
+
+/* Filters */
+.filters { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+.filters select, .filters input {
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);
+  padding:8px 12px; color:var(--text); font-size:0.82rem;
+}
+.filters input { flex:1; min-width:180px; }
+.filter-pills { display:flex; gap:4px; }
+.pill {
+  padding:6px 14px; border-radius:20px; border:1px solid var(--border); background:transparent;
+  color:var(--text-2); font-size:0.78rem; font-weight:500; cursor:pointer; transition:all 0.15s;
+}
+.pill.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+.pill:hover:not(.active) { border-color:var(--text-2); color:var(--text); }
+
+/* Cards */
+.card-list { display:flex; flex-direction:column; gap:8px; }
+.entry-card {
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
+  padding:14px 18px; transition:border-color 0.15s;
+}
+.entry-card:hover { border-color:var(--text-2); }
+.entry-card.verified { border-left:3px solid var(--green); }
+.entry-card.unverified { border-left:3px solid var(--text-2); }
+.entry-card.has-override { border-left:3px solid var(--amber); }
+.card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; gap:8px; }
+.card-name { font-weight:700; font-size:0.95rem; }
+.card-badges { display:flex; gap:4px; flex-wrap:wrap; }
+.badge {
+  padding:3px 8px; border-radius:6px; font-size:0.7rem; font-weight:600;
+}
+.badge-type { background:var(--blue-dim); color:var(--blue); }
+.badge-cat { background:var(--surface-2); color:var(--text-2); }
+.badge-verified { background:var(--green-dim); color:var(--green); }
+.badge-unverified { background:var(--red-dim); color:var(--accent); }
+.badge-override { background:var(--amber-dim); color:var(--amber); }
+
+.card-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:10px 0; }
+.stat-group label { display:block; font-size:0.68rem; color:var(--text-2); text-transform:uppercase; font-weight:600; letter-spacing:0.04em; margin-bottom:3px; }
+.stat-group .value { font-size:0.9rem; font-weight:700; }
+.stat-group .showdown { color:var(--text-2); font-size:0.75rem; text-decoration:line-through; margin-left:4px; }
+
+.edit-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin:10px 0 6px; }
+.edit-row label { font-size:0.68rem; color:var(--amber); text-transform:uppercase; font-weight:600; letter-spacing:0.04em; }
+.edit-row input {
+  width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px;
+  padding:6px 10px; color:var(--text); font-size:0.85rem; font-weight:600;
+}
+.edit-row input:focus { border-color:var(--amber); outline:none; }
+.edit-row input::placeholder { color:var(--text-2); font-weight:400; }
+
+.note-input {
+  width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px;
+  padding:6px 10px; color:var(--text); font-size:0.82rem; margin:4px 0;
+}
+.note-input:focus { border-color:var(--amber); outline:none; }
+.note-display { font-size:0.8rem; color:var(--amber); font-style:italic; margin:4px 0; }
+
+.card-actions { display:flex; align-items:center; justify-content:space-between; margin-top:10px; gap:8px; }
+.toggle-wrap { display:flex; align-items:center; gap:8px; }
+.toggle-label { font-size:0.8rem; color:var(--text-2); font-weight:500; }
+.toggle {
+  position:relative; width:44px; height:24px; background:var(--surface-2);
+  border-radius:12px; cursor:pointer; transition:background 0.2s; border:none;
+}
+.toggle.on { background:var(--green); }
+.toggle::after {
+  content:''; position:absolute; top:2px; left:2px; width:20px; height:20px;
+  background:#fff; border-radius:50%; transition:transform 0.2s;
+}
+.toggle.on::after { transform:translateX(20px); }
+
+.save-indicator { font-size:0.75rem; font-weight:600; }
+.save-indicator.saving { color:var(--amber); }
+.save-indicator.saved { color:var(--green); }
+.save-indicator.error { color:var(--accent); }
+
+/* Loading & Empty */
+.loading { text-align:center; padding:60px 20px; color:var(--text-2); }
+.loading .spinner { display:inline-block; width:24px; height:24px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; margin-bottom:12px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.empty { text-align:center; padding:40px 20px; color:var(--text-2); font-size:0.9rem; }
+.page-controls { display:flex; align-items:center; justify-content:center; gap:12px; margin-top:16px; padding:12px; }
+.page-info { font-size:0.82rem; color:var(--text-2); }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- Header -->
+  <div class="header">
+    <h1><span>Champions</span> Data Admin</h1>
+    <div class="auth-bar" id="auth-bar">
+      <input type="email" id="email" placeholder="Email">
+      <input type="password" id="password" placeholder="Password">
+      <button class="btn btn-primary" onclick="login()">Sign In</button>
+    </div>
+    <div class="auth-bar" id="user-bar" style="display:none">
+      <span class="user-badge" id="user-email"></span>
+      <button class="btn btn-secondary btn-small" onclick="logout()">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- Setup Banner (hidden once dismissed) -->
+  <div class="setup-banner" id="setup-banner">
+    <h3>First-Time Setup Required</h3>
+    <p>Run this SQL in your Supabase SQL Editor to enable write access from this dashboard:</p>
+    <pre><code>-- 014_admin_write_access.sql
+-- Allows authenticated users to update reference tables
+
+CREATE POLICY "admin_update_pokemon" ON pokemon
+  FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+
+CREATE POLICY "admin_update_moves" ON moves
+  FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+
+CREATE POLICY "admin_update_abilities" ON abilities
+  FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+
+CREATE POLICY "admin_update_items" ON items
+  FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
+
+CREATE POLICY "admin_update_pokemon_moves" ON pokemon_moves
+  FOR UPDATE TO authenticated USING (true) WITH CHECK (true);</code></pre>
+    <button class="btn btn-secondary btn-small" onclick="dismissSetup()">I've run this &mdash; dismiss</button>
+  </div>
+
+  <!-- Overview -->
+  <div class="overview" id="overview"></div>
+
+  <!-- Tabs -->
+  <div class="tabs" id="tabs"></div>
+
+  <!-- Filters -->
+  <div class="filters" id="filters"></div>
+
+  <!-- Content -->
+  <div id="content">
+    <div class="loading"><div class="spinner"></div><br>Loading data...</div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="page-controls" id="pagination" style="display:none"></div>
+</div>
+
+<script>
+// ── Supabase Setup ──
+const SUPA_URL = 'https://hrxqhhjkhhlpafhfarbl.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhyeHFoaGpraGhscGFmaGZhcmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMDAzNjYsImV4cCI6MjA5MTY3NjM2Nn0.AALRUAOd3WVj1vmu42RvDV-RGHCpa8ymplkXsx_NSW0';
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ── State ──
+let state = {
+  tab: 'moves',
+  filter: 'unverified',
+  search: '',
+  page: 0,
+  pageSize: 30,
+  user: null,
+  data: { pokemon:[], moves:[], abilities:[], items:[], pokemon_moves_count:{} },
+  counts: {},
+  saving: {}
+};
+
+// ── Auth ──
+async function login() {
+  const email = document.getElementById('email').value;
+  const pw = document.getElementById('password').value;
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+  if (error) { alert('Login failed: ' + error.message); return; }
+  state.user = data.user;
+  updateAuthUI();
+}
+async function logout() {
+  await sb.auth.signOut();
+  state.user = null;
+  updateAuthUI();
+}
+function updateAuthUI() {
+  document.getElementById('auth-bar').style.display = state.user ? 'none' : 'flex';
+  document.getElementById('user-bar').style.display = state.user ? 'flex' : 'none';
+  if (state.user) document.getElementById('user-email').textContent = state.user.email;
+}
+
+// ── Check existing session ──
+sb.auth.getSession().then(({data}) => {
+  if (data.session) { state.user = data.session.user; updateAuthUI(); }
+});
+
+// ── Setup banner ──
+function dismissSetup() {
+  document.getElementById('setup-banner').style.display = 'none';
+  localStorage.setItem('champions_setup_done', '1');
+}
+if (localStorage.getItem('champions_setup_done')) {
+  document.getElementById('setup-banner').style.display = 'none';
+}
+
+// ── Data Loading ──
+async function loadAllData() {
+  try {
+    const [pokRes, movRes, abRes, itRes] = await Promise.all([
+      sb.from('pokemon').select('id,name,dex_number,form,base_hp,base_atk,base_def,base_spa,base_spd,base_spe,champions_verified').order('dex_number'),
+      sb.from('moves').select('*').order('name'),
+      sb.from('abilities').select('*').order('name'),
+      sb.from('items').select('*').order('name'),
+    ]);
+
+    if (pokRes.error) console.error('Pokemon load error:', pokRes.error);
+    if (movRes.error) console.error('Moves load error:', movRes.error);
+    if (abRes.error) console.error('Abilities load error:', abRes.error);
+    if (itRes.error) console.error('Items load error:', itRes.error);
+
+    state.data.pokemon = pokRes.data || [];
+    state.data.moves = movRes.data || [];
+    state.data.abilities = abRes.data || [];
+    state.data.items = (itRes.data || []).filter(i => i.description);
+
+    // Count learnset verifications using head:true (no row download)
+    const [totalRes, verifiedRes] = await Promise.all([
+      sb.from('pokemon_moves').select('*', { count: 'exact', head: true }),
+      sb.from('pokemon_moves').select('*', { count: 'exact', head: true }).eq('champions_verified', true),
+    ]);
+    state.counts.learnsets = {
+      total: totalRes.count || 0,
+      verified: verifiedRes.count || 0
+    };
+
+    computeCounts();
+    renderOverview();
+    renderTabs();
+    renderFilters();
+    renderContent();
+  } catch (err) {
+    console.error('Load failed:', err);
+    document.getElementById('content').innerHTML = '<div class="empty">Failed to load data. Check console for errors.</div>';
+  }
+}
+
+function computeCounts() {
+  const c = {};
+  ['pokemon','moves','abilities','items'].forEach(key => {
+    const d = state.data[key];
+    c[key] = { total: d.length, verified: d.filter(r => r.champions_verified).length };
+  });
+  if (state.counts.learnsets) c.learnsets = state.counts.learnsets;
+  else c.learnsets = { total: 0, verified: 0 };
+  state.counts = c;
+}
+
+// ── Rendering ──
+function renderOverview() {
+  const cats = [
+    { key:'pokemon', label:'Pokemon', color:'green', icon:'Base Stats' },
+    { key:'moves', label:'Moves', color:'red', icon:'Power/Acc/PP' },
+    { key:'abilities', label:'Abilities', color:'blue', icon:'Descriptions' },
+    { key:'items', label:'Items', color:'amber', icon:'Descriptions' },
+    { key:'learnsets', label:'Learnsets', color:'red', icon:'Move Lists' },
+  ];
+  document.getElementById('overview').innerHTML = cats.map(c => {
+    const d = state.counts[c.key] || {total:0,verified:0};
+    const pct = d.total ? Math.round(d.verified/d.total*100) : 0;
+    const fillColor = pct === 100 ? 'green' : pct > 50 ? 'amber' : 'red';
+    return `<div class="stat-card">
+      <div class="label">${c.label}</div>
+      <div class="row">
+        <span class="big">${pct}%</span>
+        <span class="sub">${d.verified} / ${d.total} verified</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill ${fillColor}" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderTabs() {
+  const tabs = [
+    { key:'moves', label:'Moves', count: state.counts.moves?.total - state.counts.moves?.verified },
+    { key:'abilities', label:'Abilities', count: state.counts.abilities?.total - state.counts.abilities?.verified },
+    { key:'items', label:'Items', count: state.counts.items?.total - state.counts.items?.verified },
+    { key:'pokemon', label:'Stats', count: state.counts.pokemon?.total - state.counts.pokemon?.verified },
+  ];
+  document.getElementById('tabs').innerHTML = tabs.map(t =>
+    `<button class="tab ${state.tab===t.key?'active':''}" onclick="switchTab('${t.key}')">
+      ${t.label}<span class="count">${t.count}</span>
+    </button>`
+  ).join('');
+}
+
+function switchTab(key) {
+  state.tab = key; state.page = 0;
+  renderTabs(); renderFilters(); renderContent();
+}
+
+function renderFilters() {
+  document.getElementById('filters').innerHTML = `
+    <div class="filter-pills">
+      <button class="pill ${state.filter==='all'?'active':''}" onclick="setFilter('all')">All</button>
+      <button class="pill ${state.filter==='unverified'?'active':''}" onclick="setFilter('unverified')">Unverified</button>
+      <button class="pill ${state.filter==='verified'?'active':''}" onclick="setFilter('verified')">Verified</button>
+      <button class="pill ${state.filter==='override'?'active':''}" onclick="setFilter('override')">Has Override</button>
+    </div>
+    <input type="search" placeholder="Search by name..." value="${state.search}" oninput="setSearch(this.value)">
+  `;
+}
+function setFilter(f) { state.filter=f; state.page=0; renderFilters(); renderContent(); }
+function setSearch(s) { state.search=s; state.page=0; renderContent(); }
+
+function getFiltered() {
+  let items = state.data[state.tab] || [];
+  if (state.filter === 'unverified') items = items.filter(r => !r.champions_verified);
+  else if (state.filter === 'verified') items = items.filter(r => r.champions_verified);
+  else if (state.filter === 'override') items = items.filter(r => r.champions_power || r.champions_accuracy || r.champions_pp || r.champions_note);
+  if (state.search) {
+    const q = state.search.toLowerCase();
+    items = items.filter(r => (r.name||'').toLowerCase().includes(q));
+  }
+  return items;
+}
+
+function renderContent() {
+  const items = getFiltered();
+  const start = state.page * state.pageSize;
+  const pageItems = items.slice(start, start + state.pageSize);
+  const totalPages = Math.ceil(items.length / state.pageSize);
+
+  if (!items.length) {
+    document.getElementById('content').innerHTML = '<div class="empty">No entries match your filters.</div>';
+    document.getElementById('pagination').style.display = 'none';
+    return;
+  }
+
+  let html;
+  if (state.tab === 'moves') html = pageItems.map(renderMoveCard).join('');
+  else if (state.tab === 'abilities') html = pageItems.map(renderAbilityCard).join('');
+  else if (state.tab === 'items') html = pageItems.map(renderItemCard).join('');
+  else html = pageItems.map(renderPokemonCard).join('');
+
+  document.getElementById('content').innerHTML = `<div class="card-list">${html}</div>`;
+
+  // Pagination
+  const pg = document.getElementById('pagination');
+  if (totalPages > 1) {
+    pg.style.display = 'flex';
+    pg.innerHTML = `
+      <button class="btn btn-secondary btn-small" onclick="prevPage()" ${state.page===0?'disabled':''}>Prev</button>
+      <span class="page-info">Page ${state.page+1} of ${totalPages} (${items.length} entries)</span>
+      <button class="btn btn-secondary btn-small" onclick="nextPage()" ${state.page>=totalPages-1?'disabled':''}>Next</button>
+    `;
+  } else {
+    pg.style.display = 'none';
+  }
+}
+function prevPage() { if(state.page>0){state.page--;renderContent();window.scrollTo(0,300);} }
+function nextPage() { state.page++;renderContent();window.scrollTo(0,300); }
+
+// ── Move Card ──
+function renderMoveCard(m) {
+  const cls = m.champions_verified ? 'verified' : (m.champions_power||m.champions_accuracy||m.champions_note ? 'has-override' : 'unverified');
+  const statusBadge = m.champions_verified
+    ? '<span class="badge badge-verified">Verified</span>'
+    : (m.champions_note ? '<span class="badge badge-override">Has Note</span>' : '<span class="badge badge-unverified">Unverified</span>');
+
+  const showOverride = (field, label) => {
+    const ov = m['champions_'+field];
+    const base = m[field];
+    if (ov != null && ov !== base) return `<span class="value" style="color:var(--amber)">${ov}</span><span class="showdown">${base}</span>`;
+    return `<span class="value">${base ?? '—'}</span>`;
+  };
+
+  return `<div class="entry-card ${cls}" id="move-${m.id}">
+    <div class="card-header">
+      <span class="card-name">${m.name}</span>
+      <div class="card-badges">
+        <span class="badge badge-type">${m.type}</span>
+        <span class="badge badge-cat">${m.category}</span>
+        ${statusBadge}
+      </div>
+    </div>
+    <div class="card-stats">
+      <div class="stat-group"><label>Power</label>${showOverride('power','Power')}</div>
+      <div class="stat-group"><label>Accuracy</label>${showOverride('accuracy','Accuracy')}</div>
+      <div class="stat-group"><label>PP</label>${showOverride('pp','PP')}</div>
+    </div>
+    ${m.champions_note && !m._editing ? `<div class="note-display">${m.champions_note}</div>` : ''}
+    ${m._editing ? `
+    <div class="edit-row">
+      <div><label>Champions Power</label><input type="number" value="${m.champions_power??''}" placeholder="${m.power}" onchange="setOverride('${m.id}','champions_power',this.value)"></div>
+      <div><label>Champions Acc</label><input type="number" value="${m.champions_accuracy??''}" placeholder="${m.accuracy??'—'}" onchange="setOverride('${m.id}','champions_accuracy',this.value)"></div>
+      <div><label>Champions PP</label><input type="number" value="${m.champions_pp??''}" placeholder="${m.pp}" onchange="setOverride('${m.id}','champions_pp',this.value)"></div>
+    </div>
+    <input class="note-input" placeholder="Note (e.g. Serebii: power 80→90)" value="${m.champions_note||''}" onchange="setOverride('${m.id}','champions_note',this.value)">
+    ` : ''}
+    <div class="card-actions">
+      <div class="toggle-wrap">
+        <span class="toggle-label">Verified</span>
+        <button class="toggle ${m.champions_verified?'on':''}" onclick="toggleVerified('moves','${m.id}',${!m.champions_verified})"></button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span class="save-indicator" id="save-${m.id}"></span>
+        <button class="btn btn-secondary btn-small" onclick="toggleEdit('moves','${m.id}')">${m._editing?'Done':'Edit'}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Ability Card ──
+function renderAbilityCard(a) {
+  const cls = a.champions_verified ? 'verified' : 'unverified';
+  return `<div class="entry-card ${cls}">
+    <div class="card-header">
+      <span class="card-name">${a.name}</span>
+      <span class="badge ${a.champions_verified?'badge-verified':'badge-unverified'}">${a.champions_verified?'Verified':'Unverified'}</span>
+    </div>
+    <p style="font-size:0.82rem;color:var(--text-2);line-height:1.5;margin:6px 0">${a.description||'No description'}</p>
+    ${a.champions_note ? `<div class="note-display">${a.champions_note}</div>` : ''}
+    <div class="card-actions">
+      <div class="toggle-wrap">
+        <span class="toggle-label">Verified</span>
+        <button class="toggle ${a.champions_verified?'on':''}" onclick="toggleVerified('abilities','${a.id}',${!a.champions_verified})"></button>
+      </div>
+      <span class="save-indicator" id="save-${a.id}"></span>
+    </div>
+  </div>`;
+}
+
+// ── Item Card ──
+function renderItemCard(i) {
+  const cls = i.champions_verified ? 'verified' : 'unverified';
+  return `<div class="entry-card ${cls}">
+    <div class="card-header">
+      <span class="card-name">${i.name}</span>
+      <span class="badge ${i.champions_verified?'badge-verified':'badge-unverified'}">${i.champions_verified?'Verified':'Unverified'}</span>
+    </div>
+    <p style="font-size:0.82rem;color:var(--text-2);line-height:1.5;margin:6px 0">${i.description||'No description'}</p>
+    <div class="card-actions">
+      <div class="toggle-wrap">
+        <span class="toggle-label">Verified</span>
+        <button class="toggle ${i.champions_verified?'on':''}" onclick="toggleVerified('items','${i.id}',${!i.champions_verified})"></button>
+      </div>
+      <span class="save-indicator" id="save-${i.id}"></span>
+    </div>
+  </div>`;
+}
+
+// ── Pokemon Card ──
+function renderPokemonCard(p) {
+  return `<div class="entry-card ${p.champions_verified?'verified':'unverified'}">
+    <div class="card-header">
+      <span class="card-name">#${p.dex_number} ${p.name}</span>
+      <span class="badge badge-verified">Verified</span>
+    </div>
+    <div class="card-stats" style="grid-template-columns:repeat(6,1fr)">
+      <div class="stat-group"><label>HP</label><span class="value">${p.base_hp??'—'}</span></div>
+      <div class="stat-group"><label>Atk</label><span class="value">${p.base_atk??'—'}</span></div>
+      <div class="stat-group"><label>Def</label><span class="value">${p.base_def??'—'}</span></div>
+      <div class="stat-group"><label>SpA</label><span class="value">${p.base_spa??'—'}</span></div>
+      <div class="stat-group"><label>SpD</label><span class="value">${p.base_spd??'—'}</span></div>
+      <div class="stat-group"><label>Spe</label><span class="value">${p.base_spe??'—'}</span></div>
+    </div>
+  </div>`;
+}
+
+// ── Actions ──
+function toggleEdit(table, id) {
+  const arr = state.data[table];
+  const item = arr.find(r => r.id === id);
+  if (item) { item._editing = !item._editing; renderContent(); }
+}
+
+async function toggleVerified(table, id, value) {
+  if (!state.user) { alert('Sign in to make changes'); return; }
+  showSave(id, 'saving', 'Saving...');
+  const { error } = await sb.from(table).update({ champions_verified: value }).eq('id', id);
+  if (error) { showSave(id, 'error', error.message); return; }
+  const item = state.data[table].find(r => r.id === id);
+  if (item) item.champions_verified = value;
+  computeCounts(); renderOverview(); renderTabs(); renderContent();
+  showSave(id, 'saved', 'Saved');
+}
+
+async function setOverride(id, field, value) {
+  if (!state.user) { alert('Sign in to make changes'); return; }
+  const numFields = ['champions_power','champions_accuracy','champions_pp'];
+  let val = numFields.includes(field) ? (value===''?null:parseInt(value)) : (value||null);
+
+  showSave(id, 'saving', 'Saving...');
+  const { error } = await sb.from('moves').update({ [field]: val }).eq('id', id);
+  if (error) { showSave(id, 'error', error.message); return; }
+  const item = state.data.moves.find(r => r.id === id);
+  if (item) item[field] = val;
+  showSave(id, 'saved', 'Saved');
+}
+
+function showSave(id, cls, text) {
+  const el = document.getElementById('save-'+id);
+  if (el) { el.className = 'save-indicator '+cls; el.textContent = text; }
+  if (cls === 'saved') setTimeout(() => { if(el) el.textContent=''; }, 2000);
+}
+
+// ── Init ──
+loadAllData();
+</script>
+</body>
+</html>
