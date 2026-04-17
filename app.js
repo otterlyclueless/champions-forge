@@ -1190,6 +1190,9 @@ function maybeShowInitialAuthPrompt(){}
 // ═══════════════════════════════════════
 
 var teamView='list',editTeamId=null,detailTeamId=null,selBuildIds=[];
+// Mobile-first team view state
+var tdView='bars'; // Bars or Hex view for team member stats
+var tdCollapsed={}; // {buildId: true} means collapsed — persists across re-renders
 
 function showTeamList(){teamView='list';renderTeams()}
 function showTeamDetail(id){detailTeamId=id;teamView='detail';renderTeams()}
@@ -1210,36 +1213,235 @@ function renderTeams(){
   if(!tk){c.innerHTML='<div class="ph"><div class="ph-title">🏆 Teams</div><div class="ph-sub">Sign in to manage teams</div></div><div class="empty"><div class="em">🔒</div>Sign in to see teams</div>';return}
   if(teamView==='editor'){renderTeamEditor(c);return}
   if(teamView==='detail'){renderTeamDetail(c);return}
-  var hdr='<div class="ph"><div class="ph-top"><div><div class="ph-title">🏆 Teams</div><div class="ph-sub">Your competitive team compositions</div></div><button class="btn btn-red" onclick="showTeamEditor()">+ New Team</button></div></div>';
+  var hdr='<div class="ph teams-list-header"><div class="ph-top"><div><div class="ph-title">🏆 Teams</div><div class="ph-sub">Your competitive team compositions</div></div><button class="btn btn-red" onclick="showTeamEditor()">+ New</button></div></div>';
   if(!allTeams.length){c.innerHTML=hdr+'<div class="empty"><div class="em">🏆</div>No teams yet</div>';return}
-  c.innerHTML=hdr+'<div class="teams-grid">'+allTeams.map(function(t){
+  c.innerHTML=hdr+'<div class="tml-stack">'+allTeams.map(function(t){
     var fc=t.format==='Singles'?'fmt-s':'fmt-d';
-    var mems=(t.members||[]).map(function(m){var mImg=m.is_shiny&&m.shiny_url?m.shiny_url:(m.image_url||'');return'<div class="tm-mem"><img src="'+mImg+'" onerror="this.style.opacity=\'0.2\'"><div><div class="tm-mem-name">'+(m.pokemon_name||'?')+(m.is_shiny?' <span style="color:var(--purple);font-size:.6rem">✦</span>':'')+'</div><div class="tm-mem-role">'+(m.archetype||'')+'</div></div></div>'}).join('');
-    return'<div class="tm-card" onclick="showTeamDetail(\''+t.id+'\')" style="cursor:pointer"><div class="tm-top"><span class="tm-name">'+t.name+'</span><div style="display:flex;gap:.3rem;align-items:center"><span class="tm-fmt '+fc+'">'+(t.format||'?')+'</span></div></div><div class="tm-members">'+(mems||'<span style="color:var(--muted);font-size:.82rem">No builds assigned</span>')+'</div><div class="bld-actions" style="margin-top:.5rem"><button onclick="event.stopPropagation();showTeamEditor(\''+t.id+'\')">✏️ Edit</button><button onclick="event.stopPropagation();confirmDelTeam(\''+t.id+'\',\''+t.name.replace(/'/g,"\\'")+'\')">🗑 Delete</button></div></div>'
-  }).join('')+'</div>'
+    var memCount=(t.members||[]).length;
+    var mems=(t.members||[]).map(function(m){var mImg=m.is_shiny&&m.shiny_url?m.shiny_url:(m.image_url||'');return '<div class="tml-mem"><img class="tml-mem-img" src="'+mImg+'" onerror="this.style.opacity=\'0.2\'"><div class="tml-mem-name">'+(m.pokemon_name||'?')+'</div></div>'}).join('');
+    for(var i=memCount;i<6;i++){mems+='<div class="tml-mem"><div class="tml-mem-empty">+</div></div>'}
+    var safeName=t.name.replace(/'/g,"\\'");
+    return '<div class="tml-card" onclick="showTeamDetail(\''+t.id+'\')">'+
+'<div class="tml-head">'+
+  '<div class="tml-head-text">'+
+    '<div class="tml-name">'+t.name+'</div>'+
+    '<div class="tml-meta">'+
+      '<span class="tml-fmt '+fc+'">'+(t.format||'?')+'</span>'+
+      '<span class="tml-count">'+memCount+' / 6</span>'+
+    '</div>'+
+  '</div>'+
+'<div class="tml-head-actions">'+
+  '<button class="btn tml-edit-btn" onclick="event.stopPropagation();showTeamEditor(\''+t.id+'\')" aria-label="Edit team">✏️</button>'+
+  '<div class="om-wrap">'+
+    '<button class="btn btn-ghost btn-icon tml-more-btn" onclick="event.stopPropagation();toggleTmlOm(\''+t.id+'\')" aria-label="More">⋮</button>'+
+      '<div class="om-menu" id="tmlOm-'+t.id+'">'+
+        '<button class="om-item" onclick="event.stopPropagation();closeAllTmlOms();showTeamDetail(\''+t.id+'\')"><span class="om-item-icon">📋</span>View detail</button>'+
+        '<div class="om-sep"></div>'+
+        '<button class="om-item destructive" onclick="event.stopPropagation();closeAllTmlOms();confirmDelTeam(\''+t.id+'\',\''+safeName+'\')"><span class="om-item-icon">🗑</span>Delete team</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>'+
+'</div>'+
+'<div class="tml-members">'+mems+'</div>'+
+'</div>';
+  }).join('')+'</div>';
 }
+
+function closeAllTmlOms(){document.querySelectorAll('[id^="tmlOm-"]').forEach(function(m){m.classList.remove('open')})}
+function toggleTmlOm(id){var m=document.getElementById('tmlOm-'+id);if(!m)return;var wasOpen=m.classList.contains('open');closeAllTmlOms();if(!wasOpen)m.classList.add('open')}
+document.addEventListener('click',function(e){if(!e.target.closest('.om-wrap'))closeAllTmlOms()});
+
+// Team member stat helpers — reuse Drop 2/3 bsCalcStatFor / bsGetCalcStatsFor
+function tdGetMemberStats(m,b){
+  var poke=allPkmn.find(function(p){return(p.id===m.pokemon_id)||(p.name===m.pokemon_name&&p.dex_number===m.dex_number)});
+  if(!poke)return null;
+  var sp={hp:b.hp_sp||0,atk:b.atk_sp||0,def:b.def_sp||0,spa:b.spa_sp||0,spd:b.spd_sp||0,spe:b.spe_sp||0};
+  var nature=b.increased_stat?{increased_stat:b.increased_stat,decreased_stat:b.decreased_stat}:null;
+  return{poke:poke,stats:bsGetCalcStatsFor(poke,sp,nature),nature:nature};
+}
+
+function tdRenderBars(stats){
+  return '<div class="td-bs-grid">'+stats.map(function(st){
+    var pct=Math.min(st.calc/300*100,100);
+    var natInd=st.natMod>1?' <span style="color:var(--green)">▲</span>':st.natMod<1?' <span style="color:var(--red)">▼</span>':'';
+    var natCol=st.natMod>1?'var(--green)':st.natMod<1?'var(--red)':BSC[st.key];
+    return '<div class="td-bs-row"><span class="td-bs-label">'+BSN[st.key]+'</span><div class="td-bs-track"><div class="td-bs-fill" style="width:'+pct+'%;background:'+BSC[st.key]+'"></div></div><span class="td-bs-val" style="color:'+natCol+'">'+st.calc+'</span><span class="td-bs-nat-ind">'+natInd+'</span></div>';
+  }).join('')+'</div>';
+}
+
+function tdRenderHex(poke,stats){
+  var typeCol=(TC[poke.type_1]||TC.Normal).m;
+  var cx=160,cy=140,r=62,angles=[-90,-30,30,90,150,210],order=[0,1,2,5,4,3];
+  function polar(a,rd){var d=a*Math.PI/180;return{x:cx+rd*Math.cos(d),y:cy+rd*Math.sin(d)}}
+  var outerPts=angles.map(function(a){var p=polar(a,r);return p.x+','+p.y}).join(' ');
+  var g75=angles.map(function(a){var p=polar(a,r*.75);return p.x+','+p.y}).join(' ');
+  var g50=angles.map(function(a){var p=polar(a,r*.5);return p.x+','+p.y}).join(' ');
+  var g25=angles.map(function(a){var p=polar(a,r*.25);return p.x+','+p.y}).join(' ');
+  var spokes=angles.map(function(a){var p=polar(a,r);return'<line x1="'+cx+'" y1="'+cy+'" x2="'+p.x+'" y2="'+p.y+'" stroke="var(--border)" stroke-width="1"/>'}).join('');
+  var statPts=[];
+  for(var i=0;i<6;i++){var si=order[i];var pct=Math.min(stats[si].calc/300,1);var pt=polar(angles[i],r*Math.max(pct,0.05));statPts.push(pt.x+','+pt.y)}
+  var labels='';
+  for(var i=0;i<6;i++){
+    var si=order[i],k=BSK[si],st=stats[si],pt=polar(angles[i],r+20);
+    var anchor='middle';if(angles[i]===-30||angles[i]===30)anchor='start';if(angles[i]===150||angles[i]===210)anchor='end';
+    var natInd=st.natMod>1?' ▲':st.natMod<1?' ▼':'';
+    var natCol=st.natMod>1?'var(--green)':st.natMod<1?'var(--red)':BSC[k];
+    var isTop=angles[i]===-90,isBot=angles[i]===90;
+    if(isTop){labels+='<text x="'+pt.x+'" y="'+(pt.y-8)+'" text-anchor="middle" fill="'+BSC[k]+'" font-size="9" font-weight="700" font-family="Plus Jakarta Sans,sans-serif">'+BSN[k]+'</text><text x="'+pt.x+'" y="'+(pt.y+5)+'" text-anchor="middle" fill="'+natCol+'" font-size="11" font-weight="800" font-family="Plus Jakarta Sans,sans-serif" style="font-variant-numeric:tabular-nums">'+st.calc+natInd+'</text>'}
+    else if(isBot){labels+='<text x="'+pt.x+'" y="'+(pt.y+4)+'" text-anchor="middle" fill="'+natCol+'" font-size="11" font-weight="800" font-family="Plus Jakarta Sans,sans-serif" style="font-variant-numeric:tabular-nums">'+st.calc+natInd+'</text><text x="'+pt.x+'" y="'+(pt.y+15)+'" text-anchor="middle" fill="'+BSC[k]+'" font-size="9" font-weight="700" font-family="Plus Jakarta Sans,sans-serif">'+BSN[k]+'</text>'}
+    else{labels+='<text x="'+pt.x+'" y="'+(pt.y-3)+'" text-anchor="'+anchor+'" fill="'+BSC[k]+'" font-size="9" font-weight="700" font-family="Plus Jakarta Sans,sans-serif">'+BSN[k]+'</text><text x="'+pt.x+'" y="'+(pt.y+9)+'" text-anchor="'+anchor+'" fill="'+natCol+'" font-size="11" font-weight="800" font-family="Plus Jakarta Sans,sans-serif" style="font-variant-numeric:tabular-nums">'+st.calc+natInd+'</text>'}
+  }
+  return '<div class="td-bs-hex-wrap"><svg class="td-bs-hex-svg" viewBox="0 0 320 280">'+
+    '<polygon points="'+outerPts+'" fill="none" stroke="var(--border)" stroke-width="1.2"/>'+
+    '<polygon points="'+g75+'" fill="none" stroke="var(--border)" stroke-width=".5" opacity=".3"/>'+
+    '<polygon points="'+g50+'" fill="none" stroke="var(--border)" stroke-width=".5" opacity=".3"/>'+
+    '<polygon points="'+g25+'" fill="none" stroke="var(--border)" stroke-width=".5" opacity=".3"/>'+
+    spokes+
+    '<polygon points="'+statPts.join(' ')+'" fill="'+typeCol+'25" stroke="'+typeCol+'" stroke-width="2" stroke-linejoin="round"/>'+
+    labels+'</svg></div>';
+}
+
+// Render a single team member card (collapsible). editorMode adds Change/Remove actions.
+function tdRenderMember(m,slot,editorMode){
+  var b=allBuilds.find(function(x){return x.id===m.build_id})||m;
+  var mImg=(b.is_shiny||m.is_shiny)&&(b.shiny_url||m.shiny_url)?(b.shiny_url||m.shiny_url):(b.image_url||m.image_url||'');
+  var t1=(TC[m.type_1||b.type_1]||TC.Normal).m,t2=(m.type_2||b.type_2)?((TC[m.type_2||b.type_2]||TC.Normal).m):null;
+  var headerGrad=t2?'linear-gradient(135deg,'+t1+'CC,'+t2+'CC)':'linear-gradient(135deg,'+t1+'BB,'+t1+'66)';
+  var statData=tdGetMemberStats(m,b);
+  var collapsedKey=m.build_id||m.id||('s'+slot);
+  var collapsed=!!tdCollapsed[collapsedKey];
+  var dName=displayName({name:m.pokemon_name||b.pokemon_name,form:m.form||b.form});
+  var isMega=(m.form||b.form)==='Mega';
+
+  // Compact stats for collapsed header (Atk / SpA / Spe / BST)
+  var compactStats='';
+  if(statData){
+    var atk=statData.stats.find(function(s){return s.key==='atk'});
+    var spa=statData.stats.find(function(s){return s.key==='spa'});
+    var spe=statData.stats.find(function(s){return s.key==='spe'});
+    var bst=statData.stats.reduce(function(s,st){return s+st.calc},0);
+    compactStats='<span class="td-mem-compact-stats"><span style="color:'+BSC.atk+'">'+atk.calc+'</span><span style="color:'+BSC.spa+'">'+spa.calc+'</span><span style="color:'+BSC.spe+'">'+spe.calc+'</span><span style="color:rgba(255,255,255,.5)">·</span><span>BST '+bst+'</span></span>';
+  }
+
+  var natSl={hp:'HP',attack:'Atk',defense:'Def',sp_attack:'SpA',sp_defense:'SpD',speed:'Spe'};
+  var natInfo=b.nature_name?'<span class="td-mem-nature-chip">'+b.nature_name+(b.increased_stat?' <span style="color:var(--green);font-size:.6rem">▲'+natSl[b.increased_stat]+'</span> <span style="color:var(--red);font-size:.6rem">▼'+natSl[b.decreased_stat]+'</span>':'')+'</span>':'';
+  var bst=statData?statData.stats.reduce(function(s,st){return s+st.calc},0):0;
+  var bstCls=bst>=1100?'bst-elite':bst>=950?'bst-high':bst>=800?'bst-mid':'bst-low';
+
+  var moves=[b.move_1||m.move_1,b.move_2||m.move_2,b.move_3||m.move_3,b.move_4||m.move_4].filter(Boolean).map(function(mv){return '<div class="td-mem-move">'+mv+'</div>'}).join('');
+  var tags='';
+  if(b.item_name||m.item_name)tags+='<span class="btag btag-item">'+(b.item_name||m.item_name)+'</span>';
+  if(b.ability)tags+='<span class="btag btag-abi">'+b.ability+'</span>';
+  if(b.archetype||m.archetype)tags+='<span class="btag btag-arch">'+(b.archetype||m.archetype)+'</span>';
+
+  var clickHandler=editorMode?'onclick="toggleTdMember(\''+collapsedKey+'\')"':'onclick="toggleTdMember(\''+collapsedKey+'\')"';
+
+  return '<div class="td-member'+(collapsed?' collapsed':'')+'" data-key="'+collapsedKey+'">'+
+    '<div class="td-mem-head" '+clickHandler+'><div style="position:absolute;inset:0;background:'+headerGrad+';opacity:.5;z-index:0"></div>'+
+      '<div class="td-mem-slot">#'+slot+'</div>'+
+      '<img class="td-mem-img" src="'+mImg+'" onerror="this.style.opacity=0.2">'+
+      '<div class="td-mem-head-info">'+
+        '<div class="td-mem-name"><span>'+(m.pokemon_name||b.pokemon_name||'?')+'</span>'+(isMega?megaBadge(18):'')+(b.is_shiny||m.is_shiny?' <span style="color:var(--purple);font-size:.7rem">✦</span>':'')+'</div>'+
+        (b.build_name||m.build_name?'<div class="td-mem-sub" style="color:rgba(255,255,255,.8)">'+(b.build_name||m.build_name)+'</div>':'')+
+        '<div class="td-mem-types"><span class="type-pill" style="background:'+t1+'">'+(m.type_1||b.type_1)+'</span>'+(t2?'<span class="type-pill" style="background:'+t2+'">'+(m.type_2||b.type_2)+'</span>':'')+'</div>'+
+        compactStats+
+      '</div>'+
+      '<div class="td-chevron">▾</div>'+
+    '</div>'+
+    '<div class="td-mem-body-wrap"><div class="td-mem-body">'+
+      '<div class="td-mem-stats">'+
+        natInfo+
+        (statData?(tdView==='hex'?tdRenderHex(statData.poke,statData.stats):tdRenderBars(statData.stats)):'<div style="color:var(--muted);font-size:.78rem">Stats unavailable</div>')+
+        (statData?'<div class="td-bs-total"><span class="td-bs-total-label">Lv50 Total</span><span class="td-bs-total-val '+bstCls+'">'+bst+'</span></div>':'')+
+      '</div>'+
+      (tags||moves?'<div class="td-mem-foot">'+(tags?'<div class="td-mem-tags">'+tags+'</div>':'')+(moves?'<div class="td-mem-moves">'+moves+'</div>':'')+'</div>':'')+
+      (editorMode?'<div class="td-mem-editor-actions"><button onclick="event.stopPropagation();scrollToPicker()">🔄 Change Build</button><button class="td-remove" onclick="event.stopPropagation();removeTeamMember(\''+(m.build_id||m.id)+'\')">✕ Remove</button></div>':'<div style="padding:.5rem .85rem .85rem;border-top:1px solid var(--border)"><button class="btn btn-ghost" style="width:100%;min-height:40px;font-size:.78rem" onclick="event.stopPropagation();showBuildDetail(\''+(m.build_id||m.id)+'\')">View build detail →</button></div>')+
+    '</div></div>'+
+  '</div>';
+}
+
+function toggleTdMember(key){
+  var card=document.querySelector('.td-member[data-key="'+key+'"]');
+  if(!card)return;
+  var wasCollapsed=card.classList.toggle('collapsed');
+  tdCollapsed[key]=wasCollapsed;
+}
+function setTdView(v){tdView=v;renderTeams()}
+function expandAllTdMembers(){document.querySelectorAll('.td-member').forEach(function(c){c.classList.remove('collapsed');tdCollapsed[c.dataset.key]=false})}
+function collapseAllTdMembers(){document.querySelectorAll('.td-member').forEach(function(c){c.classList.add('collapsed');tdCollapsed[c.dataset.key]=true})}
+function scrollToPicker(){var el=document.getElementById('buildPickerSection');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
+function removeTeamMember(buildId){var i=selBuildIds.indexOf(buildId);if(i!==-1)selBuildIds.splice(i,1);renderTeams()}
 
 function renderTeamEditor(c){
   var t=editTeamId?allTeams.find(function(x){return x.id===editTeamId}):null;
-  var hdr='<div class="ph"><div class="ph-top"><div><div class="ph-title" style="cursor:pointer" onclick="showTeamList()">← '+(t?'Edit Team':'New Team')+'</div><div class="ph-sub">Assemble your builds into a competitive roster.</div></div><button class="btn btn-red" onclick="saveTeam()">💾 Save Team</button></div></div>';
-  // Roster slots
-  var slots='';for(var i=0;i<6;i++){
-    var bid=selBuildIds[i];var b=bid?allBuilds.find(function(x){return x.id===bid}):null;
-    if(b){var slImg=b.is_shiny&&b.shiny_url?b.shiny_url:(b.image_url||'');slots+='<div class="te-slot filled"><img src="'+slImg+'" onerror="this.style.opacity=\'0.2\'"><span>'+(b.pokemon_name||'?')+(b.is_shiny?' ✦':'')+'</span><span class="te-rm" onclick="rmSlot('+i+')">✕ Remove</span></div>'}
-    else{slots+='<div class="te-slot"><span style="font-size:1.2rem;color:var(--muted2)">+</span><span style="font-size:.6rem;color:var(--muted2)">Slot '+(i+1)+'</span></div>'}
+  var hdr='<div class="ph"><div class="ph-top"><div><div class="ph-title" style="cursor:pointer" onclick="showTeamList()">← '+(t?'Edit Team':'New Team')+'</div><div class="ph-sub">Assemble your roster</div></div></div></div>';
+  var fmtSelectedS=t&&t.format==='Singles'?' selected':'';
+  var fmtSelectedD=t&&t.format==='Doubles'?' selected':'';
+  var fmtCls=(t&&t.format==='Doubles')?'fmt-d':'fmt-s';
+  var fmtLabel=t&&t.format?t.format:'Singles';
+
+  // Team Info card
+  var teamInfo='<div class="card">'+
+    '<label class="ed-label" style="margin-top:0">Team Name</label>'+
+    '<input class="ed-input" id="tmName" value="'+(t?(t.name||'').replace(/"/g,'&quot;'):'')+'" placeholder="e.g. Storm Surge Protocol">'+
+    '<label class="ed-label">Format</label>'+
+    '<select class="ed-select" id="tmFmt"><option value="Singles"'+fmtSelectedS+'>Singles</option><option value="Doubles"'+fmtSelectedD+'>Doubles</option></select>'+
+    '<label class="ed-label">Notes</label>'+
+    '<textarea class="ed-textarea" id="tmNotes" placeholder="Strategy, matchups, meta notes...">'+(t?t.notes||'':'')+'</textarea>'+
+  '</div>';
+
+  // Build members in order of selBuildIds
+  var memberCards='';
+  selBuildIds.forEach(function(bid,idx){
+    var b=allBuilds.find(function(x){return x.id===bid});
+    if(!b)return;
+    // Synthesize a team-roster-shaped object from the build
+    var m={
+      build_id:b.id,pokemon_id:b.pokemon_id,pokemon_name:b.pokemon_name,
+      type_1:b.type_1,type_2:b.type_2,form:b.form,
+      image_url:b.image_url,shiny_url:b.shiny_url,is_shiny:b.is_shiny,
+      build_name:b.build_name,archetype:b.archetype,item_name:b.item_name
+    };
+    memberCards+=tdRenderMember(m,idx+1,true);
+  });
+  var emptySlots='';
+  for(var i=selBuildIds.length;i<6;i++){
+    emptySlots+='<div class="td-empty-slot" onclick="scrollToPicker()">+ Add Pokémon to Slot '+(i+1)+'</div>';
   }
-  // Build picker
-  var bpicker=allBuilds.map(function(b){var picked=selBuildIds.indexOf(b.id)!==-1;
-    var details=(b.archetype?b.archetype:'')+(b.item_name?' · '+b.item_name:'')+(b.nature_name?' · '+b.nature_name:'');
-    var moves=[b.move_1,b.move_2,b.move_3,b.move_4].filter(Boolean).join(', ');
-    var bpImg=b.is_shiny&&b.shiny_url?b.shiny_url:(b.image_url||'');
-    return'<div class="te-bld'+(picked?' picked':'')+'" onclick="togBldPick(\''+b.id+'\')"><img src="'+bpImg+'" onerror="this.style.opacity=\'0.2\'"><div><div class="te-bld-info">'+(b.pokemon_name||'?')+(b.is_shiny?' ✦':'')+' — '+b.build_name+'</div><div class="te-bld-meta">'+(b.battle_format||'')+' · '+(b.total_sp||0)+' SP</div>'+(details?'<div class="te-bld-meta">'+details+'</div>':'')+(moves?'<div class="te-bld-meta" style="font-style:italic">'+moves+'</div>':'')+'</div></div>'}).join('');
-  c.innerHTML=hdr+'<div class="editor"><div class="ed-grid"><div><div class="ed-card"><h3>Team Info</h3>'+
-    '<label class="ed-label">Team Name</label><input class="ed-input" id="tmName" value="'+(t?t.name:'')+'" placeholder="e.g. Storm Surge Protocol">'+
-    '<div class="ed-row"><div><label class="ed-label">Format</label><select class="ed-select" id="tmFmt"><option value="Singles"'+(t&&t.format==='Singles'?' selected':'')+'>Singles</option><option value="Doubles"'+(t&&t.format==='Doubles'?' selected':'')+'>Doubles</option></select></div></div>'+
-    '<label class="ed-label">Notes</label><textarea class="ed-textarea" id="tmNotes">'+(t?t.notes||'':'')+'</textarea>'+
-    '</div><div class="ed-card" style="margin-top:1rem"><h3>Roster <span style="font-size:.75rem;color:var(--muted);font-weight:500">'+selBuildIds.length+' / 6</span></h3><div class="te-roster">'+slots+'</div></div></div>'+
-    '<div><div class="ed-card"><h3>Select Builds</h3>'+(allBuilds.length?'<div class="te-builds">'+bpicker+'</div>':'<p style="color:var(--muted);font-size:.82rem">Create builds first</p>')+'</div></div></div></div>'
+
+  var viewToggle='<div style="display:flex;gap:.5rem;align-items:center">'+
+    '<div class="td-view-toggle" style="flex:1"><button class="td-view-btn'+(tdView==='bars'?' active':'')+'" data-view="bars" onclick="setTdView(\'bars\')">📊 Bars</button><button class="td-view-btn'+(tdView==='hex'?' active':'')+'" data-view="hex" onclick="setTdView(\'hex\')">⬢ Hex</button></div>'+
+    '<button class="btn btn-ghost" style="min-height:38px;padding:.35rem .7rem;font-size:.72rem;flex-shrink:0" onclick="expandAllTdMembers()">Expand all</button>'+
+    '<button class="btn btn-ghost" style="min-height:38px;padding:.35rem .7rem;font-size:.72rem;flex-shrink:0" onclick="collapseAllTdMembers()">Collapse all</button>'+
+  '</div>';
+
+  // Build picker — mobile list style
+  var bpicker='';
+  if(allBuilds.length){
+    bpicker='<div style="display:flex;flex-direction:column;gap:.45rem">'+allBuilds.map(function(b){
+      var picked=selBuildIds.indexOf(b.id)!==-1;
+      var bpImg=b.is_shiny&&b.shiny_url?b.shiny_url:(b.image_url||'');
+      var isMega=b.form==='Mega';
+      var sub=(b.archetype||'—')+(b.nature_name?' · '+b.nature_name:'')+(b.item_name?' · '+b.item_name:'');
+      return '<div style="display:flex;align-items:center;gap:.55rem;padding:.55rem .65rem;border-radius:10px;border:1.5px solid '+(picked?'var(--green)':'var(--border)')+';background:'+(picked?'var(--green-bg)':'var(--surface)')+';cursor:pointer;transition:all .12s" onclick="togBldPick(\''+b.id+'\')">'+
+        '<img src="'+bpImg+'" onerror="this.style.opacity=\'0.2\'" style="width:40px;height:40px;object-fit:contain;flex-shrink:0">'+
+        '<div style="flex:1;min-width:0"><div style="font-size:.78rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:6px"><span>'+(picked?'✓ ':'')+(b.pokemon_name||'?')+'</span>'+(isMega?megaBadge(16):'')+(b.is_shiny?' <span style="color:var(--purple);font-size:.7rem">✦</span>':'')+'<span style="color:var(--muted);font-weight:500;margin-left:2px">— '+b.build_name+'</span></div>'+
+        '<div style="font-size:.62rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+sub+' · '+(b.total_sp||0)+' SP</div></div>'+
+      '</div>';
+    }).join('')+'</div>';
+  } else {
+    bpicker='<p style="color:var(--muted);font-size:.82rem">No builds yet — create some in the Builds page</p>';
+  }
+
+  c.innerHTML=hdr+'<div class="td-stack" style="padding-bottom:6rem">'+
+    teamInfo+
+    '<div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 .2rem;margin-top:.3rem"><div style="font-weight:800;font-size:.9rem">Roster <span style="color:var(--muted);font-weight:500;font-size:.78rem;margin-left:.3rem">'+selBuildIds.length+' / 6</span></div><span class="td-fmt '+fmtCls+'">'+fmtLabel+'</span></div>'+
+    viewToggle+
+    memberCards+
+    emptySlots+
+    '<div class="card" id="buildPickerSection"><h3>Your Builds <span style="font-weight:500;color:var(--muted);font-size:.72rem">tap to add/remove</span></h3>'+bpicker+'</div>'+
+  '</div>'+
+  '<div class="save-bar"><button class="btn btn-ghost" onclick="showTeamList()">Cancel</button><button class="btn btn-red" onclick="saveTeam()">💾 Save Team</button></div>';
 }
 
 // #SECTION: TEAM DETAIL VIEW
@@ -1252,40 +1454,61 @@ function renderTeamDetail(c){
   var t=allTeams.find(function(x){return x.id===detailTeamId});
   if(!t){showTeamList();return}
   var fc=t.format==='Singles'?'fmt-s':'fmt-d';
-  var members=(t.members||[]).map(function(m){
-    // Find the full build data
-    var b=allBuilds.find(function(x){return x.id===m.build_id})||m;
-    var mImg=b.is_shiny&&b.shiny_url?b.shiny_url:(m.image_url||b.image_url||'');
-    var t1=TC[m.type_1||b.type_1]||TC.Normal;
-    var SMAX=32;var max=b.max_sp||66;
-    var statMini=['hp','atk','def','spa','spd','spe'].map(function(s){var v=b[s+'_sp']||0;var pct=Math.min(v/SMAX*100,100);return'<div style="display:flex;align-items:center;gap:4px;margin-bottom:2px"><span style="width:28px;font-size:.6rem;font-weight:600;color:var(--muted);text-align:right">'+s.toUpperCase()+'</span><div style="flex:1;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden"><div style="width:'+pct+'%;height:100%;border-radius:2px;background:'+statCols[s]+'"></div></div><span style="width:18px;font-size:.6rem;font-weight:600;text-align:right">'+v+'</span></div>'}).join('');
-    return'<div class="card team-member-card" style="padding:1rem;cursor:pointer" onclick="showBuildDetail(\''+m.build_id+'\')">'+
-      '<div class="team-member-main" style="display:flex;gap:1rem;align-items:flex-start">'+
-        '<div class="team-member-left" style="text-align:center"><img class="team-member-art" src="'+mImg+'" style="width:80px;height:80px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.15))" onerror="this.style.opacity=\'0.2\'"><div class="team-member-types" style="margin-top:.3rem;display:flex;gap:3px;justify-content:center"><span class="type-pill" style="background:'+t1.m+'">'+(m.type_1||b.type_1||'?')+'</span>'+(m.type_2||b.type_2?'<span class="type-pill" style="background:'+(TC[m.type_2||b.type_2]||TC.Normal).m+'">'+(m.type_2||b.type_2)+'</span>':'')+'</div></div>'+
-        '<div class="team-member-right" style="flex:1"><div class="team-member-name" style="font-weight:700;font-size:.92rem">'+(m.pokemon_name||'?')+(b.is_shiny?' <span style="color:var(--purple);font-size:.7rem">✦</span>':'')+'</div><div class="team-member-build" style="font-size:.78rem;color:var(--muted);margin-bottom:.4rem">'+(m.build_name||b.build_name||'')+'</div>'+
-          '<div class="team-member-tags" style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.5rem">'+
-            (m.archetype||b.archetype?'<span class="btag btag-arch">'+(m.archetype||b.archetype)+'</span>':'')+
-            (b.item_name||m.item_name?'<span class="btag btag-item">'+(b.item_name||m.item_name)+'</span>':'')+
-            (b.nature_name?'<span class="btag btag-nat">'+b.nature_name+'</span>':'')+
-            (b.ability?'<span class="btag btag-abi">'+b.ability+'</span>':'')+
-          '</div>'+
-          '<div class="team-member-moves" style="display:flex;gap:4px;margin-bottom:.5rem;flex-wrap:wrap">'+[b.move_1||m.move_1,b.move_2||m.move_2,b.move_3||m.move_3,b.move_4||m.move_4].filter(Boolean).map(function(mv){return'<span class="bmove">'+mv+'</span>'}).join('')+'</div>'+
-          statMini+
-        '</div>'+
-      '</div></div>'
-  }).join('');
-  var emptySlots='';if((t.members||[]).length<6){for(var i=(t.members||[]).length;i<6;i++){emptySlots+='<div class="card" style="padding:1.5rem;text-align:center;border-style:dashed"><span style="color:var(--muted2);font-size:.85rem">Empty Slot '+(i+1)+'</span></div>'}}
+  var safeName=t.name.replace(/'/g,"\\'");
 
-  c.innerHTML='<div class="ph"><div class="ph-top"><div><div class="ph-title" style="cursor:pointer" onclick="showTeamList()">← '+t.name+'</div><div class="ph-sub">'+(t.format||'')+' · '+(t.members||[]).length+'/6 members'+(t.notes?' · '+t.notes:'')+'</div></div><div style="display:flex;gap:.5rem"><button class="btn btn-ghost" onclick="showTeamEditor(\''+t.id+'\')">✏️ Edit Team</button><button class="btn btn-ghost" style="color:var(--red)" onclick="confirmDelTeam(\''+t.id+'\',\''+t.name.replace(/'/g,"\\'")+'\')">🗑 Delete</button></div></div></div>'+
-  '<div style="padding:1.2rem 2rem"><div style="display:flex;align-items:center;gap:.5rem;margin-bottom:1rem"><span class="tm-fmt '+fc+'" style="font-size:.82rem">'+(t.format||'?')+'</span><span style="font-size:.85rem;color:var(--muted)">'+(t.members||[]).length+' / 6 Roster</span></div>'+
-  '<div class="team-detail-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">'+members+emptySlots+'</div>'+
-  // Type Coverage
-  '<div class="card" style="margin-top:1.2rem"><h3 style="font-size:.95rem;font-weight:700;margin-bottom:.8rem">🎯 Team Type Coverage</h3>'+teamCoverageHtml(t.members||[])+'</div>'+
-  // Battle Log
-  '<div class="card" style="margin-top:1.2rem"><h3 style="font-size:.95rem;font-weight:700;margin-bottom:.8rem">📈 Battle Log '+function(){var r=getTeamRecord(t.id);return r.total?'<span style="font-size:.78rem;font-weight:500;color:var(--muted)">'+r.w+'W '+r.l+'L '+r.d+'D · <span style="color:'+(r.rate>=50?'var(--green)':'var(--red)')+'">'+r.rate+'% WR</span></span>':''}()+'</h3>'+
-  '<div style="display:flex;gap:.4rem;margin-bottom:.8rem"><button class="btn btn-ghost" style="color:var(--green)" onclick="logBattle(\''+t.id+'\',\'win\')">🏆 Win</button><button class="btn btn-ghost" style="color:var(--red)" onclick="logBattle(\''+t.id+'\',\'loss\')">💀 Loss</button><button class="btn btn-ghost" onclick="logBattle(\''+t.id+'\',\'draw\')">🤝 Draw</button></div>'+
-  function(){var logs=allBattles.filter(function(b){return b.team_id===t.id}).slice(0,10);if(!logs.length)return'<p style="color:var(--muted);font-size:.82rem">No battles logged yet</p>';return logs.map(function(l){var icon=l.result==='win'?'🏆':l.result==='loss'?'💀':'🤝';var col=l.result==='win'?'var(--green)':l.result==='loss'?'var(--red)':'var(--muted)';var d=new Date(l.battle_date);var ds=d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});return'<div style="display:flex;align-items:center;gap:.5rem;padding:.4rem .6rem;border-radius:8px;background:var(--surface);margin-bottom:.3rem"><span style="font-size:1rem">'+icon+'</span><span style="font-size:.82rem;font-weight:600;color:'+col+'">'+l.result.charAt(0).toUpperCase()+l.result.slice(1)+'</span>'+(l.opponent_notes?'<span style="font-size:.78rem;color:var(--muted);flex:1">'+l.opponent_notes+'</span>':'<span style="flex:1"></span>')+'<span style="font-size:.68rem;color:var(--muted)">'+ds+'</span><button style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:.7rem" onclick="event.stopPropagation();delBattle(\''+l.id+'\')">✕</button></div>'}).join('')}()+
-  '</div></div>'
+  // Header with Edit + overflow menu
+var hdr='<div class="ph"><div class="ph-top">'+
+  '<div style="flex:1;min-width:0">'+
+    '<div class="ph-title" style="display:flex;align-items:center;justify-content:space-between;gap:.6rem">'+
+      '<span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer" onclick="showTeamList()">← '+t.name+'</span>'+
+      '<div class="td-head-actions" onclick="event.stopPropagation()">'+
+        '<button class="btn td-edit-btn" onclick="showTeamEditor(\''+t.id+'\')" aria-label="Edit team">✏️</button>'+
+        '<div class="om-wrap">'+
+          '<button class="btn btn-ghost btn-icon td-more-btn" onclick="toggleTmlOm(\''+t.id+'\')" aria-label="More">⋮</button>'+
+          '<div class="om-menu" id="tmlOm-'+t.id+'">'+
+            '<button class="om-item destructive" onclick="closeAllTmlOms();confirmDelTeam(\''+t.id+'\',\''+safeName+'\')"><span class="om-item-icon">🗑</span>Delete team</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="ph-sub">'+(t.format||'')+' · '+(t.members||[]).length+' / 6 members</div>'+
+  '</div>'+
+'</div></div>';
+
+  var members='';
+  (t.members||[]).forEach(function(m,idx){members+=tdRenderMember(m,idx+1,false)});
+  var emptySlots='';
+  for(var i=(t.members||[]).length;i<6;i++){emptySlots+='<div class="td-empty-slot" style="cursor:default">Empty Slot '+(i+1)+'</div>'}
+
+  var viewToggle='<div style="display:flex;gap:.5rem;align-items:center">'+
+    '<div class="td-view-toggle" style="flex:1"><button class="td-view-btn'+(tdView==='bars'?' active':'')+'" data-view="bars" onclick="setTdView(\'bars\')">📊 Bars</button><button class="td-view-btn'+(tdView==='hex'?' active':'')+'" data-view="hex" onclick="setTdView(\'hex\')">⬢ Hex</button></div>'+
+    '<button class="btn btn-ghost" style="min-height:38px;padding:.35rem .7rem;font-size:.72rem;flex-shrink:0" onclick="expandAllTdMembers()">Expand all</button>'+
+    '<button class="btn btn-ghost" style="min-height:38px;padding:.35rem .7rem;font-size:.72rem;flex-shrink:0" onclick="collapseAllTdMembers()">Collapse all</button>'+
+  '</div>';
+
+  // Type coverage + battle log retained
+  var rec=getTeamRecord(t.id);
+  var recordHtml=rec.total?'<span style="font-size:.72rem;font-weight:500;color:var(--muted);margin-left:.4rem">'+rec.w+'W '+rec.l+'L '+rec.d+'D · <span style="color:'+(rec.rate>=50?'var(--green)':'var(--red)')+'">'+rec.rate+'% WR</span></span>':'';
+  var battleLogItems=allBattles.filter(function(b){return b.team_id===t.id}).slice(0,10);
+  var battleLogHtml=battleLogItems.length?battleLogItems.map(function(l){
+    var icon=l.result==='win'?'🏆':l.result==='loss'?'💀':'🤝';
+    var col=l.result==='win'?'var(--green)':l.result==='loss'?'var(--red)':'var(--muted)';
+    var d=new Date(l.battle_date);var ds=d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+    return '<div style="display:flex;align-items:center;gap:.5rem;padding:.5rem .7rem;border-radius:10px;background:var(--surface);margin-bottom:.35rem"><span style="font-size:1rem">'+icon+'</span><span style="font-size:.78rem;font-weight:700;color:'+col+'">'+l.result.charAt(0).toUpperCase()+l.result.slice(1)+'</span>'+(l.opponent_notes?'<span style="font-size:.72rem;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+l.opponent_notes+'</span>':'<span style="flex:1"></span>')+'<span style="font-size:.65rem;color:var(--muted)">'+ds+'</span><button style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:.7rem" onclick="event.stopPropagation();delBattle(\''+l.id+'\')">✕</button></div>';
+  }).join(''):'<p style="color:var(--muted);font-size:.78rem">No battles logged yet</p>';
+
+  c.innerHTML=hdr+'<div class="td-stack">'+
+    viewToggle+
+    '<div class="td-summary"><span class="td-fmt '+fc+'">'+(t.format||'?')+'</span><span style="color:var(--muted);font-size:.72rem">'+(t.members||[]).length+' of 6 slots filled · tap to inspect</span></div>'+
+    (t.notes?'<div class="card" style="padding:.8rem 1rem"><div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:700;margin-bottom:.3rem">Notes</div><div style="font-size:.82rem;line-height:1.45;color:var(--text2)">'+t.notes+'</div></div>':'')+
+    members+
+    emptySlots+
+    '<div class="card"><h3>🎯 Type Coverage</h3>'+teamCoverageHtml(t.members||[])+'</div>'+
+    '<div class="card"><h3>📈 Battle Log '+recordHtml+'</h3>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem;margin-bottom:.7rem"><button class="btn btn-ghost" style="color:var(--green);min-height:40px;font-size:.78rem;padding:.4rem .3rem" onclick="logBattle(\''+t.id+'\',\'win\')">🏆 Win</button><button class="btn btn-ghost" style="color:var(--red);min-height:40px;font-size:.78rem;padding:.4rem .3rem" onclick="logBattle(\''+t.id+'\',\'loss\')">💀 Loss</button><button class="btn btn-ghost" style="min-height:40px;font-size:.78rem;padding:.4rem .3rem" onclick="logBattle(\''+t.id+'\',\'draw\')">🤝 Draw</button></div>'+
+      battleLogHtml+
+    '</div>'+
+  '</div>';
 }
 
 function togBldPick(id){var idx=selBuildIds.indexOf(id);if(idx!==-1)selBuildIds.splice(idx,1);else if(selBuildIds.length<6)selBuildIds.push(id);renderTeams()}
