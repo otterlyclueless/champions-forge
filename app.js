@@ -426,6 +426,16 @@ async function togObt(ev,pid){ev.stopPropagation();if(!usr){toast('Sign in first
 
 function grad(p){var t1=TC[p.type_1]||TC.Normal,t2=p.type_2?TC[p.type_2]:null;return t2?'linear-gradient(135deg,'+t1.m+'55,'+t2.m+'55)':'linear-gradient(135deg,'+t1.l+'80,'+t1.m+'40)'}
 
+// Mobile-first pass helpers
+var MEGA_STONE_URL='icons/mega-stone.png';
+function displayName(p){if(p&&p.form==='Mega'&&p.name&&p.name.indexOf('Mega ')===0)return p.name.substring(5);return p?p.name:''}
+function megaBadge(size){
+  var s=parseInt(size,10)||24;
+  return '<span class="mega-stone" aria-label="Mega Evolution" style="display:inline-flex;align-items:center;justify-content:center;width:'+s+'px;height:'+s+'px;vertical-align:middle;flex-shrink:0"><img src="'+MEGA_STONE_URL+'" alt="" style="display:block;width:100%;height:100%;object-fit:contain" onerror="this.parentNode.style.display=\'none\'"></span>'
+}
+function toggleOverflow(e){e.stopPropagation();var m=document.getElementById('bdOmMenu');if(m)m.classList.toggle('open')}
+document.addEventListener('click',function(e){var m=document.getElementById('bdOmMenu');if(m&&m.classList.contains('open')&&!m.contains(e.target)&&!e.target.closest('.om-wrap'))m.classList.remove('open')});
+
 function renderDex(){
   // Progress badge
   if(usr){document.getElementById('progBadge').style.display='flex';document.getElementById('progVal').innerHTML=Object.keys(uDex).length+' / '+allPkmn.length+'<span style="font-size:.7rem;color:var(--purple);margin-left:.5rem">✦ '+Object.keys(uShinyDex).length+'</span>'}else{document.getElementById('progBadge').style.display='none'}
@@ -768,7 +778,7 @@ function edBuildStatSection(){
   if(!p)return '<div style="color:var(--muted);font-size:.82rem;padding:.5rem 0">Select a Pokémon to configure stats</div>';
   var t1=(TC[p.type_1]||TC.Normal).m,t2=p.type_2?(TC[p.type_2]||TC.Normal).m:null;
   var html='';
-  html+='<div style="display:flex;align-items:center;gap:.65rem;padding:.6rem .7rem;background:var(--surface);border-radius:10px;margin-bottom:.8rem"><img src="'+(p.image_url||'')+'" onerror="this.style.opacity=0.2" style="width:42px;height:42px;object-fit:contain"><div><div style="font-weight:800;font-size:.88rem">'+p.name+'</div><div style="display:flex;gap:4px;margin-top:2px"><span class="type-pill" style="background:'+t1+'">'+p.type_1+'</span>'+(p.type_2?'<span class="type-pill" style="background:'+t2+'">'+p.type_2+'</span>':'')+'</div></div></div>';
+html+='<div style="display:flex;align-items:center;gap:.65rem;padding:.6rem .7rem;background:var(--surface);border-radius:10px;margin-bottom:.8rem"><img src="'+((editorShiny&&p.shiny_url)?p.shiny_url:(p.image_url||''))+'" onerror="this.style.opacity=0.2" style="width:42px;height:42px;object-fit:contain"><div><div style="display:flex;align-items:center;justify-content:flex-start;gap:8px;flex-wrap:nowrap;font-weight:800;font-size:.88rem"><span>'+p.name+'</span>'+(p.form==="Mega"?'<img src="'+MEGA_STONE_URL+'" alt="Mega" style="width:18px;height:18px;object-fit:contain;display:block;flex-shrink:0" onerror="this.style.display=\'none\'">':'')+'</div><div style="display:flex;gap:4px;margin-top:2px"><span class="type-pill" style="background:'+t1+'">'+p.type_1+'</span>'+(p.type_2?'<span class="type-pill" style="background:'+t2+'">'+p.type_2+'</span>':'')+'</div></div></div>';
   html+='<div class="bs-view-toggle"><button class="bs-view-btn'+(edView==='bars'?' active':'')+'" data-view="bars" onclick="edSwitchView(\'bars\')">Bars</button><button class="bs-view-btn'+(edView==='hex'?' active':'')+'" data-view="hex" onclick="edSwitchView(\'hex\')">Hex</button></div>';
   html+='<div class="bs-view'+(edView==='bars'?' active':'')+'" id="ed-barsView">'+edBuildBars()+'</div>';
   html+='<div class="bs-view'+(edView==='hex'?' active':'')+'" id="ed-hexView">'+edBuildHex(p)+'</div>';
@@ -786,6 +796,8 @@ function edBuildStatSection(){
 // ═══════════════════════════════════════
 
 var buildView='list',editBuildId=null,detailBuildId=null,spV={hp:0,atk:0,def:0,spa:0,spd:0,spe:0},selPkmnId='',SP_MAX=66;
+// Editor state (mobile-first 2-step flow)
+var editorStep='picker',pickerShinyAll=false,editorShiny=false,pickerTypeFilter=null,pickerFormFilter=null,pickerSearchValue='';
 var statCols={hp:'#ef4444',atk:'#f08030',def:'#f7d02c',spa:'#6390f0',spd:'#7ac74c',spe:'#f95587'};
 var statNames={hp:'HP',atk:'ATTACK',def:'DEFENSE',spa:'SP. ATK',spd:'SP. DEF',spe:'SPEED'};
 
@@ -801,10 +813,32 @@ function showBuildDetail(id){detailBuildId=id;buildView='detail';
 function showBuildEditor(id){
   editBuildId=id||null;
   buildView='editor';
-  if(id){var b=allBuilds.find(function(x){return x.id===id});if(b){selPkmnId='';var pk=allPkmn.find(function(p){return p.name===b.pokemon_name&&p.dex_number===b.dex_number});if(pk)selPkmnId=pk.id;spV={hp:b.hp_sp||0,atk:b.atk_sp||0,def:b.def_sp||0,spa:b.spa_sp||0,spd:b.spd_sp||0,spe:b.spe_sp||0}}}
-  else{selPkmnId='';spV={hp:0,atk:0,def:0,spa:0,spd:0,spe:0}}
-  renderBuilds()
+  pickerSearchValue='';pickerTypeFilter=null;pickerFormFilter=null;pickerShinyAll=false;
+  if(id){
+    var b=allBuilds.find(function(x){return x.id===id});
+    if(b){
+      selPkmnId='';
+      var pk=allPkmn.find(function(p){return p.name===b.pokemon_name&&p.dex_number===b.dex_number});
+      if(pk)selPkmnId=pk.id;
+      spV={hp:b.hp_sp||0,atk:b.atk_sp||0,def:b.def_sp||0,spa:b.spa_sp||0,spd:b.spd_sp||0,spe:b.spe_sp||0};
+      editorShiny=!!b.is_shiny;
+      editorStep='form'; // Existing build → jump straight to form
+    }
+  } else {
+    selPkmnId='';
+    spV={hp:0,atk:0,def:0,spa:0,spd:0,spe:0};
+    editorShiny=false;
+    editorStep='picker'; // New build → start at Pokémon picker
+  }
+  renderBuilds();
 }
+
+// Step transitions
+function editorBackToPicker(){editorStep='picker';renderBuilds()}
+function togglePickerShiny(){pickerShinyAll=!pickerShinyAll;renderBuilds()}
+function togglePickerType(t){pickerTypeFilter=pickerTypeFilter===t?null:t;renderBuilds()}
+function togglePickerForm(f){pickerFormFilter=pickerFormFilter===f?null:f;renderBuilds()}
+function toggleBuildShiny(){editorShiny=!editorShiny;renderBuilds()}
 
 function renderBuilds(){
   var c=document.getElementById('buildsView');
@@ -827,32 +861,87 @@ function renderBuilds(){
   }).join('')+'</div>'
 }
 
+// Mobile-first 2-step build editor
 function renderBuildEditor(c){
+  if(editorStep==='picker'||!selPkmnId){renderEditorPicker(c);return}
+  renderEditorForm(c);
+}
+
+// STEP 1: Pokémon picker (full-screen)
+function renderEditorPicker(c){
+  var hdr='<div class="ph"><div class="ph-top"><div><div class="ph-title" style="cursor:pointer" onclick="showBuildList()">← '+(editBuildId?'Edit Build':'New Build')+'</div><div class="ph-sub">Choose your Pokémon</div></div></div></div>';
+  var search='<input class="ed-input" id="pkSrch" placeholder="🔍 Search by name or number" type="search" value="'+pickerSearchValue.replace(/"/g,'&quot;')+'" oninput="pickerSearchValue=this.value;filterPkPicker()">';
+  var typeRow='<div class="epc-filter-row" style="margin-top:.5rem"><span class="epc-filter-lbl">Type</span><div class="epc-filter-scroll">'+Object.keys(TC).sort().map(function(t){return '<button class="epc-filter'+(pickerTypeFilter===t?' active':'')+'" onclick="togglePickerType(\''+t+'\')">'+t+'</button>'}).join('')+'</div></div>';
+  var formRow='<div class="epc-filter-row" style="margin-top:.4rem;justify-content:space-between"><div style="display:flex;align-items:center;gap:.35rem"><span class="epc-filter-lbl">Form</span>'+['Base','Mega','Regional'].map(function(f){return '<button class="epc-filter'+(pickerFormFilter===f?' active':'')+'" onclick="togglePickerForm(\''+f+'\')">'+f+'</button>'}).join('')+'</div><button class="shiny-btn'+(pickerShinyAll?' active':'')+'" onclick="togglePickerShiny()">✦ Shiny</button></div>';
+  c.innerHTML=hdr+'<div style="padding:.9rem 1rem 1.5rem">'+search+typeRow+formRow+'<div class="epc-grid" id="pkPicker"></div></div>';
+  filterPkPicker();
+}
+
+// STEP 2: Form view (compact selected card + stats + moves + strategy + sticky save)
+function renderEditorForm(c){
   var b=editBuildId?allBuilds.find(function(x){return x.id===editBuildId}):null;
-  var total=Object.values(spV).reduce(function(a,v){return a+v},0);
-  var remain=SP_MAX-total;
-  var hdr='<div class="ph"><div class="ph-top"><div><div class="ph-title" style="cursor:pointer" onclick="showBuildList()">← '+(b?'Edit Build':'New Build')+'</div><div class="ph-sub">Configure your Pokémon\'s competitive stats and moves.</div></div><button class="btn btn-red" onclick="saveBuild()">💾 Save Build</button></div></div>';
-  // Pokemon picker
-  var isEdShiny=b&&b.is_shiny;
-  var pkSearch='<label class="ed-label">Pokémon</label><input class="ed-input" id="pkSrch" placeholder="Search Pokémon..." oninput="filterPkPicker()"><div style="display:flex;gap:3px;flex-wrap:wrap;margin:.4rem 0"><span class="flabel">Type</span><select class="ed-select" id="pkTypeF" onchange="filterPkPicker()" style="width:auto;padding:2px 6px;font-size:.7rem"><option value="">All Types</option>'+Object.keys(TC).sort().map(function(t){return'<option value="'+t+'">'+t+'</option>'}).join('')+'</select><span class="flabel" style="margin-left:.3rem">Form</span><select class="ed-select" id="pkFormF" onchange="filterPkPicker()" style="width:auto;padding:2px 6px;font-size:.7rem"><option value="">All Forms</option><option>Base</option><option>Mega</option><option>Regional</option></select></div>';
-  var pkGrid='<div class="pk-picker" id="pkPicker">'+allPkmn.slice(0,100).map(function(p){var sel=p.id===selPkmnId?'selected':'';var pImg=isEdShiny&&p.shiny_url?p.shiny_url:(p.image_url||'');return'<div class="pk-pick '+sel+'" onclick="pickPk(\''+p.id+'\')"><img src="'+pImg+'" onerror="this.style.opacity=\'0.2\'"><span>'+p.name+'</span></div>'}).join('')+'</div>';
+  var p=allPkmn.find(function(x){return x.id===selPkmnId});
+  if(!p){editorStep='picker';renderBuildEditor(c);return}
+
+  var dName=displayName(p);
+  var isMega=p.form==='Mega';
+  var t1=TC[p.type_1]||TC.Normal,t2=p.type_2?TC[p.type_2]:null;
+  var bg=t2?'linear-gradient(135deg,'+t1.m+','+t2.m+')':'linear-gradient(135deg,'+t1.m+','+t1.d+')';
+  var img=(editorShiny&&p.shiny_url)?p.shiny_url:(p.image_url||'');
+  var hasShiny=!!p.shiny_url;
+
+  // Selected Pokémon compact card
+  var selectedCard='<div class="sel-card'+(editorShiny?' shiny-holo':'')+'">'+
+    '<div class="sel-bg" style="background:'+bg+'"></div>'+
+    '<div class="sel-content">'+
+      '<img class="sel-img" src="'+img+'" onerror="this.style.opacity=\'0.2\'">'+
+      '<div class="sel-info">'+
+'<div class="sel-name" style="display:flex;align-items:center;justify-content:flex-start;gap:8px;flex-wrap:nowrap;font-weight:800;font-size:1.05rem"><span>'+dName+'</span>'+(isMega?'<img src="'+MEGA_STONE_URL+'" alt="Mega" style="width:20px;height:20px;object-fit:contain;display:block;flex-shrink:0" onerror="this.style.display=\'none\'">':'')+'</div>'+        '<div class="sel-dex">#'+String(p.dex_number||0).padStart(4,'0')+'</div>'+
+        '<div class="sel-types"><span class="type-pill" style="background:'+t1.m+'">'+p.type_1+'</span>'+(t2?'<span class="type-pill" style="background:'+t2.m+'">'+p.type_2+'</span>':'')+'</div>'+
+      '</div>'+
+      '<div class="sel-actions">'+
+        '<button class="sel-btn" onclick="editorBackToPicker()">Change</button>'+
+        (hasShiny?'<button class="sel-btn'+(editorShiny?' shiny-on':'')+'" onclick="toggleBuildShiny()" title="Using shiny">✦</button>':'')+
+      '</div>'+
+    '</div>'+
+  '</div>';
+
+  var hdr='<div class="ph"><div class="ph-top"><div><div class="ph-title" style="cursor:pointer" onclick="showBuildList()">← '+(b?'Edit Build':'New Build')+'</div><div class="ph-sub">'+dName+(isMega?' (Mega)':'')+'</div></div></div></div>';
+
+  // Nature dropdown
+  var sL={hp:'HP',attack:'Atk',defense:'Def',sp_attack:'SpA',sp_defense:'SpD',speed:'Spe'};
+  var natOptions=allNatures.map(function(n){
+    var hint=n.increased_stat?' (+'+sL[n.increased_stat]+' -'+sL[n.decreased_stat]+')':' (Neutral)';
+    var sel=b&&b.nature_name===n.name?' selected':'';
+    return '<option value="'+n.id+'"'+sel+'>'+n.name+hint+'</option>';
+  }).join('');
+
+  // Items dropdown
+  var itemOptions=allItems.map(function(i){var sel=b&&b.item_name===i.name?' selected':'';return '<option value="'+i.id+'"'+sel+'>'+i.name+'</option>'}).join('');
+
   // Stat calculator section (bars/hex + SP sliders + BST total)
   var statSectionHtml=edBuildStatSection();
-  c.innerHTML=hdr+'<div class="editor"><div class="ed-grid"><div>'+
-    '<div class="ed-card"><h3>Pokémon & Info</h3>'+pkSearch+pkGrid+
-    '<label class="ed-label">Build Name</label><input class="ed-input" id="edName" value="'+(b?b.build_name:'')+'" placeholder="e.g. Sweeper Dragonite">'+
-    '<div class="ed-row"><div><label class="ed-label">Format</label><select class="ed-select" id="edFmt"><option value="Singles"'+(b&&b.battle_format==='Singles'?' selected':'')+'>Singles</option><option value="Doubles"'+(b&&b.battle_format==='Doubles'?' selected':'')+'>Doubles</option></select></div><div><label class="ed-label">Archetype</label><input class="ed-input" id="edArch" list="archList" value="'+(b?b.archetype||'':'')+'" placeholder="Select or type custom..."><datalist id="archList"><option value="Setup Sweeper"><option value="Sweeper"><option value="Wallbreaker"><option value="Wall Breaker"><option value="Tank"><option value="Support"><option value="Pivot"><option value="Utility"><option value="Disruption"><option value="Stall"><option value="Glass Cannon"><option value="Special Breaker"><option value="Physical Breaker"><option value="Bulky Attacker"><option value="Lead"><option value="Revenge Killer"></datalist></div></div>'+
-    '<label class="ed-label" style="margin-top:.6rem">Shiny Variant</label><div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem"><button type="button" class="fpill'+(b&&b.is_shiny?' active':'')+'" id="edShiny" onclick="var el=this;el.classList.toggle(\'active\')" style="cursor:pointer">✦ Using Shiny</button><span style="font-size:.72rem;color:var(--muted)">Toggle if this build uses the shiny artwork</span></div>'+
-    '</div></div><div>'+
-    '<div class="ed-card"><h3>Stat Allocation</h3><div id="statSection">'+statSectionHtml+'</div></div>'+
+
+  c.innerHTML=hdr+'<div class="editor" style="padding-bottom:5rem">'+
+    selectedCard+
+    '<div class="ed-card" style="margin-top:1rem"><label class="ed-label" style="margin-top:0">Build Name</label><input class="ed-input" id="edName" value="'+(b?b.build_name:'').replace(/"/g,'&quot;')+'" placeholder="e.g. Sweeper '+dName+'">'+
+      '<div class="ed-row" style="margin-top:.5rem"><div><label class="ed-label">Format</label><select class="ed-select" id="edFmt"><option value="Singles"'+(b&&b.battle_format==='Singles'?' selected':'')+'>Singles</option><option value="Doubles"'+(b&&b.battle_format==='Doubles'?' selected':'')+'>Doubles</option></select></div><div><label class="ed-label">Archetype</label><input class="ed-input" id="edArch" list="archList" value="'+(b?b.archetype||'':'').replace(/"/g,'&quot;')+'" placeholder="Sweeper"><datalist id="archList"><option value="Setup Sweeper"><option value="Sweeper"><option value="Wallbreaker"><option value="Tank"><option value="Support"><option value="Pivot"><option value="Utility"><option value="Disruption"><option value="Stall"><option value="Glass Cannon"><option value="Special Breaker"><option value="Physical Breaker"><option value="Bulky Attacker"><option value="Lead"><option value="Revenge Killer"></datalist></div></div>'+
+    '</div>'+
+    '<div class="ed-card" style="margin-top:1rem"><h3 style="display:flex;align-items:center;gap:8px">Stat Allocation'+(isMega?'<img src="'+MEGA_STONE_URL+'" alt="Mega" style="width:20px;height:20px;object-fit:contain;display:block;flex-shrink:0" onerror="this.style.display=\'none\'">':'')+'</h3><div id="statSection">'+statSectionHtml+'</div></div>'+
     '<div class="ed-card" style="margin-top:1rem"><h3>Moves & Ability</h3>'+
-    '<div class="ed-row"><div><label class="ed-label">Ability</label><input class="ed-input" id="edAbi" value="'+(b?b.ability||'':'')+'" placeholder="e.g. Multiscale"></div><div><label class="ed-label">Item</label><select class="ed-select" id="edItem"><option value="">— None —</option>'+allItems.map(function(i){var sel=b&&b.item_name===i.name?' selected':'';return'<option value="'+i.id+'"'+sel+'>'+i.name+'</option>'}).join('')+'</select></div></div>'+
-    '<div class="ed-row"><div><label class="ed-label">Nature</label><select class="ed-select" id="edNat" onchange="edRefresh()"><option value="">— None —</option>'+allNatures.map(function(n){var sl={hp:'HP',attack:'Atk',defense:'Def',sp_attack:'SpA',sp_defense:'SpD',speed:'Spe'};var hint=n.increased_stat?' (+'+sl[n.increased_stat]+' -'+sl[n.decreased_stat]+')':' (Neutral)';var sel=b&&b.nature_name===n.name?' selected':'';return'<option value="'+n.id+'"'+sel+'>'+n.name+hint+'</option>'}).join('')+'</select></div></div>'+
-    '<div class="ed-row"><div><label class="ed-label">Move 1</label><input class="ed-input" id="edM1" value="'+(b?b.move_1||'':'')+'"></div><div><label class="ed-label">Move 2</label><input class="ed-input" id="edM2" value="'+(b?b.move_2||'':'')+'"></div></div>'+
-    '<div class="ed-row"><div><label class="ed-label">Move 3</label><input class="ed-input" id="edM3" value="'+(b?b.move_3||'':'')+'"></div><div><label class="ed-label">Move 4</label><input class="ed-input" id="edM4" value="'+(b?b.move_4||'':'')+'"></div></div>'+
-    '</div></div></div>'+
-    '<div class="ed-card" style="margin-top:1rem"><h3>Strategy</h3><div class="ed-row"><div><label class="ed-label">Win Condition</label><textarea class="ed-textarea" id="edWin">'+(b?b.win_condition||'':'')+'</textarea></div></div><div class="ed-row"><div><label class="ed-label">Strengths</label><textarea class="ed-textarea" id="edStr">'+(b?b.strengths||'':'')+'</textarea></div><div><label class="ed-label">Weaknesses</label><textarea class="ed-textarea" id="edWeak">'+(b?b.weaknesses||'':'')+'</textarea></div></div></div>'+
-    '</div>';
+      '<div class="ed-row"><div><label class="ed-label">Ability</label><input class="ed-input" id="edAbi" value="'+(b?b.ability||'':'').replace(/"/g,'&quot;')+'" placeholder="e.g. Multiscale"></div><div><label class="ed-label">Item</label><select class="ed-select" id="edItem"><option value="">— None —</option>'+itemOptions+'</select></div></div>'+
+      '<div class="ed-row" style="margin-top:.5rem"><div style="grid-column:1 / -1"><label class="ed-label">Nature</label><select class="ed-select" id="edNat" onchange="edRefresh()"><option value="">— None —</option>'+natOptions+'</select></div></div>'+
+      '<div class="ed-row" style="margin-top:.5rem"><div><label class="ed-label">Move 1</label><input class="ed-input" id="edM1" value="'+(b?b.move_1||'':'').replace(/"/g,'&quot;')+'"></div><div><label class="ed-label">Move 2</label><input class="ed-input" id="edM2" value="'+(b?b.move_2||'':'').replace(/"/g,'&quot;')+'"></div></div>'+
+      '<div class="ed-row" style="margin-top:.5rem"><div><label class="ed-label">Move 3</label><input class="ed-input" id="edM3" value="'+(b?b.move_3||'':'').replace(/"/g,'&quot;')+'"></div><div><label class="ed-label">Move 4</label><input class="ed-input" id="edM4" value="'+(b?b.move_4||'':'').replace(/"/g,'&quot;')+'"></div></div>'+
+    '</div>'+
+    '<details class="ed-card" style="margin-top:1rem"><summary style="font-size:.9rem;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">Strategy <span style="color:var(--muted);font-size:.72rem;font-weight:500">optional</span></summary>'+
+      '<div style="margin-top:.7rem"><label class="ed-label">Win Condition</label><textarea class="ed-textarea" id="edWin">'+(b?b.win_condition||'':'')+'</textarea></div>'+
+      '<div class="ed-row" style="margin-top:.5rem"><div><label class="ed-label">Strengths</label><textarea class="ed-textarea" id="edStr">'+(b?b.strengths||'':'')+'</textarea></div><div><label class="ed-label">Weaknesses</label><textarea class="ed-textarea" id="edWeak">'+(b?b.weaknesses||'':'')+'</textarea></div></div>'+
+    '</details>'+
+    // Hidden shiny button — editorShiny state already lives in JS, but saveBuild reads #edShiny.active so we keep a hidden mirror
+    '<button type="button" class="fpill'+(editorShiny?' active':'')+'" id="edShiny" style="display:none"></button>'+
+    '</div>'+
+    '<div class="save-bar"><button class="btn btn-ghost" onclick="showBuildList()">Cancel</button><button class="btn btn-red" onclick="saveBuild()">💾 Save Build</button></div>';
   // Paint bars/hex after DOM is attached
   requestAnimationFrame(function(){requestAnimationFrame(edRefresh)});
 }
@@ -881,18 +970,94 @@ function renderMatchupHtml(type1,type2){
 // Detailed single-build screen layout and rendering.
 // ───────────────────────────────────────
 
+// Build detail stat section (read-only calculated stats)
+// Uses bd-* DOM IDs to avoid clashing with dex detail / build editor
+var bdView='bars';
+function bdSwitchView(view){bdView=view;renderBuilds()}
+
+function bdBuildHex(poke,stats){
+  var typeCol=(TC[poke.type_1]||TC.Normal).m;
+  var cx=180,cy=175,r=78,angles=[-90,-30,30,90,150,210],order=[0,1,2,5,4,3];
+  function polar(a,rd){var d=a*Math.PI/180;return{x:cx+rd*Math.cos(d),y:cy+rd*Math.sin(d)}}
+  var outerPts=angles.map(function(a){var p=polar(a,r);return p.x+','+p.y}).join(' ');
+  var g75=angles.map(function(a){var p=polar(a,r*.75);return p.x+','+p.y}).join(' ');
+  var g50=angles.map(function(a){var p=polar(a,r*.5);return p.x+','+p.y}).join(' ');
+  var g25=angles.map(function(a){var p=polar(a,r*.25);return p.x+','+p.y}).join(' ');
+  var spokes=angles.map(function(a){var p=polar(a,r);return'<line x1="'+cx+'" y1="'+cy+'" x2="'+p.x+'" y2="'+p.y+'" stroke="var(--border)" stroke-width="1"/>'}).join('');
+  var statPts=[];
+  for(var i=0;i<6;i++){var si=order[i];var pct=Math.min(stats[si].calc/300,1);var pt=polar(angles[i],r*Math.max(pct,0.05));statPts.push(pt.x+','+pt.y)}
+  var labels='';
+  for(var i=0;i<6;i++){
+    var si=order[i],k=BSK[si],st=stats[si],pt=polar(angles[i],r+26);
+    var anchor='middle';if(angles[i]===-30||angles[i]===30)anchor='start';if(angles[i]===150||angles[i]===210)anchor='end';
+    var isTop=angles[i]===-90,isBot=angles[i]===90;
+    var natInd=st.natMod>1?' ▲':st.natMod<1?' ▼':'';
+    var natCol=st.natMod>1?'var(--green)':st.natMod<1?'var(--red)':BSC[k];
+    if(isTop){labels+='<text x="'+pt.x+'" y="'+(pt.y-10)+'" text-anchor="middle" fill="'+BSC[k]+'" font-size="11" font-weight="700" font-family="Plus Jakarta Sans,sans-serif">'+BSN[k]+'</text><text x="'+pt.x+'" y="'+(pt.y+5)+'" text-anchor="middle" fill="'+natCol+'" font-size="14" font-weight="800" font-family="Plus Jakarta Sans,sans-serif" style="font-variant-numeric:tabular-nums">'+st.calc+natInd+'</text>'}
+    else if(isBot){labels+='<text x="'+pt.x+'" y="'+(pt.y+4)+'" text-anchor="middle" fill="'+natCol+'" font-size="14" font-weight="800" font-family="Plus Jakarta Sans,sans-serif" style="font-variant-numeric:tabular-nums">'+st.calc+natInd+'</text><text x="'+pt.x+'" y="'+(pt.y+18)+'" text-anchor="middle" fill="'+BSC[k]+'" font-size="11" font-weight="700" font-family="Plus Jakarta Sans,sans-serif">'+BSN[k]+'</text>'}
+    else{labels+='<text x="'+pt.x+'" y="'+(pt.y-4)+'" text-anchor="'+anchor+'" fill="'+BSC[k]+'" font-size="11" font-weight="700" font-family="Plus Jakarta Sans,sans-serif">'+BSN[k]+'</text><text x="'+pt.x+'" y="'+(pt.y+12)+'" text-anchor="'+anchor+'" fill="'+natCol+'" font-size="14" font-weight="800" font-family="Plus Jakarta Sans,sans-serif" style="font-variant-numeric:tabular-nums">'+st.calc+natInd+'</text>'}
+  }
+  return '<div class="bs-hex-wrap"><svg class="bs-hex-svg" viewBox="0 0 360 360"><polygon points="'+outerPts+'" fill="none" stroke="var(--border)" stroke-width="1.5"/><polygon points="'+g75+'" fill="none" stroke="var(--border)" stroke-width=".5" opacity=".35"/><polygon points="'+g50+'" fill="none" stroke="var(--border)" stroke-width=".5" opacity=".35"/><polygon points="'+g25+'" fill="none" stroke="var(--border)" stroke-width=".5" opacity=".35"/>'+spokes+'<polygon points="'+statPts.join(' ')+'" fill="'+typeCol+'25" stroke="'+typeCol+'" stroke-width="2.5" stroke-linejoin="round"/>'+labels+'</svg></div>';
+}
+
+function bdBuildStatCard(b){
+  var poke=allPkmn.find(function(x){return x.id===b.pokemon_id});
+  if(!poke)return '<div class="card" style="margin-bottom:1rem"><h3 style="font-size:.9rem;font-weight:700;margin-bottom:.8rem">Stats</h3><div style="color:var(--muted);font-size:.82rem">Pokémon data unavailable</div></div>';
+  var sp={hp:b.hp_sp||0,atk:b.atk_sp||0,def:b.def_sp||0,spa:b.spa_sp||0,spd:b.spd_sp||0,spe:b.spe_sp||0};
+  var nature=b.increased_stat?{increased_stat:b.increased_stat,decreased_stat:b.decreased_stat}:null;
+  var stats=bsGetCalcStatsFor(poke,sp,nature);
+  var bst=stats.reduce(function(s,st){return s+st.calc},0);
+  var bstCls=bst>=600?'bst-elite':bst>=500?'bst-high':bst>=400?'bst-mid':'bst-low';
+
+  // Bars HTML
+  var bars='<div class="bs-grid">'+stats.map(function(st){
+    var pct=Math.min(st.calc/300*100,100);
+    var natInd=st.natMod>1?' <span style="color:var(--green);font-size:.6rem">▲</span>':st.natMod<1?' <span style="color:var(--red);font-size:.6rem">▼</span>':'';
+    var natCol=st.natMod>1?'var(--green)':st.natMod<1?'var(--red)':BSC[st.key];
+    return '<div class="bs-row">'+
+      '<span class="bs-label">'+BSN[st.key]+'</span>'+
+      '<div class="bs-track"><div class="bs-fill" style="width:'+pct+'%;background:'+BSC[st.key]+'"></div></div>'+
+      '<span class="bs-val" style="color:'+natCol+'">'+st.calc+'</span>'+
+      '<span class="bs-nat-ind">'+natInd+'</span>'+
+    '</div>';
+  }).join('')+'</div>';
+
+  // SP footer — shows raw allocation
+  var totalSp=BSK.reduce(function(s,k){return s+sp[k]},0);
+  var maxSp=b.max_sp||66;
+  var spFooter='<div style="display:flex;align-items:center;gap:8px;padding-top:8px;margin-top:8px;border-top:1px solid var(--border);font-size:.68rem;color:var(--muted);font-weight:600">'+
+    '<span>SP</span>'+
+    BSK.map(function(k){return '<span style="color:'+BSC[k]+';font-weight:800">'+sp[k]+'</span>'}).join('<span style="color:var(--muted2)">·</span>')+
+    '<span style="margin-left:auto;color:var(--muted)">'+totalSp+' / '+maxSp+'</span>'+
+  '</div>';
+
+  return '<div class="card" style="margin-bottom:1rem">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">'+
+      '<h3 style="font-size:.9rem;font-weight:700">Stats at Lv50</h3>'+
+      '<div class="bs-view-toggle" style="width:auto;margin:0">'+
+        '<button class="bs-view-btn'+(bdView==='bars'?' active':'')+'" onclick="bdSwitchView(\'bars\')" style="padding:4px 12px">Bars</button>'+
+        '<button class="bs-view-btn'+(bdView==='hex'?' active':'')+'" onclick="bdSwitchView(\'hex\')" style="padding:4px 12px">Hex</button>'+
+      '</div>'+
+    '</div>'+
+    (bdView==='hex'?bdBuildHex(poke,stats):bars)+
+    '<div class="bs-total"><span class="bs-total-label">Stat Total</span><span class="bs-total-val '+bstCls+'">'+bst+'</span></div>'+
+    spFooter+
+  '</div>';
+}
+
 function renderBuildDetail(c){
   var b=allBuilds.find(function(x){return x.id===detailBuildId});
   if(!b){showBuildList();return}
   var bImg=b.is_shiny&&b.shiny_url?b.shiny_url:(b.image_url||'');
   var t1=TC[b.type_1]||TC.Normal;var t2=b.type_2?TC[b.type_2]:null;
   var grad=t2?'linear-gradient(135deg,'+t1.m+'88,'+t2.m+'88)':'linear-gradient(135deg,'+t1.m+'66,'+t1.d+'88)';
-  var max=b.max_sp||66;var SMAX=32;
-  var statBars=['hp','atk','def','spa','spd','spe'].map(function(s){var v=b[s+'_sp']||0;var pct=Math.min(v/SMAX*100,100);return'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="width:55px;font-size:.72rem;font-weight:600;color:var(--muted);text-align:right">'+statNames[s]+'</span><div style="flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden"><div style="width:'+pct+'%;height:100%;border-radius:4px;background:'+statCols[s]+'"></div></div><span style="width:28px;font-size:.82rem;font-weight:700;text-align:right">'+v+'</span></div>'}).join('');
   var sL={hp:'HP',attack:'Attack',defense:'Defense',sp_attack:'Sp.Atk',sp_defense:'Sp.Def',speed:'Speed'};
   var natDetail=b.nature_name||'—';if(b.increased_stat)natDetail+=' <span style="color:var(--green);font-size:.72rem">▲'+sL[b.increased_stat]+'</span> <span style="color:var(--red);font-size:.72rem">▼'+sL[b.decreased_stat]+'</span>';
 
-  c.innerHTML='<div class="ph"><div class="ph-top"><div><div class="ph-title" style="cursor:pointer" onclick="showBuildList()">← '+(b.pokemon_name||'?')+' <span style="font-weight:500;color:var(--muted);font-size:.9rem">· '+(b.battle_format||'')+'</span></div><div class="ph-sub">'+b.build_name+(b.is_shiny?' <span style="color:var(--purple)">✦ Shiny Variant</span>':'')+'</div></div><div class="action-bar" style="display:flex;gap:.4rem;flex-wrap:wrap"><button class="btn btn-ghost" onclick="togFav(null,\''+b.id+'\')">'+(b.is_favourite?'⭐':'☆')+'</button><button class="btn btn-ghost" onclick="dupBuild(\''+b.id+'\')">🔄</button><button class="btn btn-ghost" onclick="exportShowdown(\''+b.id+'\')">📤</button><button class="btn btn-ghost" onclick="showBuildEditor(\''+b.id+'\')">✏️</button><button class="btn btn-ghost" style="color:var(--red)" onclick="confirmDelBuild(\''+b.id+'\',\''+b.build_name.replace(/'/g,"\\'")+'\')">🗑</button></div></div></div>'+
+  var favLabel=b.is_favourite?'Remove from favourites':'Add to favourites';
+  var favIcon=b.is_favourite?'⭐':'☆';
+  var safeName=b.build_name.replace(/'/g,"\\'");
+  c.innerHTML='<div class="ph"><div class="ph-top"><div><div class="ph-title" style="cursor:pointer" onclick="showBuildList()">← '+(b.pokemon_name||'?')+' <span style="font-weight:500;color:var(--muted);font-size:.9rem">· '+(b.battle_format||'')+'</span></div><div class="ph-sub">'+b.build_name+(b.is_shiny?' <span style="color:var(--purple)">✦ Shiny Variant</span>':'')+'</div></div><div class="action-bar" style="display:flex;gap:.4rem;align-items:flex-start;flex-shrink:0"><button class="btn btn-red" onclick="showBuildEditor(\''+b.id+'\')">✏️ Edit</button><div class="om-wrap"><button class="btn btn-ghost" style="width:44px;padding:0" onclick="toggleOverflow(event)" aria-label="More actions">⋮</button><div class="om-menu" id="bdOmMenu"><button class="om-item" onclick="togFav(null,\''+b.id+'\');document.getElementById(\'bdOmMenu\').classList.remove(\'open\')"><span class="om-item-icon">'+favIcon+'</span>'+favLabel+'</button><button class="om-item" onclick="dupBuild(\''+b.id+'\');document.getElementById(\'bdOmMenu\').classList.remove(\'open\')"><span class="om-item-icon">🔄</span>Duplicate build</button><button class="om-item" onclick="exportShowdown(\''+b.id+'\');document.getElementById(\'bdOmMenu\').classList.remove(\'open\')"><span class="om-item-icon">📤</span>Export to Showdown</button><div class="om-sep"></div><button class="om-item destructive" onclick="document.getElementById(\'bdOmMenu\').classList.remove(\'open\');confirmDelBuild(\''+b.id+'\',\''+safeName+'\')"><span class="om-item-icon">🗑</span>Delete build</button></div></div></div></div></div>'+
   '<div class="detail-grid" style="padding:1.2rem 2rem;display:grid;grid-template-columns:1fr 1fr;gap:1.2rem">'+
     // Left column: Art + Stats + Matchups
     '<div>'+
@@ -902,7 +1067,7 @@ function renderBuildDetail(c){
         '<img src="'+bImg+'" style="width:180px;height:180px;object-fit:contain;filter:drop-shadow(0 6px 16px rgba(0,0,0,.3));position:relative;z-index:1" onerror="this.style.opacity=\'0.2\'">'+
         '<div style="margin-top:.8rem;display:flex;gap:5px;justify-content:center;position:relative;z-index:1"><span class="type-pill" style="background:'+t1.m+';font-size:11px;padding:3px 10px">'+b.type_1+'</span>'+(b.type_2?'<span class="type-pill" style="background:'+(TC[b.type_2]||TC.Normal).m+';font-size:11px;padding:3px 10px">'+b.type_2+'</span>':'')+'</div>'+
       '</div>'+
-      '<div class="card" style="margin-bottom:1rem"><h3 style="font-size:.9rem;font-weight:700;margin-bottom:.8rem">Stat Points <span style="float:right;font-size:.78rem;color:var(--muted);font-weight:500">'+(b.total_sp||0)+' / '+max+' SP</span></h3>'+statBars+'</div>'+
+      bdBuildStatCard(b)+
       '<div class="card"><h3 style="font-size:.9rem;font-weight:700;margin-bottom:.8rem">⚡ Type Effectiveness</h3>'+renderMatchupHtml(b.type_1,b.type_2)+'</div>'+
     '</div>'+
     // Right column: Config + Moves + Strategy
@@ -928,13 +1093,40 @@ function renderBuildDetail(c){
   '</div>'
 }
 
-// Keep the editor picker lightweight by combining search/form filters and only rendering the first 100 matches.
-function filterPkPicker(){var s=document.getElementById('pkSrch').value.toLowerCase();var tf=document.getElementById('pkTypeF')?document.getElementById('pkTypeF').value:'';var ff=document.getElementById('pkFormF')?document.getElementById('pkFormF').value:'';var isShinyEd=document.getElementById('edShiny')&&document.getElementById('edShiny').classList.contains('active');var f=allPkmn.filter(function(p){if(s&&p.name.toLowerCase().indexOf(s)===-1&&String(p.dex_number).indexOf(s)===-1)return false;if(tf&&p.type_1!==tf&&p.type_2!==tf)return false;if(ff&&p.form!==ff)return false;return true}).slice(0,100);document.getElementById('pkPicker').innerHTML=f.map(function(p){var sel=p.id===selPkmnId?'selected':'';var pImg=isShinyEd&&p.shiny_url?p.shiny_url:(p.image_url||'');return'<div class="pk-pick '+sel+'" onclick="pickPk(\''+p.id+'\')"><img src="'+pImg+'" onerror="this.style.opacity=\'0.2\'"><span>'+p.name+'</span></div>'}).join('')}
+// Mobile-first rich picker: gradient bg, Mega badge, types, shiny toggle
+function filterPkPicker(){
+  var inp=document.getElementById('pkSrch');
+  var s=(inp?inp.value:pickerSearchValue).toLowerCase();
+  pickerSearchValue=s;
+  var f=allPkmn.filter(function(p){
+    if(s&&p.name.toLowerCase().indexOf(s)===-1&&String(p.dex_number).indexOf(s)===-1)return false;
+    if(pickerTypeFilter&&p.type_1!==pickerTypeFilter&&p.type_2!==pickerTypeFilter)return false;
+    if(pickerFormFilter&&p.form!==pickerFormFilter)return false;
+    return true;
+  });
+  var grid=document.getElementById('pkPicker');
+  if(!grid)return;
+  if(!f.length){grid.innerHTML='<div style="grid-column:1/-1;color:var(--muted);text-align:center;padding:2rem;font-size:.85rem">No Pokémon match</div>';return}
+  grid.innerHTML=f.slice(0,150).map(function(p){
+    var t1=TC[p.type_1]||TC.Normal,t2=p.type_2?TC[p.type_2]:null;
+    var showShiny=pickerShinyAll&&p.shiny_url;
+    var img=showShiny?p.shiny_url:(p.image_url||'');
+    var cls='epc-card'+(p.id===selPkmnId?' selected':'')+(showShiny?' shiny-holo':'');
+    var isMega=p.form==='Mega';
+    return '<div class="'+cls+'" onclick="pickPk(\''+p.id+'\')">'+
+      '<div class="epc-top"><div><div class="epc-dex">#'+String(p.dex_number).padStart(4,'0')+'</div><div class="epc-name">'+displayName(p)+'</div></div></div>'+
+      '<div class="epc-art" style="background:'+grad(p)+'">'+(isMega?megaBadge():'')+'<div class="wm">'+pb(60)+'</div>'+(img?'<img src="'+img+'" onerror="this.style.opacity=\'0.2\'" loading="lazy">':'')+'</div>'+
+      '<div class="epc-bot"><span class="type-pill" style="background:'+t1.m+'">'+p.type_1+'</span>'+(t2?'<span class="type-pill" style="background:'+t2.m+'">'+p.type_2+'</span>':'')+'</div>'+
+    '</div>';
+  }).join('');
+}
 function pickPk(id){
   selPkmnId=id;
-  filterPkPicker();
-  var sec=document.getElementById('statSection');
-  if(sec){sec.innerHTML=edBuildStatSection();requestAnimationFrame(function(){requestAnimationFrame(edRefresh)})}
+  var p=allPkmn.find(function(x){return x.id===id});
+  // Carry shiny selection from picker into build
+  if(editorStep==='picker'&&pickerShinyAll&&p&&p.shiny_url)editorShiny=true;
+  editorStep='form';
+  renderBuilds();
 }
 // Clamp per-stat values and enforce the shared SP budget before syncing the slider + number input.
 // Legacy setSp/adjSp kept for backward compat (no-ops that route to edSet)
@@ -944,7 +1136,8 @@ function adjSp(s,d){edAdj(s,d)}
 async function saveBuild(){
   if(!selPkmnId){toast('Select a Pokémon','err');return}
   var name=document.getElementById('edName').value.trim();if(!name){toast('Enter a build name','err');return}
-  var isShiny=document.getElementById('edShiny')&&document.getElementById('edShiny').classList.contains('active');
+  // Read shiny from JS state (mobile pass) with fallback to legacy #edShiny button
+  var isShiny=editorShiny||(document.getElementById('edShiny')&&document.getElementById('edShiny').classList.contains('active'));
   // Mirror the editor fields into the flat Supabase row shape used by the `builds` table.
   var body={user_id:usr.id,pokemon_id:selPkmnId,name:name,battle_format:document.getElementById('edFmt').value,archetype:document.getElementById('edArch').value||null,item_id:document.getElementById('edItem').value||null,nature_id:document.getElementById('edNat').value||null,ability:document.getElementById('edAbi').value||null,move_1:document.getElementById('edM1').value||null,move_2:document.getElementById('edM2').value||null,move_3:document.getElementById('edM3').value||null,move_4:document.getElementById('edM4').value||null,hp_sp:spV.hp,atk_sp:spV.atk,def_sp:spV.def,spa_sp:spV.spa,spd_sp:spV.spd,spe_sp:spV.spe,is_shiny:isShiny,win_condition:document.getElementById('edWin').value||null,strengths:document.getElementById('edStr').value||null,weaknesses:document.getElementById('edWeak').value||null,status:'Testing'};
   try{if(editBuildId){await upd('builds',{'id':'eq.'+editBuildId},body,true);toast('Build updated!')}else{await ins('builds',body,true);toast('Build created!')}await loadBuilds();showBuildList()}catch(e){toast(e.message,'err')}
