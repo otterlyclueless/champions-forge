@@ -14,6 +14,8 @@
 <link rel="stylesheet" href="styles.css">
 <title>Champions Prototype Testing</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+<script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.js"></script>
 </head>
 <body>
 <nav class="sb" id="sb">
@@ -37,18 +39,37 @@
 <div class="main">
   <!-- Dashboard -->
   <div class="page show" id="pg-dash">
-    <div class="ph"><div class="ph-title">📊 Trainer Dashboard</div><div class="ph-sub">Welcome back, Trainer. Here's your competitive overview.</div></div>
-    <div class="dash-stats" id="dashStats"></div>
-    <div class="dash-section"><div class="dash-row"><div><h3>⚡ Recent Builds</h3><div id="recentBuilds"><div style="color:var(--muted);font-size:.85rem">Sign in to see your builds</div></div></div><div><h3>💡 Quick Actions</h3><div class="qa-card"><h4>🧬 Pro Tip</h4><p>When building for Doubles, consider Pokémon with "Intimidate" or "Fake Out" to control early game tempo.</p></div><div class="qa-card"><h4>📊 Meta Trends</h4><p>Track which Pokémon and archetypes are most popular in your builds to refine your competitive strategy.</p></div></div></div></div>
+    <div class="ph"><div class="ph-title">📊 Trainer Dashboard</div><div class="ph-sub">Welcome back, Trainer</div></div>
+    <div id="dashContent"></div>
   </div>
 
   <!-- Pokédex -->
   <div class="page" id="pg-dex">
-    <div class="ph"><div class="ph-top"><div><div class="ph-title">📋 Pokédex</div><div class="ph-sub">Browse the collection of 258 Pokémon. Track progress and discover competitive variants.</div></div><div class="progress-badge" id="progBadge" style="display:none"><div><div class="pb-label">Collection Progress</div><div class="pb-val" id="progVal">0 / 258</div></div><div class="pb-icon">🏆</div></div></div></div>
-    <div class="dex-filters">
-      <input class="search-box" id="dexSearch" placeholder="Search by name or number...">
-      <div class="filter-row type-scroll" id="typeFilters"></div>
-      <div class="filter-row"><span class="flabel">Form</span><div id="formFilters"></div><span class="flabel" style="margin-left:.6rem">Status</span><button class="fpill" data-obt="all" onclick="togObtFilter('all')">All</button><button class="fpill" data-obt="yes" onclick="togObtFilter('yes')">Obtained</button><button class="fpill" data-obt="no" onclick="togObtFilter('no')">Not Obtained</button><span class="flabel" style="margin-left:.6rem">View</span><button class="shiny-btn" id="shinyAll" onclick="togShinyAll()">✦ Shiny</button></div>
+    <div class="ph" id="dexHeader">
+      <div class="ph-title">📋 Pokédex</div>
+      <div class="ph-sub">258 Pokémon</div>
+      <div class="dex-progress" id="dexProgress" style="display:none">
+        <div class="dex-progress-bar"><div class="dex-progress-fill" id="dexProgFill"></div></div>
+        <div class="dex-progress-text" id="dexProgText">0 / 258</div>
+      </div>
+    </div>
+    <div class="dex-filter-bar">
+      <input class="search-box" id="dexSearch" placeholder="🔍 Search by name or number..." style="margin-bottom:.35rem">
+      <div class="dex-filter-strip" id="dexFilterStrip">
+        <button class="fpill" data-form="all" onclick="togForm(null)">All</button>
+        <button class="fpill" data-form="Base" onclick="togForm('Base')">Base</button>
+        <button class="fpill" data-form="Mega" onclick="togForm('Mega')">Mega</button>
+        <button class="fpill" data-form="Regional" onclick="togForm('Regional')">Regional</button>
+        <span class="dex-filter-sep"></span>
+        <button class="fpill" data-obt="all" onclick="togObtFilter('all')">All</button>
+        <button class="fpill" data-obt="yes" onclick="togObtFilter('yes')">Obtained</button>
+        <button class="fpill" data-obt="no" onclick="togObtFilter('no')">Missing</button>
+        <span class="dex-filter-sep"></span>
+        <button class="shiny-btn" id="shinyAll" onclick="togShinyAll()">✦ Shiny</button>
+        <span class="dex-filter-sep"></span>
+        <button class="fpill dex-type-toggle" id="typeToggle" onclick="togTypeDropdown()">Type ▾</button>
+      </div>
+      <div class="dex-type-dropdown" id="typeDropdown"></div>
     </div>
     <div class="dex-grid" id="dexGrid"><div class="empty"><div class="em">⏳</div>Loading Pokédex...</div></div>
   </div>
@@ -100,6 +121,12 @@
 <div class="panel-ov" id="detP"><div class="panel-bd" onclick="closeDet()"></div><div class="panel-ct slide-in" id="detInner"></div></div>
 
 <div class="toast-c" id="toasts"></div>
-<script src="app.js"></script>
+<script src="app/app-core.js"></script>
+<script src="app/app-dashboard.js"></script>
+<script src="app/app-pokedex.js"></script>
+<script src="app/app-builds.js"></script>
+<script src="app/app-teams.js"></script>
+<script src="app/app-profile.js"></script>
+<script src="app/app-init.js"></script>
 </body>
 </html>
