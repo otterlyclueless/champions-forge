@@ -597,9 +597,15 @@ function renderAbilityCard(a) {
 // ── Item Card ──
 function renderItemCard(i) {
   const cls = i.champions_verified ? 'verified' : 'unverified';
+  const sprite = i.sprite_url
+    ? `<img src="${i.sprite_url}" alt="" style="width:36px;height:36px;object-fit:contain;image-rendering:pixelated;background:rgba(239,68,68,.05);border-radius:6px;padding:3px;flex-shrink:0" onerror="this.style.display='none'">`
+    : '';
   return `<div class="entry-card ${cls}">
     <div class="card-header">
-      <span class="card-name">${i.name}</span>
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        ${sprite}
+        <span class="card-name">${i.name}</span>
+      </div>
       <div class="card-badges">
         <span class="badge ${i.champions_verified?'badge-verified':'badge-unverified'}">${i.champions_verified?'Verified':'Unverified'}</span>
       </div>

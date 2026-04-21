@@ -275,5 +275,7 @@ function dSwap(s,pid){
   if(badge){badge.style.display=s?'inline-flex':'none'}
 }
 
-document.getElementById('dexSearch').addEventListener('input',renderDex);
-document.getElementById('itemSearch').addEventListener('input',renderItems);
+// Late-bind via wrapper — renderDex/renderItems live in later-loaded modules (profile.js).
+// Direct function references resolve to `undefined` at this module's load time and silently no-op.
+document.getElementById('dexSearch').addEventListener('input',function(){renderDex()});
+document.getElementById('itemSearch').addEventListener('input',function(){renderItems()});
