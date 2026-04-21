@@ -214,29 +214,8 @@ input, select, textarea { font-family: inherit; }
     </div>
   </div>
 
-  <!-- Setup Banner (hidden once dismissed) -->
-  <div class="setup-banner" id="setup-banner">
-    <h3>First-Time Setup Required</h3>
-    <p>Run this SQL in your Supabase SQL Editor to enable write access from this dashboard:</p>
-    <pre><code>-- 014_admin_write_access.sql
--- Allows authenticated users to update reference tables
-
-CREATE POLICY "admin_update_pokemon" ON pokemon
-  FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
-
-CREATE POLICY "admin_update_moves" ON moves
-  FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
-
-CREATE POLICY "admin_update_abilities" ON abilities
-  FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
-
-CREATE POLICY "admin_update_items" ON items
-  FOR UPDATE TO authenticated USING (true) WITH CHECK (true);
-
-CREATE POLICY "admin_update_pokemon_moves" ON pokemon_moves
-  FOR UPDATE TO authenticated USING (true) WITH CHECK (true);</code></pre>
-    <button class="btn btn-secondary btn-small" onclick="dismissSetup()">I've run this &mdash; dismiss</button>
-  </div>
+  <!-- Setup Banner (deprecated — kept as a no-op for layout; can be removed once we drop the dismiss flag) -->
+  <div class="setup-banner" id="setup-banner" style="display:none"></div>
 
   <!-- Refresh Bar -->
   <div id="refresh-bar" style="display:none;margin-bottom:16px">

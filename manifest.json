@@ -1,7 +1,7 @@
 {
-  "name": "Pokémon Champions",
-  "short_name": "Champions",
-  "description": "Competitive Pokémon team builder — build, track, and analyse",
+  "name": "Champions Forge",
+  "short_name": "Champions Forge",
+  "description": "Forge your competitive Pokémon squad — builds, teams, and collection tracking for Pokémon Champions.",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
