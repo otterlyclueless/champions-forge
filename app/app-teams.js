@@ -26,10 +26,10 @@ async function loadTeamRoster(){
 
 function renderTeams(){
   var c=document.getElementById('teamsView');
-  if(!tk){c.innerHTML='<div class="ph"><div class="ph-title">🏆 Teams</div><div class="ph-sub">Sign in to manage teams</div></div><div class="empty"><div class="em">🔒</div>Sign in to see teams</div>';return}
+  if(!tk){c.innerHTML='<div class="pg-head"><div class="pg-title">🏆 Teams</div><div class="pg-sub">Sign in to manage teams</div></div><div class="empty"><div class="em">🔒</div>Sign in to see teams</div>';return}
   if(teamView==='editor'){renderTeamEditor(c);return}
   if(teamView==='detail'){renderTeamDetail(c);return}
-  var hdr='<div class="ph vh-list-header"><div class="ph-top"><div><div class="ph-title">🏆 Teams</div><div class="ph-sub">Your competitive team compositions</div></div><div class="vh-actions"><button class="vh-btn vh-btn-md vh-btn-new" onclick="showTeamEditor()">+</button></div></div></div>';
+  var hdr='<div class="pg-head vh-list-header"><div class="pg-top"><div><div class="pg-title">🏆 Teams</div><div class="pg-sub">Your competitive team compositions</div></div><div class="vh-actions"><button class="vh-btn vh-btn-md vh-btn-new" onclick="showTeamEditor()">+</button></div></div></div>';
   if(!allTeams.length){c.innerHTML=hdr+'<div class="empty"><div class="em">🏆</div>No teams yet</div>';return}
   c.innerHTML=hdr+'<div class="tml-stack">'+allTeams.map(function(t){
     var fc=t.format==='Singles'?'fmt-s':'fmt-d';
@@ -190,7 +190,7 @@ function removeTeamMember(buildId){var i=selBuildIds.indexOf(buildId);if(i!==-1)
 
 function renderTeamEditor(c){
   var t=editTeamId?allTeams.find(function(x){return x.id===editTeamId}):null;
-  var hdr='<div class="ph"><div class="ph-top"><div><div class="ph-title" style="cursor:pointer" onclick="showTeamList()">← '+(t?'Edit Team':'New Team')+'</div><div class="ph-sub">Assemble your roster</div></div></div></div>';
+  var hdr='<div class="pg-head"><div class="pg-top"><div><div class="pg-title" style="cursor:pointer" onclick="showTeamList()">← '+(t?'Edit Team':'New Team')+'</div><div class="pg-sub">Assemble your roster</div></div></div></div>';
   var fmtSelectedS=t&&t.format==='Singles'?' selected':'';
   var fmtSelectedD=t&&t.format==='Doubles'?' selected':'';
   var fmtCls=(t&&t.format==='Doubles')?'fmt-d':'fmt-s';
@@ -273,7 +273,7 @@ function renderTeamDetail(c){
   var safeName=t.name.replace(/'/g,"\\'");
 
   // Header with Edit + overflow menu
-var hdr='<div class="ph"><div class="vh-title-row">'+
+var hdr='<div class="pg-head"><div class="vh-title-row">'+
       '<span class="vh-back" onclick="showTeamList()">← '+t.name+'</span>'+
       '<div class="vh-actions" onclick="event.stopPropagation()">'+
         '<button class="vh-btn vh-btn-sm vh-btn-edit" onclick="showTeamEditor(\''+t.id+'\')" aria-label="Edit team">✏️</button>'+
@@ -285,7 +285,7 @@ var hdr='<div class="ph"><div class="vh-title-row">'+
         '</div>'+
       '</div>'+
     '</div>'+
-    '<div class="ph-sub">'+(t.format||'')+' · '+(t.members||[]).length+' / 6 members</div>'+
+    '<div class="pg-sub">'+(t.format||'')+' · '+(t.members||[]).length+' / 6 members</div>'+
   '</div>';
 
   var members='';

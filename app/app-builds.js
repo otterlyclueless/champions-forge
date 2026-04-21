@@ -213,11 +213,11 @@ function toggleBldOm(id){var m=document.getElementById('bldOm-'+id);if(!m)return
 
 function renderBuilds(){
   var c=document.getElementById('buildsView');
-  if(!tk){c.innerHTML='<div class="ph"><div class="ph-title">⚔️ Builds</div><div class="ph-sub">Sign in to manage your builds</div></div><div class="empty"><div class="em">🔒</div>Sign in to see builds</div>';return}
+  if(!tk){c.innerHTML='<div class="pg-head"><div class="pg-title">⚔️ Builds</div><div class="pg-sub">Sign in to manage your builds</div></div><div class="empty"><div class="em">🔒</div>Sign in to see builds</div>';return}
   if(buildView==='editor'){renderBuildEditor(c);return}
   if(buildView==='detail'){renderBuildDetail(c);return}
   // List view — standardised header with .vh-* classes
-  var hdr='<div class="ph vh-list-header"><div class="ph-top"><div><div class="ph-title">⚔️ Builds</div><div class="ph-sub">Your competitive Pokémon configurations</div></div><div class="vh-actions"><button class="vh-btn vh-btn-md vh-btn-new" onclick="showBuildEditor()">+</button></div></div></div>';
+  var hdr='<div class="pg-head vh-list-header"><div class="pg-top"><div><div class="pg-title">⚔️ Builds</div><div class="pg-sub">Your competitive Pokémon configurations</div></div><div class="vh-actions"><button class="vh-btn vh-btn-md vh-btn-new" onclick="showBuildEditor()">+</button></div></div></div>';
   if(!allBuilds.length){c.innerHTML=hdr+'<div class="empty"><div class="em">⚔️</div>No builds yet. Create your first!</div>';return}
   var sortedBuilds=allBuilds.slice().sort(function(a,b){return(b.is_favourite?1:0)-(a.is_favourite?1:0)});
   var t1,t2,bImg,safeName;
@@ -264,7 +264,7 @@ function renderBuildEditor(c){
 
 // STEP 1: Pokémon picker (full-screen)
 function renderEditorPicker(c){
-  var hdr='<div class="ph"><div class="ph-top"><div><div class="ph-title" style="cursor:pointer" onclick="showBuildList()">← '+(editBuildId?'Edit Build':'New Build')+'</div><div class="ph-sub">Choose your Pokémon</div></div></div></div>';
+  var hdr='<div class="pg-head"><div class="pg-top"><div><div class="pg-title" style="cursor:pointer" onclick="showBuildList()">← '+(editBuildId?'Edit Build':'New Build')+'</div><div class="pg-sub">Choose your Pokémon</div></div></div></div>';
   var search='<input class="ed-input" id="pkSrch" placeholder="🔍 Search by name or number" type="search" value="'+pickerSearchValue.replace(/"/g,'&quot;')+'" oninput="pickerSearchValue=this.value;filterPkPicker()">';
   var typeRow='<div class="epc-filter-row" style="margin-top:.5rem"><span class="epc-filter-lbl">Type</span><div class="epc-filter-scroll">'+Object.keys(TC).sort().map(function(t){return '<button class="epc-filter'+(pickerTypeFilter===t?' active':'')+'" onclick="togglePickerType(\''+t+'\')">'+t+'</button>'}).join('')+'</div></div>';
   var formRow='<div class="epc-filter-row" style="margin-top:.4rem;justify-content:space-between"><div style="display:flex;align-items:center;gap:.35rem"><span class="epc-filter-lbl">Form</span>'+['Base','Mega','Regional'].map(function(f){return '<button class="epc-filter'+(pickerFormFilter===f?' active':'')+'" onclick="togglePickerForm(\''+f+'\')">'+f+'</button>'}).join('')+'</div><button class="shiny-btn'+(pickerShinyAll?' active':'')+'" onclick="togglePickerShiny()">✦ Shiny</button></div>';
@@ -301,7 +301,7 @@ function renderEditorForm(c){
     '</div>'+
   '</div>';
 
-  var hdr='<div class="ph"><div class="ph-top"><div><div class="ph-title" style="cursor:pointer" onclick="showBuildList()">← '+(b?'Edit Build':'New Build')+'</div><div class="ph-sub">'+dName+(isMega?' (Mega)':'')+'</div></div></div></div>';
+  var hdr='<div class="pg-head"><div class="pg-top"><div><div class="pg-title" style="cursor:pointer" onclick="showBuildList()">← '+(b?'Edit Build':'New Build')+'</div><div class="pg-sub">'+dName+(isMega?' (Mega)':'')+'</div></div></div></div>';
 
   // Nature dropdown
   var sL={hp:'HP',attack:'Atk',defense:'Def',sp_attack:'SpA',sp_defense:'SpD',speed:'Spe'};
@@ -478,7 +478,7 @@ function renderBuildDetail(c){
   var spPct=Math.min(totalSP/SP_MAX*100,100);
 
   // Header — standardised .vh-* pattern matching Teams detail
-  var hdr='<div class="ph"><div class="vh-title-row">'+
+  var hdr='<div class="pg-head"><div class="vh-title-row">'+
     '<span class="vh-back" onclick="showBuildList()">← '+(b.pokemon_name||'?')+'</span>'+
     '<div class="vh-actions" onclick="event.stopPropagation()">'+
       '<button class="vh-btn vh-btn-sm vh-btn-edit" onclick="showBuildEditor(\''+b.id+'\')" aria-label="Edit build">✏️</button>'+
@@ -494,7 +494,7 @@ function renderBuildDetail(c){
       '</div>'+
     '</div>'+
   '</div>'+
-  '<div class="ph-sub">'+b.build_name+(b.is_favourite?' ⭐':'')+(isShiny?' · <span style="color:var(--purple)">✦ Shiny</span>':'')+'</div></div>';
+  '<div class="pg-sub">'+b.build_name+(b.is_favourite?' ⭐':'')+(isShiny?' · <span style="color:var(--purple)">✦ Shiny</span>':'')+'</div></div>';
 
   c.innerHTML=hdr+'<div class="bd-stack">'+
     // Hero art

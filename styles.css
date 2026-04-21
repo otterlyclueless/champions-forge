@@ -85,10 +85,10 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;t
 .sb.c~.main{margin-left:var(--sw-c)}
 
 /* Subsection: Page header */
-.ph{padding:1.4rem 2rem 1rem;background:var(--bg2);border-bottom:1px solid var(--border);transition:background .3s}
-.ph-title{font-size:1.5rem;font-weight:900;display:flex;align-items:center;gap:.5rem}
-.ph-sub{color:var(--muted);font-size:.83rem;margin-top:.15rem}
-.ph-top{display:flex;justify-content:space-between;align-items:flex-start}
+.pg-head{padding:1.4rem 2rem 1rem;background:var(--bg2);border-bottom:1px solid var(--border);transition:background .3s}
+.pg-title{font-size:1.5rem;font-weight:900;display:flex;align-items:center;gap:.5rem}
+.pg-sub{color:var(--muted);font-size:.83rem;margin-top:.15rem}
+.pg-top{display:flex;justify-content:space-between;align-items:flex-start}
 
  
 /* #SECTION: COMMON UI */
@@ -115,9 +115,9 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;t
 /* #SECTION: STANDARDISED VIEW HEADERS (.vh-*) */
 /* ═══════ VIEW HEADERS ═══════ */
 /* Reusable header pattern for all list + detail views.
-   List view:   .ph > .ph-top > title + .vh-actions(.vh-btn-new)
-   Detail view: .ph > .vh-title-row > back-name + .vh-actions(.vh-btn-edit + .vh-btn-more)
-                      .ph-sub below */
+   List view:   .pg-head > .pg-top > title + .vh-actions(.vh-btn-new)
+   Detail view: .pg-head > .vh-title-row > back-name + .vh-actions(.vh-btn-edit + .vh-btn-more)
+                      .pg-sub below */
 
 .vh-actions{display:flex;align-items:center;gap:.45rem;flex:0 0 auto}
 /* Base button — shared by all header action buttons */
@@ -656,21 +656,24 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;t
   .sb{width:100%;height:auto;top:auto;bottom:0;left:0;right:0;flex-direction:row;border-right:none;border-top:1px solid var(--border);background:color-mix(in srgb,var(--bg2) 96%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 -6px 20px rgba(0,0,0,.12);padding-bottom:env(safe-area-inset-bottom);overflow:visible}
 .sb.c{width:100%}.sb-brand,.sb-foot{display:none!important}
   .sb-nav{flex-direction:row;padding:.4rem .35rem calc(.4rem + env(safe-area-inset-bottom));gap:.2rem;justify-content:space-around;align-items:stretch}
-  .sb-item{flex:1;flex-direction:column;gap:3px;padding:.42rem .18rem;margin:0;font-size:.54rem;border-radius:12px;text-align:center;min-height:54px;justify-content:center;min-width:0}
-  .sb-icon{width:26px;height:26px;font-size:.86rem}.sb-count{display:none}
+  .sb-item{flex:1;flex-direction:column;gap:4px;padding:.5rem .2rem;margin:0;font-size:.72rem;border-radius:14px;text-align:center;min-height:56px;justify-content:center;min-width:0;cursor:pointer;transition:background .18s}
+  .sb-item:active{transform:scale(.95)}
+  .sb-icon{width:30px;height:30px;font-size:1.05rem;border-radius:9px;background:var(--surface);display:flex;align-items:center;justify-content:center;transition:background .18s}
+  .sb-item.active .sb-icon{background:var(--red-bg2)}
+  .sb-icon i{font-size:1.2rem}.sb-count{display:none}
   .main{margin-left:0!important;padding-bottom:78px}  
   .dex-grid{grid-template-columns:1fr 1fr 1fr;padding:.5rem .65rem 1rem;gap:.45rem}
-  .ph{position:sticky;top:0;z-index:80;padding:.85rem 1rem .65rem;background:color-mix(in srgb,var(--bg2) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-  .ph-title{font-size:1.05rem;line-height:1.15}
-  .ph-sub{font-size:.75rem;margin-top:.1rem}
+  .pg-head{position:sticky;top:0;z-index:80;padding:.85rem 1rem .65rem;background:color-mix(in srgb,var(--bg2) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .pg-title{font-size:1.05rem;line-height:1.15}
+  .pg-sub{font-size:.75rem;margin-top:.1rem}
   /* Standardised list headers: title left, compact + button right */
-  .ph-top{gap:.6rem;flex-direction:column;align-items:stretch}
-  .ph-top>div:last-child{display:block;width:100%;margin-top:.1rem}
-  .ph-top>div:last-child .btn{width:100%;justify-content:center;min-height:40px;padding:.5rem .75rem;font-size:.82rem;border-radius:12px}
+  .pg-top{gap:.6rem;flex-direction:column;align-items:stretch}
+  .pg-top>div:last-child{display:block;width:100%;margin-top:.1rem}
+  .pg-top>div:last-child .btn{width:100%;justify-content:center;min-height:40px;padding:.5rem .75rem;font-size:.82rem;border-radius:12px}
   /* List headers with .vh-actions get compact row layout on mobile */
-  .vh-list-header .ph-top{flex-direction:row;align-items:flex-start}
-  .vh-list-header .ph-top>div:first-child{flex:1;min-width:0}
-  .vh-list-header .ph-top>.vh-actions{display:flex!important;justify-content:flex-end;align-items:center;width:auto;margin-top:0;flex:0 0 auto}
+  .vh-list-header .pg-top{flex-direction:row;align-items:flex-start}
+  .vh-list-header .pg-top>div:first-child{flex:1;min-width:0}
+  .vh-list-header .pg-top>.vh-actions{display:flex!important;justify-content:flex-end;align-items:center;width:auto;margin-top:0;flex:0 0 auto}
   .dex-filter-bar{padding:.4rem .65rem .25rem}
   .dash-stats{padding:.8rem 1rem;grid-template-columns:1fr 1fr;gap:.75rem}
   .dash-row{grid-template-columns:1fr}.dash-section{padding:0 1rem 1rem}
@@ -712,8 +715,39 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;t
   .team-member-stats>div{min-width:0}
   .team-member-stats span{white-space:nowrap}
   .team-member-art{width:96px!important;height:96px!important;object-fit:contain}
-  /* Bottom nav - hide labels to fit more */
-  .sb-item .sb-label{font-size:.5rem;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  /* Bottom nav — readable labels now that we've consolidated to 5 items */
+  .sb-item .sb-label{font-size:.68rem;line-height:1;font-weight:700;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
   /* Pokédex — filters already scrollable via .dex-filter-strip */
   
+}
+/* ═══════════════════════════════════════
+   DROP B.1 — Page header icons + More sheet
+   ═══════════════════════════════════════ */
+
+/* Icon in page header titles (Phosphor icon before title text) */
+.pg-title i{color:var(--red);font-size:1.2rem;flex-shrink:0}
+
+/* More Sheet — mobile overflow navigation */
+.more-sheet-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:200;animation:moreSheetFade .22s ease}
+.more-sheet-ov.open{display:flex}
+@keyframes moreSheetFade{from{opacity:0}to{opacity:1}}
+.more-sheet{width:100%;background:var(--bg2);border-radius:24px 24px 0 0;padding:.75rem 1rem calc(1rem + env(safe-area-inset-bottom));border-top:1px solid var(--border);animation:moreSheetSlide .3s cubic-bezier(.33,1,.68,1);max-width:560px}
+@keyframes moreSheetSlide{from{transform:translateY(30px);opacity:.4}to{transform:translateY(0);opacity:1}}
+.more-sheet-handle{width:38px;height:4px;border-radius:2px;background:var(--border);margin:0 auto .9rem}
+.more-sheet-title{font-weight:800;font-size:.95rem;margin-bottom:.7rem;padding:0 .2rem}
+.more-sheet-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.55rem}
+.more-sheet-item{display:flex;align-items:center;gap:.6rem;padding:.72rem .7rem;border-radius:12px;background:var(--surface);font-weight:600;font-size:.82rem;color:var(--text2);cursor:pointer;transition:all .15s}
+.more-sheet-item:active{transform:scale(.97)}
+.more-sheet-item:hover{background:color-mix(in srgb,var(--surface) 60%,var(--bg2));color:var(--text)}
+.more-sheet-icon{width:34px;height:34px;border-radius:9px;background:var(--bg2);display:flex;align-items:center;justify-content:center;color:var(--red);flex-shrink:0}
+.more-sheet-icon i{font-size:1.2rem}
+
+/* Responsive nav item visibility: More button shows only on mobile,
+   Items/Natures/Profile show as sidebar items only on desktop */
+@media(min-width:769px){
+  .sb-mobile{display:none!important}
+  .more-sheet-ov{display:none!important}
+}
+@media(max-width:768px){
+  .sb-desktop{display:none!important}
 }
