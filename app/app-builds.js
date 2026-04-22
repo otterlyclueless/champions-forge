@@ -554,10 +554,11 @@ function edShareSectionHtml(){
           '</div>'+
         '</div>'+
 
-        // URL row + Copy button
+        // URL row + Copy button + Share button (Drop F.2.1)
         '<div class="ed-share-url-row">'+
           '<div class="ed-share-url" id="edShareUrl">'+(url?url.replace(/^https?:\/\//,''):'')+'</div>'+
-          '<button type="button" class="ed-share-copy-btn" id="edShareCopyBtn" onclick="edCopyShareUrl()"><i class="ph-bold ph-copy"></i> Copy</button>'+
+          '<button type="button" class="ed-share-copy-btn" id="edShareCopyBtn" onclick="edCopyShareUrl()"><i class="ph-bold ph-copy"></i></button>'+
+          '<button type="button" class="ed-share-share-btn" id="edShareShareBtn" onclick="edShareNow()"><i class="ph-bold ph-share-network"></i> Share</button>'+
         '</div>'+
 
         // Dynamic hint row
@@ -725,10 +726,25 @@ async function bdPillCopy(){
 async function bdPillShare(){
   var b=allBuilds.find(function(x){return x.id===detailBuildId});
   if(!b||!b.share_code){toast('No share URL','err');return}
+  // Drop F.2.1: render image card + native share (OS sheet with Save to Camera Roll etc.)
+  if(typeof shareImage==='function')return shareImage('build',b.id);
+  // Fallback — URL-only share via shareOrCopy
   var url=edShareUrl(b.share_code);
   var title=b.build_name||'Champions Forge build';
   if(typeof shareOrCopy==='function')return shareOrCopy(url,title,'Check out my Champions Forge build!');
+  try{await navigator.clipboard.writeText(url);toast('Link copied')}catch(_){toast('Copy failed','err')}
+}
+
+// Editor Share button — same handler as detail pill, render image + native share
+async function edShareNow(){
+  if(!editBuildId){toast('Save the build first','err');return}
+  var b=allBuilds.find(function(x){return x.id===editBuildId});
+  if(!b){toast('Build not found','err');return}
+  if(!b.is_public||!b.share_code){toast('Make the build public first','err');return}
+  if(typeof shareImage==='function')return shareImage('build',b.id);
   // Fallback
+  var url=edShareUrl(b.share_code);
+  if(typeof shareOrCopy==='function')return shareOrCopy(url,b.name||'Champions Forge build','Check out my build!');
   try{await navigator.clipboard.writeText(url);toast('Link copied')}catch(_){toast('Copy failed','err')}
 }
 

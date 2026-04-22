@@ -149,6 +149,14 @@
 <div class="panel-ov" id="detP"><div class="panel-bd" onclick="closeDet()"></div><div class="panel-ct slide-in" id="detInner"></div></div>
 
 <div class="toast-c" id="toasts"></div>
+
+<!-- Drop F.2.1: off-screen render host for shareable image cards (1200×630 PNG via html2canvas) -->
+<div id="imgRenderHost" aria-hidden="true"></div>
+
+<!-- Drop F.2.1 v5: html-to-image for rendering share cards. Uses SVG foreignObject approach
+     which respects CSS filters (blur, shadows) far more reliably than html2canvas. -->
+<script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js" defer></script>
+
 <script src="app/app-core.js"></script>
 <script src="app/app-dashboard.js"></script>
 <script src="app/app-pokedex.js"></script>

@@ -459,3 +459,123 @@ Reverted both to private after tests.
 - **F.3** — Username modal when toggling public without a handle, signup form username/display_name fields
 - **F.4** — Like button + Copy-to-my-builds + signed-in viewer actions on others' public content
 - **F.5** — Full public trainer profile page (`#/u/<username>` is still a stub)
+
+---
+
+# 🚨 CRITICAL BUG FOUND IN DROP F.2 — Postgres view `security_invoker` strip
+
+## ❌ What happened
+
+During Drop F.2, the `build_details` view was recreated with `DROP VIEW + CREATE VIEW` to add the new share columns (`is_public`, `share_code`, `share_fields`). This **stripped the `security_invoker = true` option** from the view.
+
+Without `security_invoker`, a Postgres view runs with the **view owner's permissions** (here: `postgres`), not the caller's. This **completely bypasses RLS**, exposing every row to every authenticated user.
+
+## 🕵️ How it manifested
+
+Aaron (16 builds) saw 20 builds in his list (all 3 users' builds combined).
+
+## ✅ The fix
+
+```sql
+ALTER VIEW public.build_details SET (security_invoker = true);
+```
+
+Verify all views in `public` schema have this option:
+```sql
+SELECT relname, reloptions FROM pg_class
+WHERE relkind='v' AND relnamespace='public'::regnamespace;
+```
+Should show `security_invoker=on` or `security_invoker=true` for every view.
+
+## 🔑 Rule for the future
+
+**ALWAYS include `WITH (security_invoker = true)` when creating or recreating views on this project.** RLS on base tables is meaningless if the view bypasses it.
+
+Correct pattern for all future view changes:
+```sql
+CREATE VIEW public.foo WITH (security_invoker = true) AS SELECT ...;
+-- or
+ALTER VIEW public.foo SET (security_invoker = true);
+```
+
+The three existing views (`build_details`, `team_roster`, `moves_effective`) all now have this set. If you ever `DROP VIEW` one, verify `reloptions` after `CREATE VIEW`.
+
+## 🩹 Migration SQL fix (saved as `build-details-view.sql` in workspace)
+
+The canonical version is now:
+```sql
+DROP VIEW IF EXISTS public.build_details;
+CREATE VIEW public.build_details WITH (security_invoker = true) AS
+SELECT ... FROM builds b JOIN pokemon p ON ... LEFT JOIN items i ON ... LEFT JOIN natures n ON ...;
+```
+
+(The `WITH (security_invoker = true)` clause is the critical addition.)
+
+---
+
+# 🖼️ Drop F.2.1 — Stats parity + Share tray → Native Share + Image cards (April 22 2026)
+
+## ✅ What shipped
+
+**Stats section (public build detail)**
+- `pubStatsSection(pk,sp,nature)` — full parity with in-app build detail: bars / hex toggle + per-stat SP tags (`.bs-sp-tag.has-sp`) + nature indicators
+- Reuses `.bs-*` classes and `bsGetCalcStatsFor` / `bdBuildHex` globals (app-builds.js is loaded before app-router.js)
+- View toggle via `pubToggleStatView('bars'|'hex')` with unique `#pub-barsView` / `#pub-hexView` IDs (separate from in-app detail's `#bd-barsView` / `#bd-hexView` so no ID collisions)
+- No BST total, no SP-used bar, no footer (user wanted just the stat spread + hex)
+
+**Share button + native share with image file**
+- Added to build editor share card (next to Copy) → `edShareNow()`
+- Added to team editor share card → `tmShareNow()`
+- Build detail pill Share button now calls `shareImage('build', id)`
+- Team detail pill Share button now calls `shareImage('team', id)`
+- Single flow: render 1200×630 PNG → `navigator.share({files:[pngFile], title, text, url})` → OS share sheet with Save to Camera Roll / AirDrop / Messages / Mail / Discord / Twitter / etc.
+- Fallback (desktop, no Web Share L2): auto-download PNG + copy URL to clipboard + toast
+
+**Image renderer (`shareImage` in app-router.js)**
+- html2canvas via CDN (`html2canvas@1.4.1`, ~180KB) loaded with `defer`
+- Off-screen render host: `<div id="imgRenderHost">` positioned `fixed; top:-99999px`
+- CORS workaround: `spriteToDataUrl(url)` fetches sprite as blob + converts to data URL before injection (Serebii doesn't set CORS headers; html2canvas would otherwise render blank)
+- Build card: 1200×630, purple gradient + diamond pattern bg, inner frame card, sprite 290px with violet glow, shiny badge, item sprite-pill, gradient moves (72px), 6-tile stat strip
+- Team card: 1200×630, 3×2 grid, `minmax(0,1fr)` rows (fixes clipping), sprite 78px centered, per-type radial glow, ability row, item sprite-pill, wide 2×2 move grid anchored with `margin-top:auto`
+- Image filename: `champions-<pokemon-slug>.png` for builds, `champions-team-<name-slug>.png` for teams
+
+**Schema: no changes** — reuses existing `share_fields`, `share_code`, `is_public` columns from F.2.
+
+## 🧪 Verification
+
+- JS syntax check passes across router, builds, teams, init
+- All CSS scoped under `#imgRenderHost .imgcard` so it doesn't leak into the app UI
+- Image card template classes (`.imgcard-*`, `.tc-mem-*` under `#imgRenderHost`) isolated from any normal app rendering
+
+## 🔑 Key decisions
+
+- **One Share button, native share with file** — user rejected the tray idea. iOS/Android share sheet already has Save to Camera Roll, AirDrop, Messages, Discord, etc. — no need to reinvent it.
+- **Image card design: build = Champions Violet trading card** (Gyarados shiny demo); **team = Champions 3×2 refined** (`minmax(0,1fr)` + `flex-shrink:0` on moves ensures all 4 moves visible on every slot)
+- **Item sprites everywhere** — build card has sprite-pill below species name; each team member has their own item sprite-pill
+- **CORS pre-fetch** — necessary for Serebii sprites. Without it html2canvas renders blank images.
+- **html2canvas loaded defer** — doesn't block initial page boot; by the time user taps Share the script is ready
+- **Editor Share button only enabled when `is_public=true`** — can't share a private URL. If not public, toast redirects user to toggle first.
+- **Separate DOM IDs for public stats view** — `#pub-barsView` / `#pub-hexView` avoid collision with in-app `#bd-barsView` / `#bd-hexView`. Separate `pubStatView` global so toggling one doesn't affect the other.
+
+## ⚠️ Gotchas discovered
+
+1. **CSS Grid `1fr 1fr` rows** — content that exceeds min-height pressure causes uneven row sizes. Fix: `grid-template-rows: minmax(0, 1fr) minmax(0, 1fr)` forces strict equal split.
+2. **Grid children with overflow:hidden clip invisibly** — when content overflows a 1fr cell, `overflow:hidden` on the child crops the bottom silently. Hard to debug. `flex-shrink:0` on critical inner elements prevents compression.
+3. **html2canvas CORS** — base images with no CORS headers render blank. Always pre-fetch as blob + data URL. Even then, some edge cases exist — render with `useCORS:true, allowTaint:false`.
+4. **`navigator.share({files})` is Web Share L2** — need feature-detect `navigator.canShare({files:[file]})` before calling. Many desktops lack it entirely.
+5. **Glow div + universal child rule bug** (3rd time!) — always use `.parent > :not(.glow-class)` when you have an absolutely-positioned decorative child. Checked all new CSS uses this pattern.
+
+## 📦 Files changed
+
+- `app/app-router.js` — finished `pubStatsSection`, added `buildImageHtml`, `teamImageHtml`, `spriteToDataUrl`, `shareImage`, `canShareFiles`, `imgcardGlowGradient`, `slugify`, `pubToggleStatView`, `pubStatView` global (+550 lines)
+- `app/app-builds.js` — added `edShareNow()`, Share button in editor share card, updated `bdPillShare()` to call `shareImage` (+25 lines)
+- `app/app-teams.js` — added `tmShareNow()`, Share button in editor share card, updated `tdPillShare()` to call `shareImage` (+25 lines)
+- `styles.css` — added `.ed-share-share-btn` and full `#imgRenderHost .imgcard-*` / `.tc-mem-*` scoped style block (+340 lines)
+- `index.html` — added html2canvas CDN script + `#imgRenderHost` div
+- `docs/dev-playbook.md` — this entry
+
+## 📦 Deferred to later drops
+
+- **F.3** — Username modal when toggling public without a handle, signup form username/display_name fields
+- **F.4** — Like button + Copy-to-my-builds
+- **F.5** — Public trainer profile page
