@@ -149,6 +149,13 @@
 <div class="panel-ov" id="detP"><div class="panel-bd" onclick="closeDet()"></div><div class="panel-ct slide-in" id="detInner"></div></div>
 
 <div class="toast-c" id="toasts"></div>
+
+<!-- Drop F.2.1: off-screen render host for shareable image cards (1200×630 PNG via html2canvas) -->
+<div id="imgRenderHost" aria-hidden="true"></div>
+
+<!-- Drop F.2.1: html2canvas for building image cards. Loaded async so initial boot isn't blocked. -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
+
 <script src="app/app-core.js"></script>
 <script src="app/app-dashboard.js"></script>
 <script src="app/app-pokedex.js"></script>

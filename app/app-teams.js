@@ -121,7 +121,8 @@ function tmShareSectionHtml(){
 
         '<div class="ed-share-url-row">'+
           '<div class="ed-share-url" id="tmShareUrlEl">'+(url?url.replace(/^https?:\/\//,''):'')+'</div>'+
-          '<button type="button" class="ed-share-copy-btn" id="tmShareCopyBtn" onclick="tmCopyShareUrl()"><i class="ph-bold ph-copy"></i> Copy</button>'+
+          '<button type="button" class="ed-share-copy-btn" id="tmShareCopyBtn" onclick="tmCopyShareUrl()"><i class="ph-bold ph-copy"></i></button>'+
+          '<button type="button" class="ed-share-share-btn" id="tmShareShareBtn" onclick="tmShareNow()"><i class="ph-bold ph-share-network"></i> Share</button>'+
         '</div>'+
         '<div class="ed-share-hint">'+
           '<i class="ph ph-info"></i>'+
@@ -291,9 +292,24 @@ async function tdPillCopy(){
 async function tdPillShare(){
   var t=allTeams.find(function(x){return x.id===detailTeamId});
   if(!t||!t.share_code){toast('No share URL','err');return}
+  // Drop F.2.1: render image card + native share
+  if(typeof shareImage==='function')return shareImage('team',t.id);
+  // Fallback — URL-only
   var url=tmShareUrl(t.share_code);
   var title=t.name||'Champions Forge team';
   if(typeof shareOrCopy==='function')return shareOrCopy(url,title,'Check out my Champions Forge team!');
+  try{await navigator.clipboard.writeText(url);toast('Link copied')}catch(_){toast('Copy failed','err')}
+}
+
+// Team editor Share button — same handler as pill
+async function tmShareNow(){
+  if(!editTeamId){toast('Save the team first','err');return}
+  var t=allTeams.find(function(x){return x.id===editTeamId});
+  if(!t){toast('Team not found','err');return}
+  if(!t.is_public||!t.share_code){toast('Make the team public first','err');return}
+  if(typeof shareImage==='function')return shareImage('team',t.id);
+  var url=tmShareUrl(t.share_code);
+  if(typeof shareOrCopy==='function')return shareOrCopy(url,t.name||'Champions Forge team','Check out my team!');
   try{await navigator.clipboard.writeText(url);toast('Link copied')}catch(_){toast('Copy failed','err')}
 }
 
