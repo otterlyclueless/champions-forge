@@ -299,9 +299,13 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;t
 .bd-config{display:grid;grid-template-columns:auto 1fr;gap:5px 14px;font-size:.82rem}
 .bd-config-label{color:var(--muted);font-weight:600;font-size:.72rem}
 .bd-config-val{font-weight:700;font-size:.82rem}
-/* Moves */
-.bd-moves{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.bd-move{padding:8px 10px;border-radius:8px;background:var(--surface);font-size:.78rem;font-weight:600;color:var(--text2);text-align:center}
+/* Moves — Drop E: type-matched gradients, name only */
+.bd-moves{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bd-move{position:relative;min-height:48px;border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:800;font-size:.82rem;letter-spacing:-0.01em;overflow:hidden}
+.bd-move-typed{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);box-shadow:0 1px 0 rgba(255,255,255,.08) inset, 0 2px 8px rgba(0,0,0,.18)}
+.bd-move-typed .bd-move-name{position:relative;z-index:1}
+.bd-move-empty{background:var(--surface);color:var(--muted);font-weight:600;border:1px dashed var(--border)}
+.bd-move-plain{background:var(--surface);color:var(--text2);font-weight:700}
 /* Strategy (collapsible) */
 .bd-strategy summary{font-size:.85rem;font-weight:800;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center}
 .bd-strategy summary::after{content:'▸';color:var(--muted);font-size:.8rem;transition:transform .2s}
@@ -846,3 +850,246 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;t
 .picker-item-name{flex:1;font-size:.85rem;font-weight:700;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .picker-item-cost{font-size:.62rem;color:var(--muted);font-weight:700;display:inline-flex;align-items:center;gap:.25rem;flex-shrink:0}
 .picker-item.selected .picker-item-cost{color:var(--red)}
+
+/* ══════════════════════════════════════════════════════════ */
+/* DROP E — MOVE SLOT BUTTONS (build editor) */
+/* ══════════════════════════════════════════════════════════ */
+.ms-slot{position:relative;width:100%;min-height:52px;padding:10px 12px;border-radius:12px;background:var(--input-bg,var(--surface));border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:.85rem;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:.5rem;overflow:hidden;text-align:left}
+.ms-slot:hover{border-color:var(--red-bg2)}
+.ms-slot .ms-empty{display:inline-flex;align-items:center;gap:.4rem;color:var(--muted);font-weight:600;font-size:.82rem}
+.ms-slot .ms-empty i{font-size:1rem;color:var(--muted)}
+.ms-slot .ms-chev{margin-left:auto;color:var(--muted);flex-shrink:0}
+.ms-slot.filled{color:#fff;border-color:transparent;text-shadow:0 1px 2px rgba(0,0,0,.35);box-shadow:0 1px 0 rgba(255,255,255,.08) inset, 0 2px 8px rgba(0,0,0,.18)}
+.ms-slot.filled .ms-chev{color:rgba(255,255,255,.8)}
+.ms-filled-bg{position:absolute;inset:0;z-index:0;border-radius:inherit}
+.ms-slot.filled .ms-name{position:relative;z-index:1;font-weight:800;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.ms-type-mini{position:relative;z-index:1;font-size:.58rem;font-weight:800;padding:2px 6px;background:rgba(0,0,0,.25);border-radius:4px;letter-spacing:.04em;color:#fff;flex-shrink:0}
+
+/* ══════════════════════════════════════════════════════════ */
+/* DROP E — MOVE PICKER (full-screen sheet) */
+/* Reuses .picker-ov from Drop D.2 for backdrop/open behaviour. */
+/* ══════════════════════════════════════════════════════════ */
+.mp-sheet{background:var(--surface);width:100%;max-width:600px;height:90vh;max-height:90vh;margin:auto 0 0;border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden;animation:mpSlideUp .25s ease}
+@keyframes mpSlideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@media (min-width:640px){.mp-sheet{height:85vh;max-height:740px;margin:auto;border-radius:20px}}
+
+.mp-head{padding:14px 16px 12px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border)}
+.mp-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.mp-back{background:var(--bg2);border:none;color:var(--text);width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-family:inherit}
+.mp-back i{font-size:18px}
+.mp-title{flex:1;min-width:0}
+.mp-title-main{font-size:1rem;font-weight:800;letter-spacing:-0.01em;display:flex;align-items:center;gap:7px}
+.mp-title-sub{font-size:.68rem;color:var(--muted);margin-top:1px;font-weight:600}
+.mp-slot-badge{background:linear-gradient(135deg,var(--red),#dc2626);color:#fff;font-size:.62rem;font-weight:800;letter-spacing:.05em;padding:6px 10px;border-radius:8px;text-transform:uppercase;flex-shrink:0}
+
+.mp-gloss-btn{background:var(--bg2);border:none;color:var(--muted);width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font-size:.7rem;font-weight:800;font-family:inherit}
+.mp-gloss-btn:hover{background:var(--red-bg2);color:var(--red)}
+.mp-gloss-btn.open{background:var(--red);color:#fff}
+
+.mp-gloss-panel{max-height:0;overflow:hidden;transition:max-height .25s ease;background:rgba(251,191,36,.04);border-bottom:1px solid rgba(251,191,36,.1);flex-shrink:0}
+.mp-gloss-panel.open{max-height:340px}
+.mp-gloss-panel .gloss-inner{padding:12px 16px 14px}
+.mp-gloss-panel .gloss-title{font-size:.62rem;font-weight:800;color:var(--gold,#fbbf24);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.mp-gloss-panel .gloss-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.mp-gloss-panel .gloss-item{display:flex;flex-direction:column;gap:1px}
+.mp-gloss-panel .gloss-item .k{font-size:.62rem;font-weight:800;letter-spacing:.02em;display:flex;align-items:center;gap:5px;color:var(--text)}
+.mp-gloss-panel .gloss-item .v{font-size:.62rem;color:var(--muted);line-height:1.35}
+.mp-gloss-panel .swatch{width:10px;height:10px;border-radius:3px;display:inline-block;flex-shrink:0}
+
+.mp-search{position:relative;margin-bottom:10px}
+.mp-search i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:15px}
+.mp-search input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:.8rem;font-weight:500;padding:10px 12px 10px 36px;border-radius:10px;outline:none}
+.mp-search input::placeholder{color:var(--muted)}
+.mp-search input:focus{border-color:var(--red)}
+
+.mp-types{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;margin:0 -16px;padding-left:16px;padding-right:16px}
+.mp-types::-webkit-scrollbar{display:none}
+.mp-tp{font-size:.6rem;font-weight:800;padding:5px 10px;border-radius:999px;border:none;cursor:pointer;color:#fff;white-space:nowrap;flex-shrink:0;letter-spacing:.02em;font-family:inherit;opacity:.5;transition:opacity .15s}
+.mp-tp.on{opacity:1}
+.mp-tp.all{background:var(--bg2);color:var(--muted);opacity:1}
+.mp-tp.all.on{background:var(--red);color:#fff}
+
+/* Species context chip */
+.mp-ctx{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.mp-ctx img,.mp-ctx .mp-ctx-sprite{width:36px;height:36px;border-radius:8px;background:var(--bg2);flex-shrink:0;object-fit:contain}
+.mp-ctx-info{flex:1;min-width:0}
+.mp-ctx-name{font-size:.82rem;font-weight:800;letter-spacing:-0.01em}
+.mp-ctx-types{display:flex;gap:4px;margin-top:3px}
+.mp-ctx-types .tt{font-size:.55rem;font-weight:800;padding:2px 6px;border-radius:3px;color:#fff;letter-spacing:.03em}
+.mp-ctx-slots{display:flex;gap:3px;flex-shrink:0}
+.mp-ctx-slot{width:24px;height:24px;border-radius:6px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:800;color:var(--muted)}
+.mp-ctx-slot.filled{background:rgba(16,185,129,.15);color:var(--green,#10b981)}
+.mp-ctx-slot.current{background:var(--red);color:#fff;box-shadow:0 0 0 2px var(--red-bg2)}
+
+/* Move list */
+.mp-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.mp-list::-webkit-scrollbar{width:4px}
+.mp-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.mp-empty{padding:3rem 1rem;text-align:center;color:var(--muted);font-size:.82rem}
+
+/* Row — hybrid: D2 content + D1 meta position (approved V2) */
+.mp-row{padding:11px 16px 12px;border-bottom:1px solid var(--border);cursor:pointer;position:relative;overflow:hidden}
+.mp-row:hover{background:var(--bg2)}
+.mp-row.used{opacity:.42;cursor:default}
+.mp-row.used:hover{background:transparent}
+.mp-row.current{background:var(--red-bg2);border-left:3px solid var(--red)}
+
+.mp-top-line{display:flex;align-items:center;gap:8px;margin-bottom:3px;position:relative;z-index:2}
+.mp-type-pill{font-size:.55rem;font-weight:800;padding:3px 7px;border-radius:4px;color:#fff;letter-spacing:.02em;flex-shrink:0;min-width:58px;text-align:center}
+.mp-cat{width:15px;height:15px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:.55rem;font-weight:900;color:#fff;flex-shrink:0}
+.mp-cat.Physical{background:#f97316}
+.mp-cat.Special{background:#3b82f6}
+.mp-cat.Status{background:#6b7280}
+.mp-row .mp-name{font-size:.82rem;font-weight:800;color:var(--text);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-0.01em}
+.mp-meta{display:flex;gap:5px;align-items:center;flex-shrink:0;font-size:.68rem;font-weight:700;font-variant-numeric:tabular-nums;color:var(--muted)}
+.mp-meta .pwr{color:#fb923c;font-weight:800}
+.mp-meta .acc{color:#a78bfa}
+.mp-meta .pp{color:#7dd3fc}
+.mp-meta .dot{color:var(--border);font-weight:400}
+.mp-meta .none{color:var(--border)}
+.mp-desc{font-size:.65rem;color:var(--muted);line-height:1.4;padding-left:82px;position:relative;z-index:2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-used-badge{font-size:.55rem;color:var(--text);background:var(--bg2);padding:3px 8px;border-radius:4px;font-weight:800;letter-spacing:.05em}
+
+/* STAB — subtle gradient on row + small faded watermark (per user feedback) */
+.mp-row.stab{background:linear-gradient(90deg, rgba(251,191,36,.06) 0%, rgba(251,191,36,.02) 40%, transparent 75%)}
+.mp-row.stab::after{
+  content:"STAB";
+  position:absolute;
+  right:10px;
+  bottom:3px;
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.12em;
+  color:transparent;
+  background:linear-gradient(90deg, rgba(251,191,36,.16) 0%, rgba(251,191,36,.04) 100%);
+  -webkit-background-clip:text;
+  background-clip:text;
+  pointer-events:none;
+  z-index:1;
+  line-height:1;
+  font-style:italic;
+  opacity:.9;
+}
+.mp-row.stab:hover{background:linear-gradient(90deg, rgba(251,191,36,.09) 0%, rgba(251,191,36,.03) 40%, transparent 75%)}
+.mp-row.stab .mp-name{color:#f5d97e}
+[data-theme="light"] .mp-row.stab .mp-name{color:#8a6600}
+
+/* Type pill colours (mirror TC map used across the app) */
+.mp-type-pill.t-Normal,.mp-ctx-types .tt.t-Normal{background:#A8A77A}
+.mp-type-pill.t-Fire,.mp-ctx-types .tt.t-Fire{background:#EE8130}
+.mp-type-pill.t-Water,.mp-ctx-types .tt.t-Water{background:#6390F0}
+.mp-type-pill.t-Electric,.mp-ctx-types .tt.t-Electric{background:#E8C030;color:#1a1a2e}
+.mp-type-pill.t-Grass,.mp-ctx-types .tt.t-Grass{background:#7AC74C}
+.mp-type-pill.t-Ice,.mp-ctx-types .tt.t-Ice{background:#96D9D6;color:#1a1a2e}
+.mp-type-pill.t-Fighting,.mp-ctx-types .tt.t-Fighting{background:#C22E28}
+.mp-type-pill.t-Poison,.mp-ctx-types .tt.t-Poison{background:#A33EA1}
+.mp-type-pill.t-Ground,.mp-ctx-types .tt.t-Ground{background:#B08030}
+.mp-type-pill.t-Flying,.mp-ctx-types .tt.t-Flying{background:#A98FF3}
+.mp-type-pill.t-Psychic,.mp-ctx-types .tt.t-Psychic{background:#F95587}
+.mp-type-pill.t-Bug,.mp-ctx-types .tt.t-Bug{background:#A6B91A}
+.mp-type-pill.t-Rock,.mp-ctx-types .tt.t-Rock{background:#B6A136}
+.mp-type-pill.t-Ghost,.mp-ctx-types .tt.t-Ghost{background:#735797}
+.mp-type-pill.t-Dragon,.mp-ctx-types .tt.t-Dragon{background:#6F35FC}
+.mp-type-pill.t-Dark,.mp-ctx-types .tt.t-Dark{background:#4f3f33}
+.mp-type-pill.t-Steel,.mp-ctx-types .tt.t-Steel{background:#B7B7CE;color:#1a1a2e}
+.mp-type-pill.t-Fairy,.mp-ctx-types .tt.t-Fairy{background:#D685AD}
+
+/* Filter pill: apply colour when ACTIVE only (off state is muted) */
+.mp-tp.t-Normal.on{background:#A8A77A}
+.mp-tp.t-Fire.on{background:#EE8130}
+.mp-tp.t-Water.on{background:#6390F0}
+.mp-tp.t-Electric.on{background:#E8C030;color:#1a1a2e}
+.mp-tp.t-Grass.on{background:#7AC74C}
+.mp-tp.t-Ice.on{background:#96D9D6;color:#1a1a2e}
+.mp-tp.t-Fighting.on{background:#C22E28}
+.mp-tp.t-Poison.on{background:#A33EA1}
+.mp-tp.t-Ground.on{background:#B08030}
+.mp-tp.t-Flying.on{background:#A98FF3}
+.mp-tp.t-Psychic.on{background:#F95587}
+.mp-tp.t-Bug.on{background:#A6B91A}
+.mp-tp.t-Rock.on{background:#B6A136}
+.mp-tp.t-Ghost.on{background:#735797}
+.mp-tp.t-Dragon.on{background:#6F35FC}
+.mp-tp.t-Dark.on{background:#4f3f33}
+.mp-tp.t-Steel.on{background:#B7B7CE;color:#1a1a2e}
+.mp-tp.t-Fairy.on{background:#D685AD}
+.mp-tp:not(.all):not(.on){background:var(--bg2);color:var(--muted)}
+
+/* Footer */
+.mp-foot{flex-shrink:0;background:var(--surface);border-top:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.mp-foot-left{font-size:.68rem;color:var(--muted);line-height:1.3}
+.mp-foot-left b{color:var(--text);font-weight:800}
+.mp-foot-vp{font-size:.75rem;color:var(--gold,#fbbf24);font-weight:800;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.mp-foot-vp i{font-size:.9rem}
+
+/* ══════════════════════════════════════════════════════════ */
+/* DROP E.1 — LEGALITY FLAGS (transition safety for legacy builds) */
+/* ══════════════════════════════════════════════════════════ */
+
+/* Editor slot button — unknown / illegal states */
+.ms-slot.ms-state-unknown{border:1px dashed #f59e0b;background:rgba(245,158,11,.06)}
+.ms-slot.ms-state-unknown .ms-name{color:#f59e0b}
+.ms-slot.ms-state-illegal .ms-filled-bg{filter:saturate(.55) brightness(.85)}
+.ms-slot.ms-state-illegal{box-shadow:0 0 0 1.5px rgba(245,158,11,.6) inset, 0 2px 8px rgba(0,0,0,.18)}
+.ms-warn{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:rgba(245,158,11,.95);color:#fff;flex-shrink:0;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.ms-warn i{font-size:.82rem}
+
+/* Build detail card — unknown / illegal flag corner */
+.bd-move-warn{box-shadow:0 0 0 1.5px rgba(245,158,11,.75) inset, 0 2px 8px rgba(0,0,0,.18)}
+.bd-move-plain.bd-move-warn{background:rgba(245,158,11,.08);border:1px dashed #f59e0b}
+.bd-move-plain.bd-move-warn .bd-move-name{color:#f59e0b}
+.bd-move-flag{position:absolute;top:6px;right:6px;font-size:.88rem;color:#fff;background:rgba(245,158,11,.95);padding:3px 5px;border-radius:5px;z-index:2;box-shadow:0 1px 3px rgba(0,0,0,.35);cursor:help}
+.bd-move-plain.bd-move-warn .bd-move-flag{color:#fff}
+
+/* Build list warning tag (for unknown moves detected on list cards) */
+.btag.btag-warn{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.3);font-weight:800;display:inline-flex;align-items:center;gap:3px}
+.btag.btag-warn i{font-size:.7rem}
+
+/* Move picker — warning banner when current slot holds an illegal/unknown move */
+.mp-warn-banner{margin:10px 12px;padding:10px 12px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);border-radius:10px;display:flex;gap:10px;align-items:flex-start;color:var(--text);font-size:.72rem;line-height:1.4}
+.mp-warn-banner i{color:#f59e0b;font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.mp-warn-banner b{font-weight:800;color:#f59e0b}
+
+/* ══════════════════════════════════════════════════════════ */
+/* DROP E QoL — clickable slot chips + unified card sizing */
+/* ══════════════════════════════════════════════════════════ */
+
+/* Make context slot chips clickable (was div, now button) */
+.mp-ctx-slot{border:none;font-family:inherit;cursor:pointer;transition:transform .12s, background .15s, box-shadow .15s}
+.mp-ctx-slot:not(.current):hover{background:var(--border);color:var(--text);transform:translateY(-1px)}
+.mp-ctx-slot.filled:not(.current):hover{background:rgba(16,185,129,.28)}
+.mp-ctx-slot.current{cursor:default;transform:none}
+.mp-ctx-slot:active:not(.current){transform:translateY(0) scale(.95)}
+.mp-ctx-slot:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+
+/* Editor slot buttons: fixed height so long move names don't expand the row;
+   the JS-computed shared font-size keeps all 4 slots visually uniform. */
+.ms-slot{height:52px;min-height:52px}
+.ms-slot .ms-name{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1}
+
+/* Build detail cards: lock height so grid rows are always equal; JS-computed
+   shared font-size scales the name so it never wraps inside a capped card. */
+.bd-move{height:52px;min-height:52px;max-height:52px}
+.bd-move .bd-move-name{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1;max-width:100%}
+
+/* ══════════════════════════════════════════════════════════ */
+/* DROP E QoL v2 — slot overflow fix + stacked type chip */
+/* ══════════════════════════════════════════════════════════ */
+
+/* CRITICAL: force grid cells to allow the slot button to shrink below its
+   intrinsic content size. Without this, a long move name + type chip expands
+   the grid column past 1fr and spills past the right edge of the screen. */
+.ed-row{min-width:0}
+.ed-row > *{min-width:0}
+
+/* New 2-line stack inside the slot button: name on top, tiny type chip below.
+   Frees up horizontal space so the name can breathe even at larger font sizes. */
+.ms-text{position:relative;z-index:1;display:flex;flex-direction:column;align-items:flex-start;gap:2px;flex:1;min-width:0;overflow:hidden}
+.ms-text .ms-name{width:100%;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1;font-weight:800}
+.ms-text .ms-type-mini{position:static;font-size:.52rem;padding:1px 5px;background:rgba(0,0,0,.3);border-radius:3px;letter-spacing:.04em;font-weight:800;color:#fff;max-width:100%;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;line-height:1.3}
+.ms-slot.filled{padding:8px 12px}
+.ms-slot .ms-chev{flex-shrink:0;align-self:center}
+
+/* Unknown state: type chip is hidden anyway, so the wrapper just holds the
+   orange name text. Keep .ms-text flex-column behaviour consistent. */
+.ms-slot.ms-state-unknown .ms-text .ms-name{color:#f59e0b}

@@ -9,7 +9,7 @@ loadUser=async function(){await Promise.all([loadBuilds(),loadTeamRoster(),loadU
 // APP INITIALIZATION
 // Initial data loading and startup behavior.
 // ═══════════════════════════════════════
-restoreSession();updAuth();loadPkmn();loadItems();loadNatures();loadAchievements();if(usr){loadUser()}else{maybeShowInitialAuthPrompt()}
+restoreSession();updAuth();loadPkmn();loadItems();loadNatures();loadMoveIndex();loadAchievements();if(usr){loadUser()}else{maybeShowInitialAuthPrompt()}
 
 // ═══════════════════════════════════════
 // PWA / SERVICE WORKER

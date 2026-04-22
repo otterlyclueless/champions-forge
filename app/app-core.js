@@ -7,6 +7,8 @@
 
 var API='https://hrxqhhjkhhlpafhfarbl.supabase.co',ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhyeHFoaGpraGhscGFmaGZhcmJsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMDAzNjYsImV4cCI6MjA5MTY3NjM2Nn0.AALRUAOd3WVj1vmu42RvDV-RGHCpa8ymplkXsx_NSW0';
 var tk=null,refreshTk=null,sessionExp=0,usr=null,allPkmn=[],allBuilds=[],allTeams=[],uDex={},uShinyDex={},activeType=null,activeForm=null,showShiny=false,obtFilter='all',shinyCards={},authMode='login';
+// Drop E: Move index (name → meta) and per-species learnset cache
+var allMoveIndex={},learnsetCache={};
 
 // #SECTION: POKÉMON TYPE CONSTANTS & MATCHUP DATA
 // ═══════════════════════════════════════
@@ -385,6 +387,67 @@ function updAuth(){
 
 async function loadUser(){await Promise.all([loadBuilds(),loadTeams(),loadUDex()]);renderDash();renderDex()}
 async function loadPkmn(){try{allPkmn=await q('pokemon',{order:'dex_number.asc,form.asc',limit:'1000'});document.getElementById('nc0').textContent=allPkmn.length;renderTypeF();renderFormF();renderDex();renderDash()}catch(e){document.getElementById('dexGrid').innerHTML='<div class="empty"><div class="em">⚠️</div>'+e.message+'</div>'}}
+
+// Drop E: Lightweight global move lookup (name → full meta). Powers build-detail gradients
+// and acts as a fallback for the picker. Only in_champions moves (~494 rows).
+async function loadMoveIndex(){
+  try{
+    var rows=await q('moves',{select:'name,type,category,power,accuracy,pp,priority,short_description,champions_power,champions_accuracy,champions_pp,in_champions',in_champions:'eq.true',limit:'1000'});
+    rows.forEach(function(m){
+      allMoveIndex[m.name]={
+        name:m.name,type:m.type,category:m.category,
+        power:(m.champions_power!=null?m.champions_power:m.power)||0,
+        accuracy:(m.champions_accuracy!=null?m.champions_accuracy:m.accuracy),
+        pp:(m.champions_pp!=null?m.champions_pp:m.pp)||0,
+        priority:m.priority||0,
+        short:m.short_description||m.description||''
+      };
+    });
+    if(typeof renderBuilds==='function'&&document.getElementById('pg-builds')&&document.getElementById('pg-builds').classList.contains('show'))renderBuilds();
+  }catch(e){console.log('loadMoveIndex failed:',e)}
+}
+
+// Drop E: Legality state for a move on a given species. Used for transition
+// flags on legacy free-text builds so users can see which of their existing
+// picks are unknown (typo / not-in-champions) or illegal (not in learnset).
+// States: 'empty' | 'legal' | 'pending' (learnset not loaded) | 'unknown' | 'illegal'
+function moveLegalityState(name,pokemonId){
+  if(!name)return 'empty';
+  if(!allMoveIndex[name])return 'unknown';
+  if(!pokemonId)return 'legal';
+  var ls=learnsetCache[pokemonId];
+  if(!ls)return 'pending';
+  for(var i=0;i<ls.length;i++){if(ls[i].name===name)return 'legal'}
+  return 'illegal';
+}
+
+// Drop E: Species-scoped legal moveset, dedup by name, filtered to in_champions,
+// alphabetical. Cached per pokemon_id for the session.
+async function loadLearnset(pokemonId){
+  if(!pokemonId)return[];
+  if(learnsetCache[pokemonId])return learnsetCache[pokemonId];
+  try{
+    var rows=await q('pokemon_moves',{pokemon_id:'eq.'+pokemonId,select:'move_id,moves(name,type,category,power,accuracy,pp,priority,short_description,champions_power,champions_accuracy,champions_pp,in_champions)',limit:'1000'});
+    var seen={},out=[];
+    rows.forEach(function(row){
+      var m=row.moves;if(!m)return;
+      if(m.in_champions===false)return;
+      if(seen[m.name])return;
+      seen[m.name]=1;
+      out.push({
+        name:m.name,type:m.type,category:m.category,
+        power:(m.champions_power!=null?m.champions_power:m.power)||0,
+        accuracy:(m.champions_accuracy!=null?m.champions_accuracy:m.accuracy),
+        pp:(m.champions_pp!=null?m.champions_pp:m.pp)||0,
+        priority:m.priority||0,
+        short:m.short_description||m.description||''
+      });
+    });
+    out.sort(function(a,b){return a.name.localeCompare(b.name)});
+    learnsetCache[pokemonId]=out;
+    return out;
+  }catch(e){console.log('loadLearnset failed:',e);return[]}
+}
 async function loadBuilds(){if(!tk)return;try{allBuilds=await q('build_details',{order:'created_at.desc',limit:'200'},true);document.getElementById('nc1').textContent=allBuilds.length;renderDash()}catch(e){}}
 async function loadTeams(){if(!tk)return;try{allTeams=await q('teams',{order:'created_at.desc'},true);document.getElementById('nc2').textContent=allTeams.length;renderDash()}catch(e){}}
 async function loadUDex(){if(!tk)return;try{var rows=await q('user_pokedex',{select:'pokemon_id,obtained,shiny_obtained'},true);uDex={};uShinyDex={};rows.forEach(function(r){if(r.obtained)uDex[r.pokemon_id]=true;if(r.shiny_obtained)uShinyDex[r.pokemon_id]=true});renderDex();renderDash()}catch(e){}}

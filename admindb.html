@@ -193,6 +193,67 @@ input, select, textarea { font-family: inherit; }
 .loading .spinner { display:inline-block; width:24px; height:24px; border:3px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; margin-bottom:12px; }
 @keyframes spin { to { transform:rotate(360deg); } }
 .empty { text-align:center; padding:40px 20px; color:var(--text-2); font-size:0.9rem; }
+
+/* ══════════════════════════════════════════════════════════ */
+/* Drop E.2 — Learnset Editor modal */
+/* ══════════════════════════════════════════════════════════ */
+.le-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:flex-end;justify-content:center;z-index:300;padding:0}
+.le-overlay.open{display:flex;animation:leFade .18s ease}
+@keyframes leFade{from{opacity:0}to{opacity:1}}
+@media(min-width:640px){.le-overlay{align-items:center;padding:20px}}
+.le-sheet{background:var(--surface);width:100%;max-width:680px;height:92vh;max-height:92vh;border-radius:20px 20px 0 0;display:flex;flex-direction:column;overflow:hidden;animation:leSlide .25s ease}
+@keyframes leSlide{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@media(min-width:640px){.le-sheet{height:88vh;max-height:820px;border-radius:16px}}
+.le-head{padding:16px 18px 12px;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--surface)}
+.le-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.le-close{background:var(--surface-2);border:none;color:var(--text);width:32px;height:32px;border-radius:8px;font-size:14px;cursor:pointer;flex-shrink:0}
+.le-close:hover{background:var(--border)}
+.le-title{flex:1;min-width:0}
+.le-title-main{font-size:1rem;font-weight:800;letter-spacing:-0.01em;line-height:1.2}
+.le-title-sub{font-size:0.72rem;color:var(--text-2);margin-top:2px;font-weight:600}
+.le-search{width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:0.85rem;padding:10px 12px;border-radius:8px;outline:none;margin-bottom:10px}
+.le-search::placeholder{color:var(--text-2)}
+.le-search:focus{border-color:var(--accent)}
+.le-types{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;margin:0 -18px 10px;padding-left:18px;padding-right:18px}
+.le-types::-webkit-scrollbar{display:none}
+.le-pill{font-size:0.62rem;font-weight:800;padding:5px 10px;border-radius:999px;border:none;cursor:pointer;color:#fff;white-space:nowrap;flex-shrink:0;letter-spacing:0.02em;font-family:inherit;opacity:0.5;transition:opacity .15s}
+.le-pill.on{opacity:1}
+.le-pill:first-child{background:var(--surface-2);color:var(--text-2);opacity:1}
+.le-pill:first-child.on{background:var(--accent);color:#fff}
+.le-pill.le-t-Normal.on{background:#A8A77A}.le-pill.le-t-Fire.on{background:#EE8130}.le-pill.le-t-Water.on{background:#6390F0}
+.le-pill.le-t-Electric.on{background:#E8C030;color:#1a1a2e}.le-pill.le-t-Grass.on{background:#7AC74C}.le-pill.le-t-Ice.on{background:#96D9D6;color:#1a1a2e}
+.le-pill.le-t-Fighting.on{background:#C22E28}.le-pill.le-t-Poison.on{background:#A33EA1}.le-pill.le-t-Ground.on{background:#B08030}
+.le-pill.le-t-Flying.on{background:#A98FF3}.le-pill.le-t-Psychic.on{background:#F95587}.le-pill.le-t-Bug.on{background:#A6B91A}
+.le-pill.le-t-Rock.on{background:#B6A136}.le-pill.le-t-Ghost.on{background:#735797}.le-pill.le-t-Dragon.on{background:#6F35FC}
+.le-pill.le-t-Dark.on{background:#4f3f33}.le-pill.le-t-Steel.on{background:#B7B7CE;color:#1a1a2e}.le-pill.le-t-Fairy.on{background:#D685AD}
+.le-pill:not(.on):not(:first-child){background:var(--surface-2);color:var(--text-2)}
+.le-bulk-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.le-count{font-size:0.72rem;color:var(--text-2);font-weight:600}
+.le-list{flex:1;overflow-y:auto;padding:6px 0}
+.le-list::-webkit-scrollbar{width:6px}
+.le-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.le-row{display:flex;align-items:center;gap:10px;padding:9px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.le-row:hover{background:var(--surface-2)}
+.le-row.on{background:rgba(34,197,94,.04)}
+.le-row.on:hover{background:rgba(34,197,94,.08)}
+.le-chk{width:20px;height:20px;border-radius:5px;border:2px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;color:#fff;font-size:0.72rem;font-weight:800;flex-shrink:0;transition:background .12s, border-color .12s}
+.le-chk.on{background:var(--green);border-color:var(--green)}
+.le-type-pill{font-size:0.55rem;font-weight:800;padding:3px 7px;border-radius:4px;color:#fff;letter-spacing:0.02em;flex-shrink:0;min-width:56px;text-align:center}
+.le-type-pill.le-t-Normal{background:#A8A77A}.le-type-pill.le-t-Fire{background:#EE8130}.le-type-pill.le-t-Water{background:#6390F0}
+.le-type-pill.le-t-Electric{background:#E8C030;color:#1a1a2e}.le-type-pill.le-t-Grass{background:#7AC74C}.le-type-pill.le-t-Ice{background:#96D9D6;color:#1a1a2e}
+.le-type-pill.le-t-Fighting{background:#C22E28}.le-type-pill.le-t-Poison{background:#A33EA1}.le-type-pill.le-t-Ground{background:#B08030}
+.le-type-pill.le-t-Flying{background:#A98FF3}.le-type-pill.le-t-Psychic{background:#F95587}.le-type-pill.le-t-Bug{background:#A6B91A}
+.le-type-pill.le-t-Rock{background:#B6A136}.le-type-pill.le-t-Ghost{background:#735797}.le-type-pill.le-t-Dragon{background:#6F35FC}
+.le-type-pill.le-t-Dark{background:#4f3f33}.le-type-pill.le-t-Steel{background:#B7B7CE;color:#1a1a2e}.le-type-pill.le-t-Fairy{background:#D685AD}
+.le-move-info{flex:1;min-width:0}
+.le-move-name{font-size:0.84rem;font-weight:700;color:var(--text);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px}
+.le-move-meta{font-size:0.68rem;color:var(--text-2);margin-top:2px;font-variant-numeric:tabular-nums}
+.le-delta{font-weight:900;font-size:0.85rem;padding:1px 5px;border-radius:3px;line-height:1}
+.le-delta.added{color:var(--green);background:rgba(34,197,94,.15)}
+.le-delta.removed{color:var(--accent);background:rgba(239,68,68,.15)}
+.le-foot{flex-shrink:0;background:var(--surface);border-top:1px solid var(--border);padding:12px 18px;display:flex;gap:8px;justify-content:flex-end}
+.le-foot .btn{padding:10px 18px;font-size:0.82rem;font-weight:700}
+.le-foot .btn:disabled{opacity:0.45;cursor:not-allowed}
 .page-controls { display:flex; align-items:center; justify-content:center; gap:12px; margin-top:16px; padding:12px; }
 .page-info { font-size:0.82rem; color:var(--text-2); }
 </style>
@@ -230,6 +291,9 @@ input, select, textarea { font-family: inherit; }
   <!-- Tabs -->
   <div class="tabs" id="tabs"></div>
 
+  <!-- Drop E.2: Learnset Editor modal -->
+  <div class="le-overlay" id="leEditor"></div>
+
   <!-- Filters -->
   <div class="filters" id="filters"></div>
 
@@ -258,7 +322,10 @@ let state = {
   user: null,
   data: { pokemon:[], moves:[], abilities:[], items:[], pokemon_moves_count:{} },
   counts: {},
-  saving: {}
+  saving: {},
+  // Drop E.2: learnset editor per-pokemon counts + in-flight editor state
+  learnsetCounts: {},
+  learnsetEditor: null  // { pokemonId, pokemon, original:Set<moveId>, pending:Set<moveId>, search:'', typeFilter:'all', busy:false }
 };
 
 // ── Auth ──
@@ -344,6 +411,9 @@ async function loadAllData() {
       total: totalRes.count || 0,
       verified: verifiedRes.count || 0
     };
+
+    // Drop E.2: per-Pokemon learnset counts (one small aggregate query)
+    loadLearnsetCounts();
 
     computeCounts();
     renderOverview();
@@ -522,7 +592,11 @@ function renderMoveCard(m) {
       </select>
     </div>
     <div style="margin:8px 0">
-      <label style="font-size:0.68rem;color:var(--amber);text-transform:uppercase;font-weight:600;letter-spacing:0.04em;display:block;margin-bottom:3px">Description</label>
+      <label style="font-size:0.68rem;color:var(--amber);text-transform:uppercase;font-weight:600;letter-spacing:0.04em;display:block;margin-bottom:3px">Short Description <span style="color:var(--text-2);font-weight:500;text-transform:none;letter-spacing:0">(shown in the move picker)</span></label>
+      <textarea class="note-input" rows="2" style="resize:vertical" placeholder="e.g. 30% chance to burn the target." onchange="setOverride('${m.id}','short_description',this.value)">${m.short_description||''}</textarea>
+    </div>
+    <div style="margin:8px 0">
+      <label style="font-size:0.68rem;color:var(--amber);text-transform:uppercase;font-weight:600;letter-spacing:0.04em;display:block;margin-bottom:3px">Full Description</label>
       <textarea class="note-input" rows="3" style="resize:vertical" onchange="setOverride('${m.id}','description',this.value)">${m.description||''}</textarea>
     </div>
     <input class="note-input" placeholder="Admin note (e.g. Serebii: power 80→90)" value="${m.champions_note||''}" onchange="setOverride('${m.id}','champions_note',this.value)">
@@ -614,9 +688,10 @@ function renderItemCard(i) {
 
 // ── Pokemon Card ──
 function renderPokemonCard(p) {
+  const moveCount = state.learnsetCounts[p.id] ?? '—';
   return `<div class="entry-card ${p.champions_verified?'verified':'unverified'}">
     <div class="card-header">
-      <span class="card-name">#${p.dex_number} ${p.name}</span>
+      <span class="card-name">#${p.dex_number} ${p.name}${p.form&&p.form!=='Base'?' ('+p.form+')':''}</span>
       <span class="badge badge-verified">Verified</span>
     </div>
     <div class="card-stats" style="grid-template-columns:repeat(6,1fr)">
@@ -626,6 +701,12 @@ function renderPokemonCard(p) {
       <div class="stat-group"><label>SpA</label><span class="value">${p.base_spa??'—'}</span></div>
       <div class="stat-group"><label>SpD</label><span class="value">${p.base_spd??'—'}</span></div>
       <div class="stat-group"><label>Spe</label><span class="value">${p.base_spe??'—'}</span></div>
+    </div>
+    <div class="card-actions">
+      <div style="font-size:0.72rem;color:var(--text-2);display:flex;align-items:center;gap:6px">
+        <span style="font-weight:700;color:var(--text)">${moveCount}</span> legal move${moveCount===1?'':'s'}
+      </div>
+      <button class="btn btn-secondary btn-small" onclick="openLearnsetEditor('${p.id}')">Manage Moves</button>
     </div>
   </div>`;
 }
@@ -679,6 +760,212 @@ function showSave(id, cls, text) {
   const el = document.getElementById('save-'+id);
   if (el) { el.className = 'save-indicator '+cls; el.textContent = text; }
   if (cls === 'saved') setTimeout(() => { if(el) el.textContent=''; }, 2000);
+}
+
+// ══════════════════════════════════════════════════════════════════
+// DROP E.2 — Learnset Editor
+// Per-Pokemon modal where each Champions move is a checkbox. Save
+// diffs pending vs original and runs INSERT / DELETE on pokemon_moves.
+// This is how admins fix cases where a move is flagged 'illegal' but
+// the Pokemon should actually be able to learn it (and vice versa).
+// ══════════════════════════════════════════════════════════════════
+
+// Load per-Pokemon learnset counts. One query, grouped in JS.
+async function loadLearnsetCounts(){
+  try{
+    const { data, error } = await sb.from('pokemon_moves').select('pokemon_id').limit(50000);
+    if(error){ console.error('learnsetCounts error:', error); return; }
+    const counts = {};
+    (data||[]).forEach(r => { counts[r.pokemon_id] = (counts[r.pokemon_id]||0) + 1; });
+    state.learnsetCounts = counts;
+    if(state.tab === 'pokemon') renderContent();
+  } catch(e) { console.error('learnsetCounts exception:', e); }
+}
+
+async function openLearnsetEditor(pokemonId){
+  if(!state.user){ alert('Sign in to manage learnsets'); return; }
+  const poke = state.data.pokemon.find(p => p.id === pokemonId);
+  if(!poke){ alert('Pokemon not found'); return; }
+  // Fetch current learnset for this species
+  const { data, error } = await sb.from('pokemon_moves').select('move_id').eq('pokemon_id', pokemonId).limit(2000);
+  if(error){ alert('Failed to load learnset: '+error.message); return; }
+  const original = new Set((data||[]).map(r => r.move_id));
+  state.learnsetEditor = {
+    pokemonId, pokemon: poke,
+    original, pending: new Set(original),
+    search: '', typeFilter: 'all', busy: false
+  };
+  document.getElementById('leEditor').classList.add('open');
+  renderLearnsetEditor();
+}
+
+function closeLearnsetEditor(){
+  state.learnsetEditor = null;
+  document.getElementById('leEditor').classList.remove('open');
+}
+
+function toggleLearnsetMove(moveId){
+  const ed = state.learnsetEditor; if(!ed) return;
+  if(ed.pending.has(moveId)) ed.pending.delete(moveId);
+  else ed.pending.add(moveId);
+  updateLearnsetEditorFooter();
+  // Toggle just this row's visual state without re-rendering the whole list
+  const row = document.getElementById('le-row-'+moveId);
+  if(row){
+    const on = ed.pending.has(moveId);
+    row.classList.toggle('on', on);
+    const chk = row.querySelector('.le-chk');
+    if(chk) chk.classList.toggle('on', on);
+  }
+}
+
+function setLearnsetSearch(v){
+  const ed = state.learnsetEditor; if(!ed) return;
+  ed.search = (v||'').toLowerCase();
+  renderLearnsetList();
+}
+function setLearnsetTypeFilter(t){
+  const ed = state.learnsetEditor; if(!ed) return;
+  ed.typeFilter = t;
+  renderLearnsetEditor();
+}
+function toggleLearnsetAll(){
+  const ed = state.learnsetEditor; if(!ed) return;
+  const visible = getLearnsetVisibleMoves();
+  const allOn = visible.every(m => ed.pending.has(m.id));
+  visible.forEach(m => {
+    if(allOn) ed.pending.delete(m.id);
+    else ed.pending.add(m.id);
+  });
+  renderLearnsetList();
+  updateLearnsetEditorFooter();
+}
+
+function getLearnsetVisibleMoves(){
+  const ed = state.learnsetEditor; if(!ed) return [];
+  return state.data.moves.filter(m => {
+    if(m.in_champions === false) return false;
+    if(ed.typeFilter !== 'all' && m.type !== ed.typeFilter) return false;
+    if(ed.search && !m.name.toLowerCase().includes(ed.search)) return false;
+    return true;
+  });
+}
+
+function renderLearnsetEditor(){
+  const ed = state.learnsetEditor; if(!ed) return;
+  const p = ed.pokemon;
+  // Type pills — only show types present in the Champions move pool
+  const types = Array.from(new Set(state.data.moves.filter(m => m.in_champions!==false).map(m => m.type))).sort();
+  const pills = `<button class="le-pill ${ed.typeFilter==='all'?'on':''}" onclick="setLearnsetTypeFilter('all')">ALL</button>` +
+    types.map(t => `<button class="le-pill le-t-${t} ${ed.typeFilter===t?'on':''}" onclick="setLearnsetTypeFilter('${t}')">${t.toUpperCase()}</button>`).join('');
+  document.getElementById('leEditor').innerHTML = `
+    <div class="le-sheet">
+      <div class="le-head">
+        <div class="le-top">
+          <button class="le-close" onclick="closeLearnsetEditor()">✕</button>
+          <div class="le-title">
+            <div class="le-title-main">Manage Learnset</div>
+            <div class="le-title-sub">#${p.dex_number} ${p.name}${p.form&&p.form!=='Base'?' ('+p.form+')':''}</div>
+          </div>
+        </div>
+        <input class="le-search" placeholder="Search moves..." value="${ed.search.replace(/"/g,'&quot;')}" oninput="setLearnsetSearch(this.value)">
+        <div class="le-types">${pills}</div>
+        <div class="le-bulk-row">
+          <button class="btn btn-secondary btn-small" onclick="toggleLearnsetAll()">Toggle visible</button>
+          <span class="le-count" id="leCount"></span>
+        </div>
+      </div>
+      <div class="le-list" id="leList"></div>
+      <div class="le-foot">
+        <button class="btn btn-secondary" onclick="closeLearnsetEditor()">Cancel</button>
+        <button class="btn btn-primary" id="leSaveBtn" onclick="saveLearnsetChanges()">Save Changes</button>
+      </div>
+    </div>
+  `;
+  renderLearnsetList();
+  updateLearnsetEditorFooter();
+}
+
+function renderLearnsetList(){
+  const ed = state.learnsetEditor; if(!ed) return;
+  const list = document.getElementById('leList'); if(!list) return;
+  const moves = getLearnsetVisibleMoves();
+  if(!moves.length){
+    list.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--text-2);font-size:0.85rem">No moves match</div>';
+    return;
+  }
+  list.innerHTML = moves.map(m => {
+    const on = ed.pending.has(m.id);
+    const wasOn = ed.original.has(m.id);
+    let delta = '';
+    if(on && !wasOn) delta = '<span class="le-delta added">+</span>';
+    else if(!on && wasOn) delta = '<span class="le-delta removed">−</span>';
+    const pwr = (m.champions_power ?? m.power) || 0;
+    const acc = m.champions_accuracy ?? m.accuracy;
+    const pp = (m.champions_pp ?? m.pp) || 0;
+    return `<div class="le-row ${on?'on':''}" id="le-row-${m.id}" onclick="toggleLearnsetMove('${m.id}')">
+      <div class="le-chk ${on?'on':''}">${on?'✓':''}</div>
+      <span class="le-type-pill le-t-${m.type}">${m.type.toUpperCase()}</span>
+      <div class="le-move-info">
+        <div class="le-move-name">${m.name}${delta}</div>
+        <div class="le-move-meta">${pwr>0?pwr:'—'} · ${acc?acc+'%':'—'} · ${pp}pp · ${m.category}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateLearnsetEditorFooter(){
+  const ed = state.learnsetEditor; if(!ed) return;
+  const added = [...ed.pending].filter(id => !ed.original.has(id)).length;
+  const removed = [...ed.original].filter(id => !ed.pending.has(id)).length;
+  const el = document.getElementById('leCount');
+  if(el){
+    const total = ed.pending.size;
+    let diff = '';
+    if(added || removed){
+      diff = ` · <span style="color:var(--green)">+${added}</span> / <span style="color:var(--accent)">−${removed}</span>`;
+    }
+    el.innerHTML = `<b style="color:var(--text)">${total}</b> selected${diff}`;
+  }
+  const saveBtn = document.getElementById('leSaveBtn');
+  if(saveBtn) saveBtn.disabled = (added === 0 && removed === 0) || ed.busy;
+}
+
+async function saveLearnsetChanges(){
+  const ed = state.learnsetEditor; if(!ed || ed.busy) return;
+  const toAdd = [...ed.pending].filter(id => !ed.original.has(id));
+  const toRemove = [...ed.original].filter(id => !ed.pending.has(id));
+  if(!toAdd.length && !toRemove.length){ closeLearnsetEditor(); return; }
+  ed.busy = true;
+  const saveBtn = document.getElementById('leSaveBtn');
+  if(saveBtn){ saveBtn.disabled = true; saveBtn.textContent = 'Saving...'; }
+  try {
+    // Insert new rows
+    if(toAdd.length){
+      const rows = toAdd.map(moveId => ({
+        pokemon_id: ed.pokemonId,
+        move_id: moveId,
+        learn_method: 'champions',
+        champions_verified: true
+      }));
+      const { error } = await sb.from('pokemon_moves').insert(rows);
+      if(error) throw error;
+    }
+    // Delete removed rows one-by-one (Supabase JS doesn't support .in() + composite WHERE in a single call cleanly)
+    for(const moveId of toRemove){
+      const { error } = await sb.from('pokemon_moves').delete().eq('pokemon_id', ed.pokemonId).eq('move_id', moveId);
+      if(error) throw error;
+    }
+    // Update local count
+    state.learnsetCounts[ed.pokemonId] = ed.pending.size;
+    closeLearnsetEditor();
+    if(state.tab === 'pokemon') renderContent();
+    alert(`Saved — added ${toAdd.length}, removed ${toRemove.length}. Users may need to refresh to see updates.`);
+  } catch(e) {
+    alert('Save failed: ' + (e.message || e));
+    ed.busy = false;
+    if(saveBtn){ saveBtn.disabled = false; saveBtn.textContent = 'Save Changes'; }
+  }
 }
 
 // ── Init ──
