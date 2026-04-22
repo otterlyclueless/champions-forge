@@ -1907,6 +1907,17 @@ body.pub-route:not(.pub-route-authed) .main{margin-left:0 !important}
 [data-theme="light"] .bd-pill-panel-inner{background:linear-gradient(180deg,rgba(22,163,74,.06) 0%,var(--card) 100%);border-color:rgba(22,163,74,.3)}
 [data-theme="light"] .bd-pill-btn.primary{background:#16a34a;border-color:#16a34a;color:#fff}
 
+/* #SECTION: DROP F.2.1b — Share button loading spinner */
+@keyframes share-spin{to{transform:rotate(360deg)}}
+/* Applied when shareImage() is in-flight — button captured via document.activeElement */
+button[data-sharing]{opacity:.65!important;pointer-events:none!important}
+button[data-sharing]::after{
+  content:'';display:inline-block;width:11px;height:11px;flex-shrink:0;
+  border:2px solid rgba(255,255,255,.28);border-top-color:#fff;
+  border-radius:50%;animation:share-spin .6s linear infinite;
+  margin-left:6px;vertical-align:middle;
+}
+
 /* #SECTION: DROP F.2.1 — Editor Share button + image card template */
 /* ══════════════════════════════════════════════════════════════════
    Share button (red-tinted) in the editor share card, next to Copy.
