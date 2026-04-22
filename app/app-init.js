@@ -8,8 +8,15 @@ loadUser=async function(){await Promise.all([loadBuilds(),loadTeamRoster(),loadU
 // ═══════════════════════════════════════
 // APP INITIALIZATION
 // Initial data loading and startup behavior.
+// Drop F.1: detect public route (#/b/<code>, #/t/<code>, #/u/<name>) on first load.
+// If on a public route, suppress the initial auth prompt and let the router take
+// over — reference data (pokemon, moves, etc.) still loads so the public view
+// can render properly. Subsequent hash changes are handled by the router itself.
 // ═══════════════════════════════════════
-restoreSession();updAuth();loadPkmn();loadItems();loadNatures();loadMoveIndex();loadAchievements();if(usr){loadUser()}else{maybeShowInitialAuthPrompt()}
+var _onPublicRoute=!!(window._championsRouter&&_championsRouter.parseHash(location.hash));
+restoreSession();updAuth();loadPkmn();loadItems();loadNatures();loadMoveIndex();loadAchievements();
+if(usr){loadUser()}else if(!_onPublicRoute){maybeShowInitialAuthPrompt()}
+if(window._championsRouter)_championsRouter.init();
 
 // ═══════════════════════════════════════
 // PWA / SERVICE WORKER

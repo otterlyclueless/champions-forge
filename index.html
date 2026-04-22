@@ -109,6 +109,9 @@
     <div style="padding:1.2rem 2rem" id="profileContent"><div class="empty"><div class="em">🔒</div>Sign in to view your profile</div></div>
   </div>
 
+  <!-- Public view (Drop F.1) — populated by app-router.js when hash is #/b/<code>, #/t/<code>, or #/u/<name> -->
+  <div class="page" id="pg-public"></div>
+
   <!-- Item Picker (build editor) — bottom sheet populated by renderItemPicker() -->
   <div class="picker-ov" id="itemPickerOv"></div>
 
@@ -152,6 +155,7 @@
 <script src="app/app-builds.js"></script>
 <script src="app/app-teams.js"></script>
 <script src="app/app-profile.js"></script>
+<script src="app/app-router.js"></script>
 <script src="app/app-init.js"></script>
 </body>
 </html>
