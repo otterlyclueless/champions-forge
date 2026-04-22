@@ -1365,8 +1365,20 @@ async function shareImageClientSide(kind,id){
 // Drop F.2.1b: Edge-first share — calls Supabase Edge Function (Browserless server-side
 // render) first, falls back to shareImageClientSide (html-to-image) on any failure.
 async function shareImage(kind,id){
+  // Capture triggering button synchronously (BEFORE first await) for spinner feedback
+  var _btn=null;
+  try{var _ae=document.activeElement;_btn=_ae&&_ae.closest?(_ae.tagName==='BUTTON'?_ae:_ae.closest('button')):null}catch(_){}
+  function _startLoad(){if(_btn){_btn.disabled=true;_btn.dataset.sharing='1'}}
+  function _stopLoad(){if(_btn){_btn.disabled=false;delete _btn.dataset.sharing}}
+
   var EDGE=API+'/functions/v1/share-image';
   var t0=performance.now();
+
+  // Look up share code...
+  var shareCode='',shareUrl='',shareTitle='',filename='';
+  if(kind==='build'){
+    var b=allBuilds?allBuilds.find(function(x){return x.id===id}):null;
+    if(!b||!b.share_code){_stopLoad();return shareImageClientSide(kind,id)}
 
   // Look up share code from local state (share button only shown when is_public + share_code set)
   var shareCode='',shareUrl='',shareTitle='',filename='';
