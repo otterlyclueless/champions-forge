@@ -1374,24 +1374,18 @@ async function shareImage(kind,id){
   var EDGE=API+'/functions/v1/share-image';
   var t0=performance.now();
 
-  // Look up share code...
-  var shareCode='',shareUrl='',shareTitle='',filename='';
-  if(kind==='build'){
-    var b=allBuilds?allBuilds.find(function(x){return x.id===id}):null;
-    if(!b||!b.share_code){_stopLoad();return shareImageClientSide(kind,id)}
-
   // Look up share code from local state (share button only shown when is_public + share_code set)
   var shareCode='',shareUrl='',shareTitle='',filename='';
   if(kind==='build'){
     var b=allBuilds?allBuilds.find(function(x){return x.id===id}):null;
-    if(!b||!b.share_code){return shareImageClientSide(kind,id)}
+    if(!b||!b.share_code){_stopLoad();return shareImageClientSide(kind,id)}
     shareCode=b.share_code;
     shareUrl=buildShareUrl('build',shareCode);
     shareTitle=b.name||b.build_name||'Champions Forge build';
     filename='champions-'+slugify(shareTitle)+'.png';
   }else{
     var t=allTeams?allTeams.find(function(x){return x.id===id}):null;
-    if(!t||!t.share_code){return shareImageClientSide(kind,id)}
+    if(!t||!t.share_code){_stopLoad();return shareImageClientSide(kind,id)}
     shareCode=t.share_code;
     shareUrl=buildShareUrl('team',shareCode);
     shareTitle=t.name||'Champions Forge team';
@@ -1399,6 +1393,7 @@ async function shareImage(kind,id){
   }
 
   toast('Generating image…','info');
+  _startLoad();
 
   try{
     var res=await fetch(EDGE,{
@@ -1413,6 +1408,7 @@ async function shareImage(kind,id){
 
     // 429 = Browserless quota exceeded — fall back silently, user still gets image
     if(res.status===429){
+      _stopLoad();
       console.log('[shareImage] edge quota exceeded — falling back to client render');
       return shareImageClientSide(kind,id);
     }
@@ -1420,6 +1416,7 @@ async function shareImage(kind,id){
     if(!res.ok) throw new Error('edge fn HTTP '+res.status);
 
     var blob=await res.blob();
+    _stopLoad();
     console.log('[shareImage] edge render',Math.round(performance.now()-t0),'ms ('+Math.round(blob.size/1024)+'KB)');
 
     var file=new File([blob],filename,{type:'image/png'});
@@ -1433,7 +1430,7 @@ async function shareImage(kind,id){
         });
         return;
       }catch(e){
-        if(e&&e.name==='AbortError')return;
+        if(e&&e.name==='AbortError'){_stopLoad();return;}
         console.log('[shareImage] navigator.share failed:',e);
       }
     }
@@ -1447,9 +1444,11 @@ async function shareImage(kind,id){
     if(shareUrl&&navigator.clipboard){
       try{await navigator.clipboard.writeText(shareUrl)}catch(_){}
     }
+    _stopLoad();
     toast('Image saved · Link copied');
 
   }catch(edgeErr){
+    _stopLoad();
     console.log('[shareImage] edge failed, falling back to client render:',edgeErr.message||edgeErr);
     return shareImageClientSide(kind,id);
   }
