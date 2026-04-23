@@ -2375,3 +2375,23 @@ body.share-loading [onclick="tdPillShare()"]::after{
   transition:all .15s;
 }
 .copy-btn svg{flex-shrink:0;color:#a78bfa}
+
+/* Profile trainer card — username display row */
+.tc-username{
+  display:flex;align-items:center;gap:.3rem;
+  font-size:.82rem;font-weight:700;color:var(--muted);
+  margin-top:.35rem;
+}
+.tc-un-at{color:var(--red);font-weight:800}
+.tc-un-edit{
+  background:none;border:none;cursor:pointer;
+  font-size:.75rem;padding:0 .15rem;opacity:.6;
+  line-height:1;
+}
+.tc-un-edit:hover{opacity:1}
+.tc-un-set{
+  background:none;border:none;cursor:pointer;
+  font-size:.78rem;font-weight:700;color:var(--red);
+  padding:.25rem 0;margin-top:.3rem;display:block;
+}
+.tc-un-set:hover{opacity:.8}
