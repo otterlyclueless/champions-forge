@@ -1082,6 +1082,7 @@ function showLoginModal(msg){
     '<div style="display:flex;flex-direction:column;gap:.65rem;text-align:left">'+
       '<input type="email" id="loginEmail" placeholder="Email" class="ed-input">'+
       '<input type="password" id="loginPass" placeholder="Password" class="ed-input">'+
+      (isSignup?'<div style="position:relative"><span style="position:absolute;left:.7rem;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:700;font-size:.88rem;pointer-events:none">@</span><input type="text" id="loginUsername" placeholder="username (optional)" class="ed-input" style="padding-left:1.55rem" autocomplete="off" spellcheck="false"></div>':'')+
       '<div style="font-size:.72rem;color:var(--muted)">'+(isSignup?'Create an account to save your builds, teams, items, and Pokédex progress.':'Sign in to access your saved builds, teams, items, and collection progress.')+'</div>'+
       '<div style="font-size:.78rem;color:var(--muted);text-align:center;padding-top:.6rem;border-top:1px solid var(--border);margin-top:.25rem">'+toggleLink+'</div>'+
     '</div>';
