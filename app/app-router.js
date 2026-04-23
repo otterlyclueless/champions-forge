@@ -1362,6 +1362,37 @@ async function shareImageClientSide(kind,id){
   }
 }
 
+// In-session blob cache: rendered PNGs keyed by build/team id.
+// Allows instant retry if navigator.share fails (gesture context expiry after async wait).
+// Prevents wasting a Browserless unit on re-render for the same share.
+var _shareImageCache={};
+
+// Show a floating tap-to-save button (used when native share sheet is unavailable).
+// User taps the link — this is a fresh user gesture, so iOS handles the download natively
+// without triggering the confusing "View/Download" bar from auto-click.
+function _showSaveButton(blob,filename,shareUrl){
+  var objUrl=URL.createObjectURL(blob);
+  var prev=document.getElementById('share-save-banner');if(prev)prev.parentNode.removeChild(prev);
+  var banner=document.createElement('div');
+  banner.id='share-save-banner';
+  banner.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1e293b;border:1px solid rgba(255,255,255,.12);color:#fff;padding:10px 16px;border-radius:14px;z-index:9999;display:flex;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(0,0,0,.5);font-family:inherit;white-space:nowrap;max-width:calc(100vw - 32px);';
+  var link=document.createElement('a');
+  link.href=objUrl;link.download=filename;
+  link.innerHTML='<span style="font-size:.82rem;font-weight:700;color:#60a5fa">💾 Tap to save image</span>';
+  link.style.textDecoration='none';
+  link.onclick=function(){
+    if(shareUrl&&navigator.clipboard)navigator.clipboard.writeText(shareUrl).catch(function(){});
+    setTimeout(function(){if(banner.parentNode){document.body.removeChild(banner);URL.revokeObjectURL(objUrl)}},1000);
+  };
+  var close=document.createElement('button');
+  close.textContent='✕';
+  close.style.cssText='background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:.82rem;padding:0;font-family:inherit;line-height:1;flex-shrink:0;';
+  close.onclick=function(){if(banner.parentNode){document.body.removeChild(banner);URL.revokeObjectURL(objUrl)}};
+  banner.appendChild(link);banner.appendChild(close);
+  document.body.appendChild(banner);
+  setTimeout(function(){if(banner.parentNode){document.body.removeChild(banner);URL.revokeObjectURL(objUrl)}},30000);
+}
+
 // Drop F.2.1b: Edge-first share — calls Supabase Edge Function (Browserless server-side
 // render) first, falls back to shareImageClientSide (html-to-image) on any failure.
 async function shareImage(kind,id){
@@ -1390,6 +1421,22 @@ async function shareImage(kind,id){
     filename='champions-team-'+slugify(shareTitle)+'.png';
   }
 
+  // Cache hit — skip edge fn entirely, re-use previously rendered blob
+  // (preserves gesture context + saves a Browserless unit on retry)
+  if(_shareImageCache[id]){
+    var _cb=_shareImageCache[id];
+    var _cf=new File([_cb],filename,{type:'image/png'});
+    if(canShareFiles(_cf)){
+      try{
+        await navigator.share({files:[_cf],title:shareTitle,
+          text:'Check out my Champions Forge '+(kind==='team'?'team':'build')+'!\n'+shareUrl});
+        return;
+      }catch(e){if(e&&e.name==='AbortError')return;console.log('[shareImage] cache share failed:',e)}
+    }
+    _showSaveButton(_cb,filename,shareUrl);
+    return;
+  }
+
   toast('Generating image…','info');
   _startLoad();
 
@@ -1414,6 +1461,7 @@ async function shareImage(kind,id){
     if(!res.ok) throw new Error('edge fn HTTP '+res.status);
 
     var blob=await res.blob();
+    _shareImageCache[id]=blob; // cache for gesture retry — no re-render needed
     _stopLoad();
     console.log('[shareImage] edge render',Math.round(performance.now()-t0),'ms ('+Math.round(blob.size/1024)+'KB)');
 
@@ -1433,17 +1481,8 @@ async function shareImage(kind,id){
       }
     }
 
-    // Desktop fallback — download + copy URL
-    var objUrl=URL.createObjectURL(blob);
-    var a=document.createElement('a');
-    a.href=objUrl;a.download=filename;
-    document.body.appendChild(a);a.click();
-    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(objUrl)},500);
-    if(shareUrl&&navigator.clipboard){
-      try{await navigator.clipboard.writeText(shareUrl)}catch(_){}
-    }
-    _stopLoad();
-    toast('Image saved · Link copied');
+    // native share not available / gesture expired — show tap-to-save button
+    _showSaveButton(blob,filename,shareUrl);
 
   }catch(edgeErr){
     _stopLoad();
