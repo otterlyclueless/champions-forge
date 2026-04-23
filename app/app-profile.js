@@ -254,7 +254,10 @@ if(!usr){
   var achUnlocked=allAch.filter(function(a){return userAch[a.id]}).length;
   // Trainer Card
   var avHtml=userProfile&&userProfile.avatar_url?'<img src="'+userProfile.avatar_url+'" alt="Avatar">':'<img src="icons/logo.png" alt="PC" style="padding:4px">';
-  var card='<input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="handleAvatarFile(this)"><div class="trainer-card"><div class="tc-wm">'+pb(200)+'</div><div class="tc-top"><div class="tc-avatar" onclick="triggerAvatarUpload()">'+avHtml+'<div class="av-overlay">📷 Change</div></div><div class="tc-info"><div class="tc-label">Trainer</div><h2>'+dn+'</h2><div class="tc-email">'+usr.email+'</div><div class="name-edit"><input id="dnInput" value="'+dn+'" placeholder="Display name"><button onclick="saveDisplayName()">Save</button></div></div></div><div class="tc-stats"><div class="tc-stat"><div class="tc-sv" style="color:#22c55e">'+obtC+'</div><div class="tc-sl">Obtained</div></div><div class="tc-stat"><div class="tc-sv" style="color:#8b5cf6">'+shC+'</div><div class="tc-sl">Shinies</div></div><div class="tc-stat"><div class="tc-sv" style="color:#3b82f6">'+blC+'</div><div class="tc-sl">Builds</div></div><div class="tc-stat"><div class="tc-sv" style="color:#f59e0b">'+tmC+'</div><div class="tc-sl">Teams</div></div><div class="tc-stat"><div class="tc-sv" style="color:#ef4444">'+achUnlocked+'<span style="font-size:.8rem;opacity:.5">/'+allAch.length+'</span></div><div class="tc-sl">Achievements</div></div></div></div>';
+  var unDisplay=userProfile&&userProfile.username
+    ?'<div class="tc-username"><span class="tc-un-at">@</span>'+userProfile.username+'<button class="tc-un-edit" onclick="showUsernameModal(null)" title="Change username">✏️</button></div>'
+    :'<button class="tc-un-set" onclick="showUsernameModal(null)">Set username →</button>';
+  var card='<input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="handleAvatarFile(this)"><div class="trainer-card"><div class="tc-wm">'+pb(200)+'</div><div class="tc-top"><div class="tc-avatar" onclick="triggerAvatarUpload()">'+avHtml+'<div class="av-overlay">📷 Change</div></div><div class="tc-info"><div class="tc-label">Trainer</div><h2>'+dn+'</h2><div class="tc-email">'+usr.email+'</div><div class="name-edit"><input id="dnInput" value="'+dn+'" placeholder="Display name"><button onclick="saveDisplayName()">Save</button></div>'+unDisplay+'</div></div><div class="tc-stats"><div class="tc-stat"><div class="tc-sv" style="color:#22c55e">'+obtC+'</div><div class="tc-sl">Obtained</div></div><div class="tc-stat"><div class="tc-sv" style="color:#8b5cf6">'+shC+'</div><div class="tc-sl">Shinies</div></div><div class="tc-stat"><div class="tc-sv" style="color:#3b82f6">'+blC+'</div><div class="tc-sl">Builds</div></div><div class="tc-stat"><div class="tc-sv" style="color:#f59e0b">'+tmC+'</div><div class="tc-sl">Teams</div></div><div class="tc-stat"><div class="tc-sv" style="color:#ef4444">'+achUnlocked+'<span style="font-size:.8rem;opacity:.5">/'+allAch.length+'</span></div><div class="tc-sl">Achievements</div></div></div></div>';
   // Achievements
   var achHtml='<h3 style="font-size:1.05rem;font-weight:700;margin-top:1.5rem;display:flex;align-items:center;gap:.4rem">🏆 Achievements <span style="font-size:.78rem;color:var(--muted);font-weight:500">'+achUnlocked+' / '+allAch.length+' unlocked</span></h3>';
   var catOrder=['collection','shiny','builds','teams','items'];
@@ -293,11 +296,17 @@ function showUsernameModal(onSuccess){
   var inp=document.getElementById('unInput');
   var hint=document.getElementById('unHint');
   var btn=document.getElementById('unSaveBtn');
-  if(inp){inp.value='';inp.className='un-input';}
-  if(hint){hint.className='un-hint';hint.textContent='';}
+  var titleEl=mod.querySelector('.un-sheet-title');
+  var descEl=mod.querySelector('.un-sheet-desc');
+  var existing=userProfile&&userProfile.username?userProfile.username:'';
+  // Pre-fill for "change" flow
+  if(inp){inp.value=existing;inp.className='un-input'+(existing?' un-ok':'');}
+  if(hint){hint.className='un-hint'+(existing?' ok':'');hint.textContent=existing?'@'+existing+' — current username':'';}
   if(btn){btn.disabled=true;btn.textContent='Set username';}
+  if(titleEl)titleEl.textContent=existing?'Change your username':'Choose your username';
+  if(descEl)descEl.textContent=existing?'Pick a new username. Your current links will continue to work.':'You need a username before sharing publicly. This is how other trainers will see you across Champions Forge.';
   mod.classList.add('open');
-  setTimeout(function(){if(inp)inp.focus();},120);
+  setTimeout(function(){if(inp){inp.focus();inp.select();}},120);
 }
 
 function closeUsernameModal(){
@@ -324,7 +333,10 @@ function unCheckAvailability(el){
   if(hint){hint.className='un-hint neutral';hint.textContent='Checking…';}
   _unTimer=setTimeout(async function(){
     try{
-      var rows=await q('user_profiles',{'username':'ilike.'+v.toLowerCase(),select:'id'},false);
+      // Exclude current user so editing back to their own username shows "available"
+      var qParams={'username':'ilike.'+v.toLowerCase(),select:'id'};
+      if(usr)qParams['user_id']='neq.'+usr.id;
+      var rows=await q('user_profiles',qParams,false);
       if(rows&&rows.length>0){
         el.classList.add('un-err');
         if(hint){hint.className='un-hint err';hint.textContent='@'+v+' is taken';}
