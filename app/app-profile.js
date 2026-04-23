@@ -309,17 +309,35 @@ async function deleteAccount(){
   closeCm();
   toast('Deleting account…','info');
   try{
-    var r=await fetch(API+'/auth/v1/user',{
-      method:'DELETE',
+    var uid=usr.id;
+    // Delete all user data — order matters: junction tables first, then owned rows.
+    // build_likes / team_likes cascade from builds/teams but we delete explicitly to be safe.
+    // team_builds rows for this user's teams are handled by the teams DELETE cascade.
+    await Promise.allSettled([
+      rm('build_likes',{'user_id':'eq.'+uid},true),
+      rm('team_likes',{'user_id':'eq.'+uid},true),
+      rm('user_achievements',{'user_id':'eq.'+uid},true),
+      rm('user_pokedex',{'user_id':'eq.'+uid},true),
+      rm('user_items',{'user_id':'eq.'+uid},true)
+    ]);
+    // Builds and teams next (their cascade deletes handle remaining likes + team_builds)
+    await Promise.allSettled([
+      rm('builds',{'user_id':'eq.'+uid},true),
+      rm('teams',{'user_id':'eq.'+uid},true)
+    ]);
+    // Profile last
+    await rm('user_profiles',{'user_id':'eq.'+uid},true).catch(function(){});
+    // Revoke server-side session
+    await fetch(API+'/auth/v1/logout',{
+      method:'POST',
       headers:{'apikey':ANON,'Authorization':'Bearer '+tk}
-    });
-    if(!r.ok){var d=await r.json().catch(function(){return{}});throw new Error(d.message||d.error_description||r.status);}
-    // Clear all local state and sign out
+    }).catch(function(){});
+    // Clear local state
     clearSessionState();
     allBuilds=[];allTeams=[];uDex={};uShinyDex={};uItems={};userProfile=null;
     saveSession();
     updAuth();renderDash();renderDex();renderItems();renderBuilds();renderTeams();renderProfile();updProfileNavIcon();
-    toast('Account deleted. Sorry to see you go.');
+    toast('Account data deleted. Sorry to see you go.');
   }catch(e){
     toast(e.message||'Could not delete account','err');
   }
