@@ -340,10 +340,20 @@ async function signup(){
     var d=await r.json().catch(function(){return{}});
     if(!r.ok)throw new Error(d.error_description||d.msg||'Failed to sign up');
     if(d.access_token&&d.user){
+      // Grab username field before closing modal (DOM cleared on closeCm)
+      var unEl=document.getElementById('loginUsername');
+      var signupUn=unEl?unEl.value.trim().toLowerCase():'';
       setSessionFromAuth(d);
       updAuth();
       closeCm();
       await loadUser();
+      // Save username if provided and valid format
+      if(signupUn&&/^[a-zA-Z0-9_-]{3,20}$/.test(signupUn)){
+        try{
+          if(typeof upd==='function')await upd('user_profiles',{'user_id':'eq.'+usr.id},{username:signupUn},true);
+          if(userProfile)userProfile.username=signupUn;
+        }catch(e){/* non-fatal: user can set it later from profile */}
+      }
       renderDash();renderDex();renderItems();renderBuilds();renderTeams();renderProfile();
       toast('Account created!');
     }else{
