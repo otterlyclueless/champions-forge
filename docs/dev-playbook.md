@@ -579,3 +579,64 @@ SELECT ... FROM builds b JOIN pokemon p ON ... LEFT JOIN items i ON ... LEFT JOI
 - **F.3** — Username modal when toggling public without a handle, signup form username/display_name fields
 - **F.4** — Like button + Copy-to-my-builds
 - **F.5** — Public trainer profile page
+
+---
+
+## Drop F.2.1b — Server-side PNG rendering via Supabase Edge Function + Browserless.io
+
+**Date:** 2026-04-23  
+**Status:** ✅ Shipped
+
+### What we built
+Replaced client-side `html-to-image` PNG rendering with a Supabase Edge Function that calls Browserless.io (headless Chromium as a service). Client posts `{kind, id, code}` → edge fn fetches DB → builds full HTML → Browserless renders → returns PNG binary. Falls back to client-side `html-to-image` on any failure.
+
+### Why
+- Client-side render was slow (~3s) AND inconsistent across devices (old iPhones much worse)
+- `html-to-image` approximates `filter: blur()` — sprite glow never looked right
+- Browserless gives real Chromium: pixel-perfect gaussian blur, crisp subpixel fonts, consistent timing
+
+### Key findings
+
+**Browserless `waitUntil` matters a lot:**
+- `networkidle0` — 6s render time (waits for ALL network activity to stop, including every Google Font CDN request)
+- `networkidle2` — still ~6s (same issue, just allows 2 open connections)
+- `waitUntil: "load"` — 1.27s direct / ~3.5s via edge fn ✅ fires when all resources are downloaded, not after idle timeout
+
+**Inlining fonts made things slower, not faster:**
+Inlining Plus Jakarta Sans 700/800/900 (Latin subset, ~59KB, base64-encoded) added 132KB to the HTML payload sent to Browserless. The extra upload time exceeded the Google Fonts fetch savings. Kept Google Fonts CDN + `waitUntil: "load"`.
+
+**Cloud-to-cloud transfer is the bottleneck:**
+Direct Browserless call from sandbox: ~1.3s. Via edge function: ~3.5s. The 2.2s gap is the Supabase edge fn → Browserless round trip (20KB HTML upload + 1.5MB PNG download over cloud-to-cloud network). Not much to do here without caching.
+
+**deviceScaleFactor: 1.5 not 2:**
+2x = 2.5MB PNG. 1.5x = 1.5MB PNG. Same visual quality at normal viewing size, ~40% smaller transfer. Matches what the client-side renderer used anyway.
+
+### Deployment gotcha: NEVER pass empty `content` in GITHUB_COMMIT_MULTIPLE_FILES
+When calling the GitHub integration tool, passing `"content": ""` silently commits an empty file. The tool doesn't validate. Discovered when `app-router.js` went blank on live site. **Always verify blob SHA ≠ `e69de29bb2d1d6434b8b29ae775ad8c2e48c5391` (empty blob) after commit.**
+
+Large files (>50KB) can't be passed inline in integration tool params — use the `github-deploy` skill with `push.py` instead.
+
+### iOS-specific gotchas
+
+**`document.activeElement` is unreliable for spinner feedback on iOS Safari:**
+Buttons don't reliably become `activeElement` on tap in iOS Safari. The fix: add/remove a `body.share-loading` CSS class and target known share button selectors (`.ed-share-share-btn`, `[onclick="bdPillShare()"]`, `[onclick="tdPillShare()"]`).
+
+**User gesture context expires after ~3-5s async operations:**
+`navigator.share({files:[...]})` requires an active user gesture context. After the ~3-4s edge function await, iOS Safari sometimes invalidates the gesture — causing `canShare()` to return false or `navigator.share()` to throw. **Fix:** cache the rendered blob in `_shareImageCache[id]`. On retry, the cached blob is used synchronously (no async wait), preserving the gesture context. Second tap is instant + uses 0 Browserless units.
+
+**Auto-downloading via `a.click()` shows iOS "View/Download" bar:**
+When native share fails and we fall back to programmatic download, iOS Safari intercepts `a.click()` and shows a "View/Download" bottom bar instead of saving directly. **Fix:** replaced with a `💾 Tap to save image` floating button — user taps it (fresh gesture), iOS saves cleanly.
+
+### Browserless free tier limits
+- **1000 units/month** (~1 unit per render at 3-4s render time)
+- **Concurrency: 2** simultaneous renders max (extras queue, fine at current scale)
+- When quota exceeded, edge fn returns HTTP 429 → client falls back to `html-to-image` silently
+- ~25 units used during development/testing
+
+### Files changed
+- **New:** `supabase/functions/share-image/index-bundled.ts` (deployed as edge function v6)
+- **Modified:** `app/app-router.js` — `shareImage()` → edge-first + `shareImageClientSide()` fallback + blob cache + `_showSaveButton()`
+- **Modified:** `styles.css` — `body.share-loading` spinner, `@keyframes share-spin`
+- **Modified:** `sw.js` — bumped cache to `champions-v2` (force evict stale JS after deploy)
+- **New skill:** `github-deploy` — PAT-based file pusher for large files that exceed integration inline limits
+
