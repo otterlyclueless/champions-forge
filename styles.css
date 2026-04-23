@@ -2376,6 +2376,22 @@ body.share-loading [onclick="tdPillShare()"]::after{
 }
 .copy-btn svg{flex-shrink:0;color:#a78bfa}
 
+/* Profile page — Account section (Sign Out + Delete Account) */
+.prof-account-section{padding-bottom:2rem}
+.prof-account-btns{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.6rem}
+.prof-signout-btn{display:flex;align-items:center;gap:.4rem;font-size:.84rem}
+.prof-delete-btn{
+  display:flex;align-items:center;gap:.4rem;
+  font-size:.84rem;font-weight:700;
+  background:transparent;
+  border:1.5px solid rgba(239,68,68,.35);
+  border-radius:10px;padding:.55rem 1rem;
+  color:#ef4444;cursor:pointer;font-family:inherit;
+  transition:all .15s;
+}
+.prof-delete-btn:hover{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.6)}
+.prof-delete-hint{font-size:.72rem;color:var(--muted2);line-height:1.5;max-width:360px}
+
 /* Profile trainer card — username display row */
 .tc-username{
   display:flex;align-items:center;gap:.3rem;
