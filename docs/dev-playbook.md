@@ -640,3 +640,18 @@ When native share fails and we fall back to programmatic download, iOS Safari in
 - **Modified:** `sw.js` — bumped cache to `champions-v2` (force evict stale JS after deploy)
 - **New skill:** `github-deploy` — PAT-based file pusher for large files that exceed integration inline limits
 
+
+## Drop F.3 — Username modal + Likes + Copy-to-my-builds (April 2026)
+
+### What shipped
+Three social features completing Drop F:
+1. **Username modal** — bottom-sheet interceptor when toggling public without a username. Live availability check (debounced 450ms, ilike query on user_profiles), success callback re-fires the toggle so the user lands straight on the public URL.
+2. **Likes UI** — heart button on public build/team detail. Fetched in parallel with all other data (anon-readable per RLS). Optimistic: DOM update first, API call second, rollback on fail. Pop animation on tap.
+3. **Copy-to-my-builds/teams** — shown only to signed-in viewers who are NOT the content owner. Duplicates the row, strips is_public/share_code/is_favourite, appends " (copied)". For teams: copies team row + all team_builds rows pointing to the new team id; member builds are NOT duplicated.
+
+### Gotchas
+- `pubSocialRowHtml()` returns '' for anon visitors and for the content owner — guards are `!usr` and `usr.id === likeData.ownerId`.
+- `rm()` in app-core.js supports multi-key filters via `Object.entries()` → URL params. Used by toggleBuildLike/toggleTeamLike to delete by `{user_id, build_id}`.
+- `upd()` is defined in app-builds.js (not app-core.js) — available globally when app-profile.js calls it since builds loads first.
+- Like pop animation uses CSS class `.pop` which is added then removed via 300ms timeout. Clean.
+- Username modal uses `#usernameMod{align-items:flex-end}` to override the centered `.modal-ov` default without touching existing modal CSS.
