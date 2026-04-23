@@ -149,7 +149,7 @@ async function tmToggleShare(){
   var turningOn=!wasOn;
 
   if(turningOn&&(!userProfile||!userProfile.username)){
-    toast('Set a username first — coming in the next drop','err');
+    showUsernameModal(function(){tmToggleShare();});
     return;
   }
   toggle.classList.add('loading');
