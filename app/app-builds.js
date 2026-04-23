@@ -637,9 +637,9 @@ async function edToggleShare(){
   var wasOn=!!b.is_public;
   var turningOn=!wasOn;
 
-  // Username gate: full modal comes in F.3. For now, block turning ON with a toast.
+  // Username gate: show bottom-sheet modal so user can set username in-flow.
   if(turningOn&&(!userProfile||!userProfile.username)){
-    toast('Set a username first — coming in the next drop','err');
+    showUsernameModal(function(){edToggleShare();});
     return;
   }
 
