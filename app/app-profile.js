@@ -277,3 +277,83 @@ if(!usr){
   c.innerHTML=card+achHtml+actHtml;
 updProfileNavIcon()
 }
+
+// #SECTION: USERNAME MODAL (Drop F.3)
+// ═══════════════════════════════════════
+// Bottom-sheet modal for setting a username.
+// Triggered by edToggleShare / tmToggleShare when usr has no username.
+// onSuccess callback is called after a successful save.
+// ═══════════════════════════════════════
+
+var _unSuccessCb=null,_unTimer=null;
+
+function showUsernameModal(onSuccess){
+  _unSuccessCb=onSuccess||null;
+  var mod=document.getElementById('usernameMod');if(!mod)return;
+  var inp=document.getElementById('unInput');
+  var hint=document.getElementById('unHint');
+  var btn=document.getElementById('unSaveBtn');
+  if(inp){inp.value='';inp.className='un-input';}
+  if(hint){hint.className='un-hint';hint.textContent='';}
+  if(btn){btn.disabled=true;btn.textContent='Set username';}
+  mod.classList.add('open');
+  setTimeout(function(){if(inp)inp.focus();},120);
+}
+
+function closeUsernameModal(){
+  var mod=document.getElementById('usernameMod');
+  if(mod)mod.classList.remove('open');
+  _unSuccessCb=null;
+  if(_unTimer){clearTimeout(_unTimer);_unTimer=null;}
+}
+
+function unCheckAvailability(el){
+  if(_unTimer)clearTimeout(_unTimer);
+  var v=el.value.trim();
+  var hint=document.getElementById('unHint');
+  var btn=document.getElementById('unSaveBtn');
+  el.classList.remove('un-ok','un-err');
+  if(hint){hint.className='un-hint';hint.textContent='';}
+  if(btn)btn.disabled=true;
+  if(!v)return;
+  if(!/^[a-zA-Z0-9_-]{3,20}$/.test(v)){
+    el.classList.add('un-err');
+    if(hint){hint.className='un-hint err';hint.textContent='3–20 characters, letters numbers _ -';}
+    return;
+  }
+  if(hint){hint.className='un-hint neutral';hint.textContent='Checking…';}
+  _unTimer=setTimeout(async function(){
+    try{
+      var rows=await q('user_profiles',{'username':'ilike.'+v.toLowerCase(),select:'id'},false);
+      if(rows&&rows.length>0){
+        el.classList.add('un-err');
+        if(hint){hint.className='un-hint err';hint.textContent='@'+v+' is taken';}
+      }else{
+        el.classList.add('un-ok');
+        if(hint){hint.className='un-hint ok';hint.textContent='@'+v+' is available';}
+        if(btn)btn.disabled=false;
+      }
+    }catch(e){
+      if(hint){hint.className='un-hint neutral';hint.textContent='Could not check availability';}
+    }
+  },450);
+}
+
+async function unSave(){
+  var inp=document.getElementById('unInput');
+  var btn=document.getElementById('unSaveBtn');
+  if(!inp||!usr||!userProfile)return;
+  var v=inp.value.trim().toLowerCase();
+  if(!v||!/^[a-zA-Z0-9_-]{3,20}$/.test(v))return;
+  btn.disabled=true;btn.textContent='Saving…';
+  try{
+    await upd('user_profiles',{'user_id':'eq.'+usr.id},{username:v},true);
+    userProfile.username=v;
+    toast('Username set to @'+v+' ✨');
+    closeUsernameModal();
+    if(_unSuccessCb){var cb=_unSuccessCb;_unSuccessCb=null;cb();}
+  }catch(e){
+    toast(e.message||'Failed to save username','err');
+    btn.disabled=false;btn.textContent='Set username';
+  }
+}
