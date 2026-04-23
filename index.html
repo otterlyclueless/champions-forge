@@ -143,6 +143,23 @@
       </div>
     </div>
   </div>
+
+  <!-- Username Modal (Drop F.3) — bottom sheet triggered when making content public without a username -->
+  <div class="modal-ov" id="usernameMod">
+    <div class="un-sheet">
+      <div class="un-sheet-handle"></div>
+      <div class="un-sheet-title">Choose your username</div>
+      <div class="un-sheet-desc">You need a username before sharing publicly. This is how other trainers will see you across Champions Forge.</div>
+      <div class="un-input-wrap">
+        <span class="un-prefix">@</span>
+        <input class="un-input" id="unInput" type="text" placeholder="your_username" spellcheck="false" autocomplete="off" oninput="unCheckAvailability(this)">
+      </div>
+      <div class="un-hint" id="unHint"></div>
+      <div class="un-format">3–20 characters · letters, numbers, _ and -</div>
+      <button class="btn btn-red un-save-btn" id="unSaveBtn" disabled onclick="unSave()">Set username</button>
+      <button class="btn btn-ghost un-cancel-btn" onclick="closeUsernameModal()">Not now</button>
+    </div>
+  </div>
 </div>
 
 <!-- Detail Panel -->
