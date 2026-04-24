@@ -503,6 +503,22 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;t
 .abl-slot-2{background:var(--blue-bg);color:var(--blue)}
 .abl-slot-h{background:var(--gold-bg);color:var(--gold)}
 
+/* Pokédex detail panel ability pills — Drop G.2c */
+.dex-abl-section{padding:.7rem 1.2rem .75rem;border-bottom:1px solid var(--border)}
+.dex-abl-label{font-size:.62rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.45rem}
+.dex-abl-pills{display:flex;flex-wrap:wrap;gap:.4rem}
+.dex-abl-pill{display:inline-flex;flex-direction:column;gap:.1rem;padding:.38rem .7rem;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:all .12s}
+.dex-abl-pill:hover{filter:brightness(1.1)}.dex-abl-pill:active{transform:scale(.95)}
+.dex-abl-slot{font-size:.55rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
+.dex-abl-name{font-size:.78rem;font-weight:700;color:var(--text)}
+/* Slot colour variants */
+.dex-abl-pill.slot-1{border-color:color-mix(in srgb,var(--purple) 30%,var(--border));background:var(--purple-bg)}
+.dex-abl-pill.slot-1 .dex-abl-slot{color:var(--purple)}
+.dex-abl-pill.slot-2{border-color:color-mix(in srgb,var(--blue) 30%,var(--border));background:var(--blue-bg)}
+.dex-abl-pill.slot-2 .dex-abl-slot{color:var(--blue)}
+.dex-abl-pill.slot-h{border-color:color-mix(in srgb,var(--gold) 30%,var(--border));background:var(--gold-bg)}
+.dex-abl-pill.slot-h .dex-abl-slot{color:var(--gold)}
+
 /* Build editor ability button */
 .ed-abl-btn{width:100%;padding:.6rem .9rem;border-radius:11px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:44px;transition:border-color .15s,background .3s;text-align:left}
 .ed-abl-btn:hover{border-color:var(--border2)}

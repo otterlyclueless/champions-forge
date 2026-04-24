@@ -237,6 +237,38 @@ function bsBuildSection(p){
 // Slide-over detail view for a single Pokémon.
 // ───────────────────────────────────────
 
+// Drop G.2c: Ability pills — cache + async loader
+var dexAblCache={};
+async function loadDexAbilities(pokemonId){
+  var el=document.getElementById('dexAblPills');
+  if(!el)return;
+  if(!dexAblCache[pokemonId]){
+    try{
+      var rows=await q('pokemon_abilities',{'pokemon_id':'eq.'+pokemonId,select:'slot,ability_id',order:'slot.asc'});
+      dexAblCache[pokemonId]=rows.map(function(row){
+        var abl=(window.allAbilities||[]).find(function(a){return a.id===row.ability_id});
+        return{slot:row.slot,id:row.ability_id,name:abl?abl.name:'?'};
+      });
+    }catch(e){dexAblCache[pokemonId]=[];}
+  }
+  var opts=dexAblCache[pokemonId];
+  var LABELS={'1':'Ability 1','2':'Ability 2','hidden':'Hidden'};
+  var CLS={'1':'slot-1','2':'slot-2','hidden':'slot-h'};
+  if(!opts.length){
+    el.innerHTML='<div class="dex-abl-label">Abilities</div><div style="font-size:.75rem;color:var(--muted)">No ability data for this Pokémon yet.</div>';
+    return;
+  }
+  el.innerHTML='<div class="dex-abl-label">Abilities</div>'+
+    '<div class="dex-abl-pills">'+
+    opts.map(function(opt){
+      return '<div class="dex-abl-pill '+(CLS[opt.slot]||'')+'" onclick="if(typeof showAbilityDetail===\'function\')showAbilityDetail(\''+opt.id+'\')">'+
+        '<span class="dex-abl-slot">'+(LABELS[opt.slot]||opt.slot)+'</span>'+
+        '<span class="dex-abl-name">'+opt.name+'</span>'+
+      '</div>';
+    }).join('')+
+    '</div>';
+}
+
 function openDet(pid){
   var p=allPkmn.find(function(x){return x.id===pid});if(!p)return;
   var t1=TC[p.type_1]||TC.Normal,t2=p.type_2?TC[p.type_2]:null;
@@ -254,10 +286,13 @@ function openDet(pid){
     (hasS?'<div class="sw-bar"><button class="sw-on" id="swN" onclick="dSwap(false,\''+p.id+'\')">Standard</button><button class="sw-off" id="swS" onclick="dSwap(true,\''+p.id+'\')">✦ Shiny</button></div>':'')+
   '</div>';
   html+='<div class="p-header"><h2>'+p.name+'</h2><div class="p-meta">'+(p.form&&p.form!=='Base'?'<span class="form-pill '+(p.form==='Mega'?'form-mega':'form-regional')+'">'+p.form+'</span>':'')+'<span style="font-size:.72rem;color:var(--muted);font-weight:600">#'+String(p.dex_number).padStart(4,'0')+'</span></div>'+(usr?'<button class="obt-tog '+(obt?'on':'off')+'" onclick="togObt(event,\''+p.id+'\');openDet(\''+p.id+'\')"><div class="obt-box '+(obt?'on':'off')+'">'+(obt?'✓':'')+'</div>'+(obt?'Obtained':'Not Obtained')+'</button>':'')+'</div>';
+  // Drop G.2c: Ability pills — placeholder filled asynchronously
+  html+='<div class="dex-abl-section" id="dexAblPills"><div class="dex-abl-label">Abilities</div><div style="font-size:.75rem;color:var(--muted);padding:.1rem 0">Loading…</div></div>';
   if(bsH){html+='<button class="sec-tog" onclick="var b=this.nextElementSibling;b.style.display=b.style.display===\'none\'?\'block\':\'none\';if(b.style.display!==\'none\')bsRefresh()"><div class="sl"><span>📊</span><span>Stats & Calculator</span></div><span>▾</span></button><div class="sec-body">'+bsH+'</div>';}
   html+='<button class="sec-tog" onclick="var b=this.nextElementSibling;b.style.display=b.style.display===\'none\'?\'block\':\'none\'"><div class="sl"><span>⚡</span><span>Type Effectiveness</span></div><span>▾</span></button><div class="sec-body">'+mH+'</div>';
   document.getElementById('detInner').innerHTML=html;
   document.getElementById('detP').classList.add('open');
+  loadDexAbilities(p.id);
   requestAnimationFrame(function(){requestAnimationFrame(function(){bsRefresh()})});
 }
 function closeDet(){document.getElementById('detP').classList.remove('open')}
