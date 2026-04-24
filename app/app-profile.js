@@ -603,10 +603,33 @@ function showNatureDetail(name){
 // ═══════════════════════════════════════
 
 var allAch=[],userAch={},userProfile=null;
+// Drop I.2: friends state
+var allFriends=[],pendingFriends=[],_frRowOpen=false,_ffTab='search',_ffQrDone=false;
 
 async function loadAchievements(){try{allAch=await q('achievements',{order:'sort_order.asc'});return allAch}catch(e){return[]}}
 async function loadUserAch(){if(!tk)return;try{var rows=await q('user_achievements',{select:'achievement_id,unlocked_at'},true);userAch={};rows.forEach(function(r){userAch[r.achievement_id]=r.unlocked_at})}catch(e){}}
 async function loadProfile(){if(!tk)return;try{var rows=await q('user_profiles',{user_id:'eq.'+usr.id},true);if(rows.length)userProfile=rows[0];else{await ins('user_profiles',{user_id:usr.id,display_name:usr.email.split('@')[0]},true);var rows2=await q('user_profiles',{user_id:'eq.'+usr.id},true);userProfile=rows2[0]||null}}catch(e){}}
+
+// Drop I.2 — load friends from the friends table (RLS ensures only own rows)
+async function loadFriends(){
+  if(!tk||!usr)return;
+  try{
+    var rows=await authFetch(API+'/rest/v1/friends?or=(requester_id.eq.'+usr.id+',addressee_id.eq.'+usr.id+')&select=id,requester_id,addressee_id,status,created_at',{headers:h(true)}).then(function(r){return r.json()});
+    if(!rows||rows.error||!rows.length){allFriends=[];pendingFriends=[];return;}
+    var otherIds=rows.map(function(r){return r.requester_id===usr.id?r.addressee_id:r.requester_id}).filter(Boolean);
+    var profiles=otherIds.length?await q('user_profiles',{'user_id':'in.('+otherIds.join(',')+')', 'select':'user_id,display_name,username,avatar_url'}):[];
+    var pm={};(profiles||[]).forEach(function(p){pm[p.user_id]=p;});
+    allFriends=rows.map(function(r){
+      var iReq=r.requester_id===usr.id;
+      var fid=iReq?r.addressee_id:r.requester_id;
+      var p=pm[fid]||{};
+      return{id:r.id,friend_id:fid,status:r.status,i_am_requester:iReq,
+        display_name:p.display_name||'Trainer',username:p.username||'',avatar_url:p.avatar_url||'',created_at:r.created_at};
+    });
+    pendingFriends=allFriends.filter(function(f){return f.status==='pending'&&!f.i_am_requester;});
+  }catch(e){allFriends=[];pendingFriends=[];}
+}
+
 function triggerAvatarUpload(){document.getElementById('avatarInput').click()}
 function handleAvatarFile(input){
   if(!input.files||!input.files[0])return;
@@ -764,9 +787,203 @@ if(!usr){
       '</div>'+
       '<p class="prof-delete-hint">Deleting your account permanently removes all your builds, teams, and Pokédex progress.</p>'+
     '</div>';
-  c.innerHTML=card+achHtml+actHtml+accountHtml;
-updProfileNavIcon()
+  c.innerHTML=card+renderFriendsRow()+achHtml+actHtml+accountHtml;
+updProfileNavIcon();
 }
+
+// ─── Drop I.2: Friends system ─────────────────────────────────────────────────
+function updProfileNavBadge(){
+  var badge=document.getElementById('frNavBadge');if(!badge)return;
+  var n=pendingFriends.length;badge.textContent=n>0?n:'';badge.style.display=n>0?'flex':'none';
+}
+
+function renderFriendsRow(){
+  var accepted=allFriends.filter(function(f){return f.status==='accepted';});
+  var pend=pendingFriends.length;
+  var pendBadge=pend?'<span class="fr-pending-badge">'+pend+' pending</span>':'';
+  var expanded='';
+  if(pend){
+    expanded+='<div class="fr-pending-lbl">⏳ Pending <span class="fr-pcount">'+pend+'</span></div>';
+    expanded+=pendingFriends.map(function(f){
+      return'<div class="fr-pending-card" id="frpc-'+f.id+'">'+
+        '<div class="fr-av">'+_frAv(f)+'</div>'+
+        '<div class="fr-info"><div class="fr-name">'+_fesc(f.display_name)+'</div>'+(f.username?'<div class="fr-un">@'+_fesc(f.username)+'</div>':'')+'</div>'+
+        '<div class="fr-pbtns"><button class="fr-accept" onclick="acceptFriend(\''+f.id+'\')">✓</button><button class="fr-decline" onclick="declineFriend(\''+f.id+'\')">✕</button></div>'+
+      '</div>';
+    }).join('');
+  }
+  if(pend&&accepted.length)expanded+='<div class="fr-divider"></div>';
+  if(accepted.length){
+    expanded+=accepted.map(function(f){
+      var go=f.username?'location.hash=\'#/u/'+encodeURIComponent(f.username)+'\'':'';
+      return'<div class="fr-item" onclick="'+go+'">'+
+        '<div class="fr-av">'+_frAv(f)+'</div>'+
+        '<div class="fr-info"><div class="fr-name">'+_fesc(f.display_name)+'</div>'+(f.username?'<div class="fr-un">@'+_fesc(f.username)+'</div>':'')+'</div>'+
+        '<span class="fr-chev">›</span>'+
+      '</div>';
+    }).join('');
+  }
+  if(!accepted.length&&!pend)expanded='<div class="fr-empty">No friends yet — tap Find + to add some!</div>';
+  return'<div class="fr-collapse">'+
+    '<div class="fr-row" onclick="toggleFriendsRow()">'+
+      '<div class="fr-row-left">'+
+        '<span class="fr-row-icon">👥</span>'+
+        '<span class="fr-row-label">Friends</span>'+
+        '<span class="fr-row-count">'+accepted.length+' friend'+(accepted.length!==1?'s':'')+'</span>'+
+        pendBadge+
+      '</div>'+
+      '<div class="fr-row-right">'+
+        '<button class="fr-find-pill" onclick="event.stopPropagation();openFindFriends()">Find +</button>'+
+        '<span class="fr-chev-main" id="frChev">▾</span>'+
+      '</div>'+
+    '</div>'+
+    '<div class="fr-panel" id="frPanel">'+expanded+'</div>'+
+  '</div>';
+}
+function _frAv(f){return f.avatar_url?'<img src="'+_fesc(f.avatar_url)+'" style="width:34px;height:34px;border-radius:10px;object-fit:cover" onerror="this.style.display=\'none\'">':'<span style="font-size:.9rem">👤</span>';}
+function _fesc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function toggleFriendsRow(){
+  _frRowOpen=!_frRowOpen;
+  var p=document.getElementById('frPanel'),c=document.getElementById('frChev');
+  if(p)p.classList.toggle('open',_frRowOpen);
+  if(c)c.classList.toggle('open',_frRowOpen);
+}
+
+async function acceptFriend(rowId){
+  try{
+    await authFetch(API+'/rest/v1/friends?id=eq.'+rowId,{method:'PATCH',headers:Object.assign(h(true),{'Prefer':'return=minimal'}),body:JSON.stringify({status:'accepted'})});
+    var f=allFriends.find(function(x){return x.id===rowId;});if(f)f.status='accepted';
+    pendingFriends=allFriends.filter(function(f){return f.status==='pending'&&!f.i_am_requester;});
+    toast('Friend added! 👥');renderProfile();updProfileNavBadge();
+  }catch(e){toast('Could not accept','err');}
+}
+async function declineFriend(rowId){
+  try{
+    await authFetch(API+'/rest/v1/friends?id=eq.'+rowId,{method:'DELETE',headers:h(true)});
+    allFriends=allFriends.filter(function(f){return f.id!==rowId;});
+    pendingFriends=allFriends.filter(function(f){return f.status==='pending'&&!f.i_am_requester;});
+    renderProfile();updProfileNavBadge();
+  }catch(e){toast('Could not decline','err');}
+}
+
+function openFindFriends(){
+  _ffQrDone=false;
+  var ov=document.getElementById('findFriendsOv');if(!ov)return;
+  ov.innerHTML='<div class="ff-sheet">'+
+    '<div class="ff-handle"></div>'+
+    '<div class="ff-head"><div class="ff-title">Find Friends</div><button class="ff-close" onclick="closeFindFriends()">✕</button></div>'+
+    '<div class="ff-tabs">'+
+      '<button class="ff-tab active" id="ffTabSearch" onclick="ffSwitchTab(\'search\')">🔍 Search</button>'+
+      '<button class="ff-tab" id="ffTabShare" onclick="ffSwitchTab(\'share\')">🔗 Share Link</button>'+
+    '</div>'+
+    '<div class="ff-search-pane" id="ffSearchPane">'+
+      '<div class="ff-search-wrap"><input class="ff-search" id="ffSearchInput" placeholder="Search by @username…" oninput="ffFilter(this.value)" autocomplete="off"></div>'+
+      '<div class="ff-list" id="ffList"></div>'+
+    '</div>'+
+    '<div class="ff-share-pane" id="ffSharePane">'+
+      '<div class="ff-qr-wrap">'+
+        '<div class="ff-qr-hint">Scan or share your link — anyone who opens it can send you a friend request</div>'+
+        '<canvas id="ffQrCanvas"></canvas>'+
+      '</div>'+
+      '<div class="ff-link-row"><span class="ff-link-txt" id="ffLinkTxt"></span><button class="ff-copy-btn" id="ffCopyBtn" onclick="ffCopyLink()">Copy</button></div>'+
+      '<button class="ff-share-btn" onclick="ffShareNative()"><i class="ph-bold ph-share-network"></i> Share via…</button>'+
+      '<div class="ff-share-hint">Opens your public profile where others can tap "Add Friend"</div>'+
+    '</div>'+
+  '</div>';
+  ov.classList.add('open');
+  ov.onclick=function(e){if(e.target===ov)closeFindFriends();};
+  _ffTab='search';
+  document.getElementById('ffSharePane').style.display='none';
+  ffRenderList('');
+  setTimeout(function(){var inp=document.getElementById('ffSearchInput');if(inp)inp.focus();},300);
+}
+function closeFindFriends(){var ov=document.getElementById('findFriendsOv');if(ov)ov.classList.remove('open');}
+
+function ffSwitchTab(tab){
+  _ffTab=tab;
+  var sp=document.getElementById('ffSearchPane'),shp=document.getElementById('ffSharePane');
+  document.getElementById('ffTabSearch').classList.toggle('active',tab==='search');
+  document.getElementById('ffTabShare').classList.toggle('active',tab==='share');
+  if(sp)sp.style.display=tab==='search'?'flex':'none';
+  if(shp)shp.style.display=tab==='share'?'flex':'none';
+  if(tab==='share')_ffRenderShare();
+}
+function _ffRenderShare(){
+  if(_ffQrDone)return;_ffQrDone=true;
+  var username=userProfile&&userProfile.username;
+  if(!username){
+    var qw=document.getElementById('ffQrCanvas');
+    if(qw)qw.closest('.ff-qr-wrap').innerHTML='<div class="ff-share-hint">Set a username first to share your link. <a href="#" onclick="showUsernameModal(null);closeFindFriends()">Set one now →</a></div>';
+    return;
+  }
+  var url=location.origin+location.pathname.replace(/\/index\.html$/,'/')+'#/u/'+encodeURIComponent(username);
+  var lt=document.getElementById('ffLinkTxt');if(lt)lt.textContent=url;
+  var canvas=document.getElementById('ffQrCanvas');
+  if(canvas&&window.QRCode){
+    var dark=document.documentElement.getAttribute('data-theme')!=='light';
+    QRCode.toCanvas(canvas,url,{width:148,margin:1,color:{dark:dark?'#eaf0f6':'#1e293b',light:dark?'#22262f':'#f8fafc'}},function(){});
+  }
+}
+function ffFilter(v){ffRenderList(v);}
+async function ffRenderList(term){
+  var el=document.getElementById('ffList');if(!el)return;
+  term=(term||'').trim();
+  if(!term){el.innerHTML='<div class="ff-empty">Type a @username or name to search</div>';return;}
+  el.innerHTML='<div class="ff-empty">Searching…</div>';
+  try{
+    var url=API+'/rest/v1/user_profiles?or=(username.ilike.'+encodeURIComponent(term)+'*,display_name.ilike.'+encodeURIComponent(term)+'*)&select=user_id,display_name,username,avatar_url&limit=10';
+    var results=await authFetch(url,{headers:h(false)}).then(function(r){return r.json()});
+    if(!results||results.error){el.innerHTML='<div class="ff-empty">Search failed</div>';return;}
+    results=results.filter(function(p){return p.user_id!==usr.id;});
+    if(!results.length){el.innerHTML='<div class="ff-empty">No trainers found for "'+term+'"</div>';return;}
+    el.innerHTML=results.map(function(p){
+      var ex=allFriends.find(function(f){return f.friend_id===p.user_id;});
+      var st=ex?ex.status:'none';var iReq=ex?ex.i_am_requester:false;
+      var bc=st==='accepted'?' friends':st==='pending'&&iReq?' pending':st==='pending'&&!iReq?' recv':'';
+      var bt=st==='accepted'?'✓ Friends':st==='pending'&&iReq?'⏳ Sent':st==='pending'&&!iReq?'Accept ✓':'+ Add';
+      var dis=bc?' disabled':'';
+      var av=p.avatar_url?'<img src="'+_fesc(p.avatar_url)+'" style="width:34px;height:34px;border-radius:10px;object-fit:cover" onerror="this.style.display=\'none\'">':'<span style="font-size:.9rem">👤</span>';
+      return'<div class="ff-result">'+
+        '<div class="fr-av">'+av+'</div>'+
+        '<div class="ff-r-info"><div class="ff-r-name">'+_fesc(p.display_name||'Trainer')+'</div>'+(p.username?'<div class="ff-r-un">@'+_fesc(p.username)+'</div>':'')+'</div>'+
+        '<button class="ff-add-btn'+bc+'"'+dis+' onclick="ffSendRequest(this,\''+p.user_id+'\')">'+bt+'</button>'+
+      '</div>';
+    }).join('');
+  }catch(e){el.innerHTML='<div class="ff-empty">Search failed — check connection</div>';}
+}
+async function ffSendRequest(btn,toId){
+  if(btn.disabled)return;
+  btn.disabled=true;btn.textContent='Sending…';
+  try{
+    await authFetch(API+'/rest/v1/friends',{method:'POST',headers:Object.assign(h(true),{'Prefer':'return=representation'}),body:JSON.stringify({requester_id:usr.id,addressee_id:toId,status:'pending'})});
+    btn.classList.add('pending');btn.textContent='⏳ Sent';
+    if(!allFriends.find(function(f){return f.friend_id===toId;}))
+      allFriends.push({id:'local-'+Date.now(),friend_id:toId,status:'pending',i_am_requester:true,display_name:'',username:'',avatar_url:''});
+    toast('Friend request sent! 👥');
+  }catch(e){
+    btn.disabled=false;btn.textContent='+ Add';
+    toast((e.message||'').includes('23505')?'Request already pending':'Failed to send request','err');
+  }
+}
+function ffCopyLink(){
+  var lt=document.getElementById('ffLinkTxt');if(!lt)return;
+  navigator.clipboard.writeText(lt.textContent).catch(function(){});
+  var btn=document.getElementById('ffCopyBtn');
+  if(btn){btn.textContent='Copied!';btn.classList.add('copied');setTimeout(function(){btn.textContent='Copy';btn.classList.remove('copied');},2000);}
+}
+function ffShareNative(){
+  var lt=document.getElementById('ffLinkTxt');if(!lt)return;
+  if(navigator.share)navigator.share({title:'Champions Forge',url:lt.textContent}).catch(function(){});
+  else ffCopyLink();
+}
+// Get friendship status with a specific user_id (used by app-router public profile)
+function getFriendStatus(userId){
+  var f=allFriends.find(function(x){return x.friend_id===userId;});
+  if(!f)return{status:'none',rowId:null,iAmReq:false};
+  return{status:f.status,rowId:f.id,iAmReq:f.i_am_requester};
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 // #SECTION: ACCOUNT ACTIONS (Drop F.3)
 // ═══════════════════════════════════════
