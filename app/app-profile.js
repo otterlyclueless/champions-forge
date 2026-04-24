@@ -920,9 +920,20 @@ function _ffRenderShare(){
   var url=location.origin+location.pathname.replace(/\/index\.html$/,'/')+'#/u/'+encodeURIComponent(username);
   var lt=document.getElementById('ffLinkTxt');if(lt)lt.textContent=url;
   var canvas=document.getElementById('ffQrCanvas');
-  if(canvas&&window.QRCode){
-    var dark=document.documentElement.getAttribute('data-theme')!=='light';
-    QRCode.toCanvas(canvas,url,{width:148,margin:1,color:{dark:dark?'#eaf0f6':'#1e293b',light:dark?'#22262f':'#f8fafc'}},function(){});
+  if(canvas){
+    if(typeof QRCode!=='undefined'&&QRCode.toCanvas){
+      var dark=document.documentElement.getAttribute('data-theme')!=='light';
+      QRCode.toCanvas(canvas,url,{width:150,margin:2,
+        color:{dark:dark?'#eaf0f6':'#1e293b',light:dark?'#1a1d24':'#ffffff'}
+      },function(err){
+        if(err){canvas.style.display='none';console.warn('QR error:',err);}
+      });
+    }else{
+      // QRCode.js not loaded — show the link more prominently instead
+      canvas.style.display='none';
+      var wrap=canvas.parentElement;
+      if(wrap)wrap.insertAdjacentHTML('beforeend','<div style="font-size:.72rem;color:var(--muted);text-align:center;margin-top:.4rem">QR unavailable — use the Copy button below</div>');
+    }
   }
 }
 function ffFilter(v){ffRenderList(v);}
@@ -932,8 +943,10 @@ async function ffRenderList(term){
   if(!term){el.innerHTML='<div class="ff-empty">Type a @username or name to search</div>';return;}
   el.innerHTML='<div class="ff-empty">Searching…</div>';
   try{
-    var url=API+'/rest/v1/user_profiles?or=(username.ilike.'+encodeURIComponent(term)+'*,display_name.ilike.'+encodeURIComponent(term)+'*)&select=user_id,display_name,username,avatar_url&limit=10';
-    var results=await authFetch(url,{headers:h(false)}).then(function(r){return r.json()});
+    // Use plain fetch + anon key (no auth needed — user_profiles is publicly readable)
+    // Wildcard on both sides (*term*) for "contains" matching
+    var url=API+'/rest/v1/user_profiles?or=(username.ilike.*'+encodeURIComponent(term)+'*,display_name.ilike.*'+encodeURIComponent(term)+'*)&select=user_id,display_name,username,avatar_url&limit=10';
+    var results=await fetch(url,{headers:{'apikey':ANON,'Content-Type':'application/json'}}).then(function(r){return r.json()});
     if(!results||results.error){el.innerHTML='<div class="ff-empty">Search failed</div>';return;}
     results=results.filter(function(p){return p.user_id!==usr.id;});
     if(!results.length){el.innerHTML='<div class="ff-empty">No trainers found for "'+term+'"</div>';return;}
