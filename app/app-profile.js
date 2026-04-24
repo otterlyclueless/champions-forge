@@ -884,7 +884,8 @@ function openFindFriends(){
     '<div class="ff-share-pane" id="ffSharePane">'+
       '<div class="ff-qr-wrap">'+
         '<div class="ff-qr-hint">Scan or share your link — anyone who opens it can send you a friend request</div>'+
-        '<canvas id="ffQrCanvas"></canvas>'+
+        '<img id="ffQrImg" style="display:none;width:150px;height:150px;border-radius:8px;image-rendering:pixelated" alt="QR code">'+
+        '<div id="ffQrSpinner" style="width:150px;height:150px;display:flex;align-items:center;justify-content:center;font-size:.75rem;color:var(--muted)">Generating…</div>'+
       '</div>'+
       '<div class="ff-link-row"><span class="ff-link-txt" id="ffLinkTxt"></span><button class="ff-copy-btn" id="ffCopyBtn" onclick="ffCopyLink()">Copy</button></div>'+
       '<button class="ff-share-btn" onclick="ffShareNative()"><i class="ph-bold ph-share-network"></i> Share via…</button>'+
@@ -913,30 +914,51 @@ function _ffRenderShare(){
   if(_ffQrDone)return;_ffQrDone=true;
   var username=userProfile&&userProfile.username;
   if(!username){
-    var qw=document.getElementById('ffQrCanvas');
-    if(qw)qw.closest('.ff-qr-wrap').innerHTML='<div class="ff-share-hint">Set a username first to share your link. <a href="#" onclick="showUsernameModal(null);closeFindFriends()">Set one now →</a></div>';
+    var qw=document.getElementById('ffQrSpinner');
+    if(qw)qw.innerHTML='<a href="#" onclick="showUsernameModal(null);closeFindFriends()" style="color:var(--pink);font-size:.8rem">Set a username first →</a>';
     return;
   }
   var url=location.origin+location.pathname.replace(/\/index\.html$/,'/')+'#/u/'+encodeURIComponent(username);
   var lt=document.getElementById('ffLinkTxt');if(lt)lt.textContent=url;
-  function _doQr(){
-    var canvas=document.getElementById('ffQrCanvas');
-    if(!canvas)return;
-    var dark=document.documentElement.getAttribute('data-theme')!=='light';
-    QRCode.toCanvas(canvas,url,{width:150,margin:2,
-      color:{dark:dark?'#eaf0f6':'#1e293b',light:dark?'#1a1d24':'#ffffff'}
-    },function(err){if(err){canvas.style.display='none';}});
+  function _showQr(dataUrl){
+    var img=document.getElementById('ffQrImg');
+    var spin=document.getElementById('ffQrSpinner');
+    if(img){img.src=dataUrl;img.style.display='block';}
+    if(spin)spin.style.display='none';
   }
-  if(typeof QRCode!=='undefined'&&QRCode.toCanvas){
-    _doQr();
-  }else{
-    // Dynamically load QRCode.js — handles SW-cached index.html missing the script tag
-    var _s=document.createElement('script');
-    _s.src='https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
-    _s.onload=_doQr;
-    _s.onerror=function(){var c=document.getElementById('ffQrCanvas');if(c)c.style.display='none';};
-    document.head.appendChild(_s);
-  }
+  // If already stored in user record — instant display, no library needed
+  if(userProfile&&userProfile.qr_code_url){_showQr(userProfile.qr_code_url);return;}
+  // Otherwise generate, display, and save to DB for next time
+  _generateAndSaveQR(url).then(function(dataUrl){
+    if(dataUrl){_showQr(dataUrl);}
+    else{var s=document.getElementById('ffQrSpinner');if(s)s.innerHTML='<span style="font-size:.7rem">Use the Copy button below</span>';}
+  });
+}
+
+// Generate QR code as base64 PNG, save to user_profiles.qr_code_url, return the data URL.
+// Dynamically loads QRCode.js if not already present (handles SW-cached pages).
+function _generateAndSaveQR(url){
+  return new Promise(function(resolve){
+    function doGen(){
+      QRCode.toDataURL(url,{width:300,margin:2,color:{dark:'#111318',light:'#ffffff'}},function(err,dataUrl){
+        if(err||!dataUrl){resolve(null);return;}
+        resolve(dataUrl);
+        // Save to DB so it's instant on next open
+        if(usr&&userProfile){
+          upd('user_profiles',{'user_id':'eq.'+usr.id},{qr_code_url:dataUrl},true)
+            .then(function(){if(userProfile)userProfile.qr_code_url=dataUrl;})
+            .catch(function(){});
+        }
+      });
+    }
+    if(typeof QRCode!=='undefined'&&QRCode.toDataURL){doGen();}
+    else{
+      var s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js';
+      s.onload=doGen;s.onerror=function(){resolve(null);};
+      document.head.appendChild(s);
+    }
+  });
 }
 function ffFilter(v){ffRenderList(v);}
 async function ffRenderList(term){
