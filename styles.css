@@ -430,7 +430,91 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;t
 .nat-stat{font-size:.7rem}
 .nat-up{color:var(--green)}.nat-down{color:var(--red)}.nat-neutral{color:var(--muted)}
 
- 
+/* #SECTION: REFERENCE TAB */
+/* ═══════ REFERENCE TAB (Abilities + Natures) ═══════ */
+
+/* Tab bar */
+.ref-tab-bar{display:flex;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0}
+.ref-tab{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:.38rem;padding:.8rem .5rem;border:none;background:transparent;color:var(--muted);font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer;border-bottom:2.5px solid transparent;transition:color .18s,border-color .18s}
+.ref-tab.active{color:var(--red);border-bottom-color:var(--red)}
+.ref-tab:hover:not(.active){color:var(--text2)}
+.ref-tab i{font-size:.88rem}
+.ref-tab-count{font-size:.67rem;font-weight:800;background:var(--surface);color:var(--muted);padding:1px 5px;border-radius:5px;transition:background .18s,color .18s}
+.ref-tab.active .ref-tab-count{background:var(--red-bg);color:var(--red)}
+
+/* Scrollable panes */
+.ref-pane{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column}
+.ref-pane::-webkit-scrollbar{width:0}
+
+/* Reference detail — bottom tray (replaces full-height #detP for ability/nature detail) */
+.ref-det-ov{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;pointer-events:none;opacity:0;transition:opacity .25s}
+.ref-det-ov.open{pointer-events:all;opacity:1}
+.ref-det-bd{position:absolute;inset:0;background:rgba(0,0,0,.52);backdrop-filter:blur(2px)}
+.ref-det-sheet{position:relative;z-index:1;width:100%;background:var(--bg2);border-radius:22px 22px 0 0;border-top:1px solid var(--border);max-height:65vh;overflow-y:auto;transform:translateY(100%);transition:transform .32s cubic-bezier(.33,1,.68,1);padding-bottom:calc(1rem + env(safe-area-inset-bottom,0px));transition:background .3s,transform .32s cubic-bezier(.33,1,.68,1)}
+.ref-det-sheet::-webkit-scrollbar{width:0}
+.ref-det-ov.open .ref-det-sheet{transform:translateY(0)}
+.ref-det-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:10px auto 0}
+.ref-det-close{position:absolute;top:12px;right:14px;width:27px;height:27px;border-radius:50%;background:var(--surface);border:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.73rem;font-weight:800;transition:background .15s}
+.ref-det-close:hover{background:var(--surface2)}
+
+/* Search + filter block (sticky top of each pane) */
+.ref-search-block{padding:.55rem 2rem .4rem;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:10}
+
+/* Category filter pills for abilities */
+.ref-filter-row{display:flex;gap:.3rem;overflow-x:auto;padding:.4rem 0 .05rem;scrollbar-width:none}
+.ref-filter-row::-webkit-scrollbar{height:0}
+.ref-fpill{flex-shrink:0;display:inline-flex;align-items:center;gap:.26rem;padding:.27rem .6rem;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);font-size:.7rem;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;font-family:inherit}
+.ref-fpill i{font-size:.78rem;flex-shrink:0}
+.ref-fpill:hover:not(.active){border-color:var(--text2);color:var(--text2)}
+.ref-fpill.active{border-color:transparent}
+
+/* Ability list */
+.abl-alpha-hdr{padding:.45rem 2rem .15rem;font-size:.62rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--bg)}
+.abl-list{padding-bottom:5rem}
+.abl-card{display:flex;align-items:center;gap:.7rem;padding:.72rem 2rem;cursor:pointer;border-bottom:1px solid var(--border);transition:background .12s}
+.abl-card:hover{background:var(--surface)}
+.abl-card:active{background:var(--surface2)}
+.abl-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.abl-icon i{font-size:1rem}
+.abl-body{flex:1;min-width:0}
+.abl-name{font-size:.875rem;font-weight:800;color:var(--text)}
+.abl-desc{font-size:.7rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.abl-right{display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;flex-shrink:0}
+.abl-cat-pill{font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:6px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.abl-chev{color:var(--border2);font-size:.72rem}
+
+/* Ability detail panel content (inside shared #detInner) */
+.abl-det-hero{display:flex;align-items:center;gap:.85rem;padding:1rem 1.2rem .85rem}
+.abl-det-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.35rem;flex-shrink:0}
+.abl-det-name{font-size:1.15rem;font-weight:900;color:var(--text);line-height:1.1}
+.abl-det-tag{display:inline-flex;align-items:center;gap:.25rem;font-size:.63rem;font-weight:700;padding:2px 8px;border-radius:6px;margin-top:.28rem;text-transform:uppercase;letter-spacing:.04em}
+
+/* Nature hybrid cards (new design) */
+.nat-hybrid-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.55rem;padding:.7rem 2rem 5rem}
+.nat-hybrid{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:.75rem .7rem .65rem;cursor:pointer;transition:border-color .12s,transform .1s}
+.nat-hybrid:hover{border-color:var(--border2)}
+.nat-hybrid:active{transform:scale(.97)}
+.nat-hybrid-name{font-size:.82rem;font-weight:800;color:var(--text);margin-bottom:.35rem}
+.nat-hybrid-arch{display:inline-block;font-size:.61rem;font-weight:700;padding:2px 7px;border-radius:6px;margin-bottom:.42rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+/* EQ bar visualiser */
+.eq-bars{display:flex;align-items:flex-end;justify-content:space-between;gap:4px}
+.eq-col{display:flex;flex-direction:column;align-items:center;gap:0;flex:1}
+.eq-track{width:100%;border-radius:3px 3px 0 0;overflow:hidden;display:flex;align-items:flex-end}
+.eq-fill{width:100%;border-radius:3px 3px 0 0}
+.eq-lbl{font-size:.57rem;font-weight:700;color:var(--muted);margin-top:3px;line-height:1}
+
+/* Nature detail panel content (inside shared #detInner) */
+.nat-det-hero{display:flex;align-items:center;gap:.85rem;padding:1rem 1.2rem .85rem}
+.nat-det-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.35rem;flex-shrink:0}
+.nat-det-name{font-size:1.15rem;font-weight:900;color:var(--text);line-height:1.1}
+.nat-det-tag{display:inline-flex;align-items:center;gap:.25rem;font-size:.63rem;font-weight:700;padding:2px 8px;border-radius:6px;margin-top:.28rem;text-transform:uppercase;letter-spacing:.04em}
+.nat-det-mods{display:flex;flex-direction:column;gap:.45rem;margin-top:.3rem}
+.nat-det-row{display:flex;align-items:center;gap:.55rem;padding:.48rem .75rem;border-radius:10px}
+.nat-det-arrow{font-size:1.05rem;font-weight:900;line-height:1}
+.nat-det-stat{font-size:.86rem;font-weight:800}
+.nat-det-pct{font-size:.75rem;font-weight:700;margin-left:auto}
+
+
 /* #SECTION: PROFILE */
 /* ═══════ PROFILE ═══════ */
 
@@ -715,6 +799,10 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;t
   .items-grid{padding:.7rem 1rem 1rem;max-width:none}
   .nat-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));padding:0 1rem 1rem}
   .it-card,.nat-card,.tm-card{border-radius:14px}
+  .ref-search-block{padding:.5rem 1rem .38rem}
+  .abl-alpha-hdr{padding:.4rem 1rem .12rem}
+  .abl-card{padding:.7rem 1rem}
+  .nat-hybrid-grid{grid-template-columns:1fr 1fr;padding:.6rem 1rem 5rem;gap:.45rem}
   .sec-hdr{padding:.8rem 1rem}
   .sec-hdr h2{font-size:1rem}
   .card{border-radius:16px;padding:1rem}
