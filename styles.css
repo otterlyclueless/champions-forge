@@ -483,6 +483,49 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;t
 .abl-cat-pill{font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:6px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
 .abl-chev{color:var(--border2);font-size:.72rem}
 
+/* Reference tab mode toggle */
+.ref-mode-bar{display:flex;padding:.48rem 1rem .35rem;gap:.4rem;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0}
+.ref-mode-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:.28rem;padding:.4rem;border:1.5px solid var(--border);border-radius:20px;background:var(--surface);color:var(--muted);font-family:inherit;font-size:.74rem;font-weight:700;cursor:pointer;transition:all .15s}
+.ref-mode-btn.active{border-color:var(--red);background:var(--red-bg);color:var(--red)}
+.ref-mode-btn i{font-size:.82rem}
+
+/* Pokémon search in Reference tab */
+.abl-pkmn-prompt{padding:2.5rem 1rem;text-align:center;color:var(--muted);font-size:.82rem;line-height:1.6}
+.abl-pkmn-prompt i{font-size:2rem;display:block;margin-bottom:.5rem;opacity:.35}
+.abl-pkmn-result{display:flex;align-items:center;gap:.7rem;padding:.65rem 1rem;cursor:pointer;border-bottom:1px solid var(--border);transition:background .12s}
+.abl-pkmn-result:hover{background:var(--surface)}.abl-pkmn-result:active{background:var(--surface2)}
+.abl-pkmn-sprite{width:38px;height:38px;object-fit:contain;flex-shrink:0}
+.abl-pkmn-name{flex:1;font-size:.875rem;font-weight:800;color:var(--text)}
+.abl-pkmn-back-hdr{display:flex;align-items:center;gap:.55rem;padding:.45rem 1rem .3rem;background:var(--bg);border-bottom:1px solid var(--border)}
+.abl-pkmn-back-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:.78rem;font-weight:700;display:inline-flex;align-items:center;gap:.25rem;font-family:inherit;padding:.2rem 0}
+.abl-pkmn-who{font-size:.8rem;font-weight:800;color:var(--text2)}
+.abl-slot-1{background:var(--purple-bg);color:var(--purple)}
+.abl-slot-2{background:var(--blue-bg);color:var(--blue)}
+.abl-slot-h{background:var(--gold-bg);color:var(--gold)}
+
+/* Build editor ability button */
+.ed-abl-btn{width:100%;padding:.6rem .9rem;border-radius:11px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:space-between;min-height:44px;transition:border-color .15s,background .3s;text-align:left}
+.ed-abl-btn:hover{border-color:var(--border2)}
+.ed-abl-btn-name{font-size:.85rem;font-weight:700;color:var(--text);flex:1}
+.ed-abl-btn.empty .ed-abl-btn-name{color:var(--muted);font-weight:500}
+.ed-abl-btn i{color:var(--muted);font-size:.78rem;flex-shrink:0}
+
+/* Ability picker bottom sheet */
+.abl-pk-sheet{width:100%;max-width:560px;background:var(--bg2);border-radius:22px 22px 0 0;border-top:1px solid var(--border);padding-bottom:calc(1rem + env(safe-area-inset-bottom));animation:sheetUp .28s cubic-bezier(.33,1,.68,1);transition:background .3s}
+.abl-pk-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:10px auto 0}
+.abl-pk-head{display:flex;align-items:flex-start;justify-content:space-between;padding:.7rem 1.2rem .4rem}
+.abl-pk-title{font-size:.88rem;font-weight:800;color:var(--text)}
+.abl-pk-sub{font-size:.7rem;color:var(--muted);margin-top:.1rem}
+.abl-pk-close{background:var(--surface);border:none;color:var(--muted);width:28px;height:28px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.73rem;font-weight:800;flex-shrink:0}
+.abl-pk-list{padding:.5rem 1rem .6rem;display:flex;flex-direction:column;gap:.45rem}
+.abl-pk-card{padding:.65rem .9rem;border-radius:12px;border:1px solid var(--border);background:var(--card);cursor:pointer;transition:all .12s}
+.abl-pk-card:active{transform:scale(.97)}.abl-pk-card.sel{border-color:var(--purple);background:var(--purple-bg)}
+.abl-pk-slot{font-size:.6rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.18rem}
+.abl-pk-card.sel .abl-pk-slot{color:var(--purple)}
+.abl-pk-name{font-size:.88rem;font-weight:800;color:var(--text)}
+.abl-pk-desc{font-size:.71rem;color:var(--muted);margin-top:.15rem;line-height:1.35}
+.abl-pk-empty{padding:1.5rem 1rem;text-align:center;color:var(--muted);font-size:.82rem;line-height:1.5}
+
 /* Ability detail panel content (inside shared #detInner) */
 .abl-det-hero{display:flex;align-items:center;gap:.85rem;padding:1rem 1.2rem .85rem}
 .abl-det-icon{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.35rem;flex-shrink:0}
