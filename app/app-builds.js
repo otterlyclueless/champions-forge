@@ -368,7 +368,16 @@ function renderEditorForm(c){
     '</div>'+
     '<div class="ed-card" style="margin-top:1rem"><h3 style="display:flex;align-items:center;gap:8px">Stat Allocation'+(isMega?'<img src="'+MEGA_STONE_URL+'" alt="Mega" style="width:20px;height:20px;object-fit:contain;display:block;flex-shrink:0" onerror="this.style.display=\'none\'">':'')+'</h3><div id="statSection">'+statSectionHtml+'</div></div>'+
     '<div class="ed-card" style="margin-top:1rem"><h3>Moves & Ability</h3>'+
-      '<div class="ed-row"><div><label class="ed-label">Ability</label><input class="ed-input" id="edAbi" value="'+(b?b.ability||'':'').replace(/"/g,'&quot;')+'" placeholder="e.g. Multiscale"></div><div><label class="ed-label">Item</label>'+itemFieldHtml+'</div></div>'+
+      (function(){var curAbi=b?b.ability||'':'';return'<div class="ed-row">'+
+  '<div><label class="ed-label">Ability</label>'+
+    '<input type="hidden" id="edAbi" value="'+curAbi.replace(/"/g,'&quot;')+'">'+
+    '<button type="button" id="edAbiBtn" class="ed-abl-btn'+(curAbi?'':' empty')+'" onclick="openAbilityPicker()">'+
+      '<span id="edAbiLabel">'+(curAbi||'Select ability…')+'</span>'+
+      '<i class="ph-bold ph-caret-right"></i>'+
+    '</button>'+
+  '</div>'+
+  '<div><label class="ed-label">Item</label>'+itemFieldHtml+'</div>'+
+'</div>';})()  +
       '<div class="ed-row" style="margin-top:.5rem"><div style="grid-column:1 / -1"><label class="ed-label">Nature</label><select class="ed-select" id="edNat" onchange="edRefresh()"><option value="">— None —</option>'+natOptions+'</select></div></div>'+
       // Drop E: Move slots — buttons open legal-move picker; hidden inputs preserve saveBuild() contract.
       // Shared font size across all 4 so long names don't bloat and short names don't over-scale.
@@ -417,6 +426,87 @@ function edShareUrl(code){
   var base=location.origin+location.pathname.replace(/\/index\.html$/,'/');
   if(!base.endsWith('/'))base+='/';
   return base+'#/b/'+code;
+}
+
+// ═══════════════════════════════════════
+// ABILITY PICKER — Drop G.2b
+// Replaces free-text #edAbi with a bottom
+// sheet showing legal abilities for the
+// selected Pokémon. saveBuild() reads the
+// hidden #edAbi input unchanged.
+// ═══════════════════════════════════════
+var ablPickerCache={};
+
+async function _loadAblOptionsForPkmn(pokemonId){
+  if(ablPickerCache[pokemonId])return ablPickerCache[pokemonId];
+  try{
+    var rows=await q('pokemon_abilities',{'pokemon_id':'eq.'+pokemonId,select:'slot,ability_id',order:'slot.asc'});
+    var opts=rows.map(function(row){
+      var abl=(window.allAbilities||[]).find(function(a){return a.id===row.ability_id});
+      return{slot:row.slot,id:row.ability_id,name:abl?abl.name:'?',desc:abl?abl.short_description||'':''};
+    });
+    ablPickerCache[pokemonId]=opts;
+    return opts;
+  }catch(e){ablPickerCache[pokemonId]=[];return[];}
+}
+
+function openAbilityPicker(){
+  var ov=document.getElementById('abilityPickerOv');
+  if(!ov)return;
+  var curAbi=document.getElementById('edAbi')?document.getElementById('edAbi').value||''  :'';
+  // Get Pokémon display name from the selected card (set by edRefresh)
+  var pkmnName=selPkmnId?(window.allPkmn||[]).find(function(p){return p.id===selPkmnId}):null;
+  var pkmnLabel=pkmnName?pkmnName.name:'';
+  ov.innerHTML='<div class="abl-pk-sheet">'+
+    '<div class="abl-pk-handle"></div>'+
+    '<div class="abl-pk-head">'+
+      '<div><div class="abl-pk-title">Choose Ability</div>'+(pkmnLabel?'<div class="abl-pk-sub">'+pkmnLabel+'</div>':'')+'</div>'+
+      '<button class="abl-pk-close" onclick="closeAbilityPicker()">✕</button>'+
+    '</div>'+
+    '<div class="abl-pk-list" id="ablPkList"><div class="abl-pk-empty">Loading…</div></div>'+
+  '</div>';
+  ov.classList.add('open');
+  ov.onclick=function(e){if(e.target===ov)closeAbilityPicker();};
+  if(!selPkmnId){
+    document.getElementById('ablPkList').innerHTML='<div class="abl-pk-empty">Select a Pokémon first to see its legal abilities.</div>';
+    return;
+  }
+  _loadAblOptionsForPkmn(selPkmnId).then(function(opts){
+    _renderAblPickerContent(opts,curAbi);
+  });
+}
+
+function _renderAblPickerContent(opts,curAbi){
+  var listEl=document.getElementById('ablPkList');
+  if(!listEl)return;
+  var SLOT_LABELS={'1':'Ability 1','2':'Ability 2','hidden':'Hidden Ability'};
+  if(!opts||!opts.length){
+    listEl.innerHTML='<div class="abl-pk-empty">No ability data for this Pokémon.<br>Use the admin panel to add entries.</div>';
+    return;
+  }
+  listEl.innerHTML=opts.map(function(opt){
+    var isSel=opt.name===curAbi;
+    return '<div class="abl-pk-card'+(isSel?' sel':'')+'" onclick="pickAbility(\''+opt.name.replace(/'/g,"\\'")+'\')">'+
+      '<div class="abl-pk-slot">'+(SLOT_LABELS[opt.slot]||opt.slot)+'</div>'+
+      '<div class="abl-pk-name">'+opt.name+'</div>'+
+      (opt.desc?'<div class="abl-pk-desc">'+opt.desc+'</div>':'')+
+    '</div>';
+  }).join('');
+}
+
+function pickAbility(name){
+  var inp=document.getElementById('edAbi');
+  var lbl=document.getElementById('edAbiLabel');
+  var btn=document.getElementById('edAbiBtn');
+  if(inp)inp.value=name;
+  if(lbl)lbl.textContent=name;
+  if(btn)btn.classList.remove('empty');
+  closeAbilityPicker();
+}
+
+function closeAbilityPicker(){
+  var ov=document.getElementById('abilityPickerOv');
+  if(ov)ov.classList.remove('open');
 }
 
 // Read share_fields with defaults (all visible when NULL).
