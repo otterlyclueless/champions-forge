@@ -319,7 +319,7 @@ function showAbilityDetail(id){
   var cat=_ablCategory(a.name);var c=ABL_CATS[cat];
   // "Used in N builds" — count from allBuilds (loaded at boot)
   var usedCount=(window.allBuilds||[]).filter(function(b){return(b.ability||'').toLowerCase()===a.name.toLowerCase()}).length;
-  var det=document.getElementById('detInner');
+  var det=document.getElementById('refDetInner');
   if(!det)return;
   det.innerHTML=
     '<div class="abl-det-hero">'+
@@ -340,8 +340,10 @@ function showAbilityDetail(id){
         ?'<span style="display:inline-flex;align-items:center;gap:.3rem;padding:.28rem .65rem;border-radius:8px;font-size:.71rem;font-weight:700;background:var(--red-bg);color:var(--red)"><i class="ph-bold ph-sword"></i> Used in '+usedCount+' build'+(usedCount!==1?'s':'')+'</span>'
         :'<span style="display:inline-flex;padding:.28rem .65rem;border-radius:8px;font-size:.71rem;font-weight:700;background:var(--surface);color:var(--muted)">Not used in any builds yet</span>')+
     '</div>';
-  document.getElementById('detP').classList.add('open');
+  document.getElementById('refDetOv').classList.add('open');
 }
+
+function closeRefDet(){document.getElementById('refDetOv').classList.remove('open')}
 
 function switchRefTab(tab){
   document.querySelectorAll('#refTabBar .ref-tab').forEach(function(t){
@@ -419,7 +421,6 @@ function renderNatures(){
     var upBg=n.increased_stat?NAT_SC[n.increased_stat].bg:'var(--surface)';
     return '<div class="nat-hybrid" onclick="showNatureDetail(\''+n.name+'\')">'+
       '<div class="nat-hybrid-name">'+n.name+'</div>'+
-      '<div class="nat-hybrid-arch" style="background:'+upBg+';color:'+upC+'">'+arch+'</div>'+
       _natEqBars(n)+
     '</div>';
   }).join('');
@@ -450,7 +451,7 @@ function showNatureDetail(name){
   } else {
     mods='<div style="color:var(--muted);font-size:.82rem;padding:.2rem 0">No stat changes — all multipliers at 1.0×</div>';
   }
-  var det=document.getElementById('detInner');
+  var det=document.getElementById('refDetInner');
   if(!det)return;
   det.innerHTML=
     '<div class="nat-det-hero">'+
@@ -470,7 +471,7 @@ function showNatureDetail(name){
         ?'<span style="display:inline-flex;align-items:center;gap:.3rem;padding:.28rem .65rem;border-radius:8px;font-size:.71rem;font-weight:700;background:var(--red-bg);color:var(--red)"><i class="ph-bold ph-sword"></i> Used in '+usedCount+' build'+(usedCount!==1?'s':'')+'</span>'
         :'<span style="display:inline-flex;padding:.28rem .65rem;border-radius:8px;font-size:.71rem;font-weight:700;background:var(--surface);color:var(--muted)">Not used in any builds yet</span>')+
     '</div>';
-  document.getElementById('detP').classList.add('open');
+  document.getElementById('refDetOv').classList.add('open');
 }
 
 // ═══════════════════════════════════════
