@@ -118,6 +118,22 @@ function edRefresh(){
   edUpdateHex(stats);
   edUpdateBST(stats);
   edUpdateSP();
+  // Drop H: sync nature picker button label + chips
+  var _natBtn=document.getElementById('edNatBtn');
+  if(_natBtn){
+    var _natLbl=document.getElementById('edNatLabel');
+    var _natChips=document.getElementById('edNatChips');
+    if(_natLbl)_natLbl.textContent=nature?nature.name:'Select nature…';
+    _natBtn.classList.toggle('empty',!nature);
+    if(_natChips){
+      if(nature&&nature.increased_stat){
+        var _u=NAT_SC[nature.increased_stat],_d=NAT_SC[nature.decreased_stat];
+        _natChips.innerHTML='<span class="ed-nat-btn-chip" style="background:'+_u.bg+';color:'+_u.c+'">▲ '+_u.s+'</span>'+
+          '<span class="ed-nat-btn-chip" style="background:'+_d.bg+';color:'+_d.c+'">▼ '+_d.s+'</span>';
+        _natChips.style.display='flex';
+      }else{_natChips.innerHTML='';_natChips.style.display='none';}
+    }
+  }
 }
 
 function edSwitchView(view){
@@ -334,13 +350,16 @@ function renderEditorForm(c){
 
   var hdr='<div class="pg-head"><div class="pg-top"><div><div class="pg-title" style="cursor:pointer" onclick="showBuildList()">← '+(b?'Edit Build':'New Build')+'</div><div class="pg-sub">'+dName+(isMega?' (Mega)':'')+'</div></div></div></div>';
 
-  // Nature dropdown
+  // Nature picker button (Drop H) — replaces native <select> with a bottom-sheet picker.
+  // Hidden input preserves saveBuild() / edGetNature() read contract unchanged.
   var sL={hp:'HP',attack:'Atk',defense:'Def',sp_attack:'SpA',sp_defense:'SpD',speed:'Spe'};
-  var natOptions=allNatures.map(function(n){
-    var hint=n.increased_stat?' (+'+sL[n.increased_stat]+' -'+sL[n.decreased_stat]+')':' (Neutral)';
-    var sel=b&&b.nature_name===n.name?' selected':'';
-    return '<option value="'+n.id+'"'+sel+'>'+n.name+hint+'</option>';
-  }).join('');
+  var curNatObj=b&&b.nature_name?allNatures.find(function(n){return n.name===b.nature_name}):null;
+  var _natChipsHtml='';
+  if(curNatObj&&curNatObj.increased_stat){
+    var _u=NAT_SC[curNatObj.increased_stat],_d=NAT_SC[curNatObj.decreased_stat];
+    _natChipsHtml='<span class="ed-nat-btn-chip" style="background:'+_u.bg+';color:'+_u.c+'">▲ '+_u.s+'</span>'+
+      '<span class="ed-nat-btn-chip" style="background:'+_d.bg+';color:'+_d.c+'">▼ '+_d.s+'</span>';
+  }
 
   // Item picker — replaces native <select> with a clickable button that opens a bottom sheet.
   // Hidden input keeps the form-compatible edItem.value = item_id.
@@ -378,7 +397,16 @@ function renderEditorForm(c){
   '</div>'+
   '<div><label class="ed-label">Item</label>'+itemFieldHtml+'</div>'+
 '</div>';})()  +
-      '<div class="ed-row" style="margin-top:.5rem"><div style="grid-column:1 / -1"><label class="ed-label">Nature</label><select class="ed-select" id="edNat" onchange="edRefresh()"><option value="">— None —</option>'+natOptions+'</select></div></div>'+
+      '<div class="ed-row" style="margin-top:.5rem"><div style="grid-column:1 / -1"><label class="ed-label">Nature</label>'+
+        '<input type="hidden" id="edNat" value="'+(curNatObj?curNatObj.id:'')+'">'+
+        '<button type="button" class="ed-nat-btn'+(curNatObj?'':' empty')+'" id="edNatBtn" onclick="openNaturePicker()">'+
+          '<div class="ed-nat-btn-left">'+
+            '<span class="ed-nat-btn-name" id="edNatLabel">'+(curNatObj?curNatObj.name:'Select nature…')+'</span>'+
+            '<span class="ed-nat-btn-chips" id="edNatChips" style="'+(curNatObj&&curNatObj.increased_stat?'display:flex':'display:none')+'">'+_natChipsHtml+'</span>'+
+          '</div>'+
+          '<i class="ph-bold ph-caret-right"></i>'+
+        '</button>'+
+      '</div></div>'+
       // Drop E: Move slots — buttons open legal-move picker; hidden inputs preserve saveBuild() contract.
       // Shared font size across all 4 so long names don't bloat and short names don't over-scale.
       (function(){
@@ -506,6 +534,93 @@ function pickAbility(name){
 
 function closeAbilityPicker(){
   var ov=document.getElementById('abilityPickerOv');
+  if(ov)ov.classList.remove('open');
+}
+
+// ─── Drop H: Nature Picker ───────────────────────────────────────────────────
+// Bottom-sheet replacement for the native nature <select>.
+// Hidden input #edNat preserves saveBuild() / edGetNature() read contract.
+// NAT_SC, NAT_ARCH, _natEqBars are global from app-profile.js.
+// ─────────────────────────────────────────────────────────────────────────────
+
+var _NAT_GROUPS=[
+  {key:'attack',    label:'Attack ▲'},
+  {key:'sp_attack', label:'Sp. Atk ▲'},
+  {key:'defense',   label:'Defense ▲'},
+  {key:'sp_defense',label:'Sp. Def ▲'},
+  {key:'speed',     label:'Speed ▲'},
+];
+
+function openNaturePicker(){
+  var ov=document.getElementById('naturePickerOv');
+  if(!ov)return;
+  var curId=(document.getElementById('edNat')||{}).value||'';
+  ov.innerHTML='<div class="nat-pk-sheet">'+
+    '<div class="nat-pk-handle"></div>'+
+    '<div class="nat-pk-head">'+
+      '<div class="nat-pk-title">Choose Nature</div>'+
+      '<button class="nat-pk-close" onclick="closeNaturePicker()">✕</button>'+
+    '</div>'+
+    '<div class="nat-pk-list" id="natPkList">'+_renderNaturePickerContent(curId)+'</div>'+
+  '</div>';
+  ov.classList.add('open');
+  ov.onclick=function(e){if(e.target===ov)closeNaturePicker();};
+}
+
+function _renderNaturePickerContent(curId){
+  var html='<div class="nat-pk-none'+(curId===''?' sel':'')+'" onclick="pickNature(\'\')">'+
+    '<span class="nat-pk-none-lbl">— None —</span>'+
+  '</div>';
+  _NAT_GROUPS.forEach(function(g){
+    var nats=allNatures.filter(function(n){return n.increased_stat===g.key;});
+    if(!nats.length)return;
+    var sc=NAT_SC[g.key];
+    html+='<div class="nat-pk-grp" style="color:'+sc.c+'">'+g.label+'</div>';
+    nats.forEach(function(n){
+      var isSel=n.id===curId;
+      var arch=NAT_ARCH[n.name]||'—';
+      html+='<div class="nat-pk-row'+(isSel?' sel':'')+'" onclick="pickNature(\''+n.id+'\')">'+
+        '<div class="nat-pk-row-left">'+
+          '<div class="nat-pk-row-name">'+n.name+'</div>'+
+          '<div class="nat-pk-row-arch">'+arch+'</div>'+
+        '</div>'+
+        '<div class="nat-pk-row-eq">'+_natEqBarsCompact(n)+'</div>'+
+      '</div>';
+    });
+  });
+  return html;
+}
+
+// 2-bar compact EQ: only boosted (▲ tall) + lowered (▼ short). Used in picker only.
+// For full 5-bar EQ used in Reference tab, see _natEqBars() in app-profile.js.
+function _natEqBarsCompact(n){
+  if(!n.increased_stat)return '';
+  var u=NAT_SC[n.increased_stat],d=NAT_SC[n.decreased_stat];
+  return '<div class="eq-bars" style="gap:5px;justify-content:center">'+
+    '<div class="eq-col">'+
+      '<div class="eq-track" style="height:20px;background:var(--surface2);">'+
+        '<div class="eq-fill" style="height:90%;background:'+u.c+';opacity:.95;"></div>'+
+      '</div>'+
+      '<div class="eq-lbl" style="color:'+u.c+';font-weight:900;">'+u.s+'</div>'+
+    '</div>'+
+    '<div class="eq-col">'+
+      '<div class="eq-track" style="height:20px;background:var(--surface2);opacity:.28;">'+
+        '<div class="eq-fill" style="height:12%;background:'+d.c+';opacity:.9;"></div>'+
+      '</div>'+
+      '<div class="eq-lbl" style="opacity:.35;">'+d.s+'</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function pickNature(id){
+  var hidEl=document.getElementById('edNat');
+  if(hidEl)hidEl.value=id;
+  edRefresh(); // recalcs stats + syncs button label + chips
+  closeNaturePicker();
+}
+
+function closeNaturePicker(){
+  var ov=document.getElementById('naturePickerOv');
   if(ov)ov.classList.remove('open');
 }
 
