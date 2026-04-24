@@ -313,8 +313,8 @@ function renderAbilities(){
   el.innerHTML=html;
 }
 
-function showAbilityDetail(id){
-  var a=allAbilities.find(function(x){return x.id===id});
+function showAbilityDetail(idOrName){
+  var a=allAbilities.find(function(x){return x.id===idOrName||x.name===idOrName});
   if(!a)return;
   var cat=_ablCategory(a.name);var c=ABL_CATS[cat];
   // "Used in N builds" — count from allBuilds (loaded at boot)
@@ -353,6 +353,126 @@ function switchRefTab(tab){
   var np=document.getElementById('refNaturesPane');
   if(ap)ap.style.display=tab==='abilities'?'':'none';
   if(np)np.style.display=tab==='natures'?'':'none';
+}
+
+// ═══════════════════════════════════════
+// ABILITY MODE TOGGLE (Abilities | By Pokémon) — Drop G.2
+// ═══════════════════════════════════════
+var refAblMode='abilities';
+var ablPkmnCache={};        // pokemonId → [{slot,id,name,desc}]
+var refPkmnSelectedId=null;
+var refPkmnSelectedName='';
+var refPkmnSearchQ='';
+
+function switchAblMode(mode){
+  refAblMode=mode;
+  refPkmnSelectedId=null;
+  refPkmnSearchQ='';
+  // Update toggle buttons
+  document.querySelectorAll('.ref-mode-btn').forEach(function(b){
+    b.classList.toggle('active',b.dataset.mode===mode);
+  });
+  // Show/hide search blocks
+  var aSb=document.getElementById('ablSearchBlock');
+  var pSb=document.getElementById('ablPkmnBlock');
+  if(aSb)aSb.style.display=mode==='abilities'?'':'none';
+  if(pSb)pSb.style.display=mode==='pkmn'?'':'none';
+  // Clear Pokémon search input
+  var pIn=document.getElementById('ablPkmnSearch');
+  if(pIn)pIn.value='';
+  if(mode==='abilities'){
+    renderAbilities();
+  } else {
+    renderPkmnAblPrompt();
+  }
+}
+
+function renderPkmnAblPrompt(){
+  var el=document.getElementById('ablList');
+  if(!el)return;
+  el.innerHTML='<div class="abl-pkmn-prompt"><i class="ph-bold ph-paw-print"></i>Search a Pokémon name to see its legal abilities</div>';
+}
+
+function onPkmnAblSearch(v){
+  refPkmnSearchQ=v||'';
+  refPkmnSelectedId=null;
+  renderPkmnAblSearch(refPkmnSearchQ);
+}
+
+function renderPkmnAblSearch(q){
+  var el=document.getElementById('ablList');
+  if(!el)return;
+  if(!q){renderPkmnAblPrompt();return;}
+  var q2=q.toLowerCase();
+  var matches=(allPkmn||[]).filter(function(p){return p.name.toLowerCase().indexOf(q2)!==-1}).slice(0,20);
+  if(!matches.length){el.innerHTML='<div class="abl-pkmn-prompt">No Pokémon found for "'+q+'"</div>';return;}
+  el.innerHTML=matches.map(function(p){
+    return '<div class="abl-pkmn-result" onclick="selectAblPkmn(\''+p.id+'\',\''+p.name.replace(/'/g,"\\'")+'\')">'+
+      '<img class="abl-pkmn-sprite" src="'+p.image_url+'" alt="" onerror="this.style.display=\'none\'">'+
+      '<span class="abl-pkmn-name">'+p.name+'</span>'+
+      '<i class="ph-bold ph-caret-right" style="color:var(--muted);font-size:.75rem"></i>'+
+    '</div>';
+  }).join('');
+}
+
+async function selectAblPkmn(pokemonId,pokemonName){
+  refPkmnSelectedId=pokemonId;
+  refPkmnSelectedName=pokemonName;
+  var el=document.getElementById('ablList');
+  if(!el)return;
+  el.innerHTML='<div class="abl-pkmn-prompt">Loading…</div>';
+  if(!ablPkmnCache[pokemonId]){
+    try{
+      var rows=await q('pokemon_abilities',{'pokemon_id':'eq.'+pokemonId,select:'slot,ability_id',order:'slot.asc'});
+      ablPkmnCache[pokemonId]=rows.map(function(row){
+        var abl=allAbilities.find(function(a){return a.id===row.ability_id});
+        return{slot:row.slot,id:row.ability_id,name:abl?abl.name:'?',desc:abl?abl.short_description||'':''};
+      });
+    }catch(e){ablPkmnCache[pokemonId]=[];}
+  }
+  renderPkmnAblSelected(pokemonId,pokemonName);
+}
+
+function backToAblPkmnSearch(){
+  refPkmnSelectedId=null;
+  renderPkmnAblSearch(refPkmnSearchQ);
+}
+
+function renderPkmnAblSelected(pokemonId,pokemonName){
+  var el=document.getElementById('ablList');
+  if(!el)return;
+  var options=ablPkmnCache[pokemonId]||[];
+  var SLOT_LABELS={'1':'Ability 1','2':'Ability 2','hidden':'Hidden Ability'};
+  var SLOT_CLS={'1':'abl-slot-1','2':'abl-slot-2','hidden':'abl-slot-h'};
+  var CAT_MAP={};
+  (Object.keys(ABL_CATS)||[]).forEach(function(k){CAT_MAP[k]=ABL_CATS[k]});
+  var backHdr='<div class="abl-pkmn-back-hdr">'+
+    '<button class="abl-pkmn-back-btn" onclick="backToAblPkmnSearch()"><i class="ph-bold ph-caret-left"></i> Back</button>'+
+    '<span class="abl-pkmn-who">'+pokemonName+'</span>'+
+  '</div>';
+  var cards='';
+  if(!options.length){
+    cards='<div style="padding:1.5rem 1rem;color:var(--muted);font-size:.82rem;text-align:center">No ability data for this Pokémon yet.<br>Use the admin panel to add entries.</div>';
+  } else {
+    cards=options.map(function(opt){
+      var cat=_ablCategory(opt.name);
+      var c=ABL_CATS[cat]||ABL_CATS.support;
+      var slotCls=SLOT_CLS[opt.slot]||'abl-slot-1';
+      var slotLabel=SLOT_LABELS[opt.slot]||opt.slot;
+      return '<div class="abl-card" onclick="showAbilityDetail(\''+opt.id+'\')">'+
+        '<div class="abl-icon" style="background:'+c.bg+';color:'+c.c+'"><i class="ph-bold '+c.icon+'"></i></div>'+
+        '<div class="abl-body">'+
+          '<div class="abl-name">'+opt.name+'</div>'+
+          '<div class="abl-desc">'+opt.desc+'</div>'+
+        '</div>'+
+        '<div class="abl-right">'+
+          '<span class="abl-cat-pill '+slotCls+'">'+slotLabel+'</span>'+
+          '<span class="abl-chev"><i class="ph-bold ph-caret-right"></i></span>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+  }
+  el.innerHTML=backHdr+cards;
 }
 
 // #SECTION: NATURES
