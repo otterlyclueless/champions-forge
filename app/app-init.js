@@ -3,7 +3,7 @@
 // profile, team, and battle data loads together.
 // ═══════════════════════════════════════
 var origLoadUser=loadUser;
-loadUser=async function(){await Promise.all([loadBuilds(),loadTeamRoster(),loadUDex(),loadUItems(),loadProfile(),loadUserAch(),loadBattles()]);renderDash();renderDex();renderBuilds();renderTeams();renderItems();renderProfile();checkAchievements()};
+loadUser=async function(){await Promise.all([loadBuilds(),loadTeamRoster(),loadUDex(),loadUItems(),loadProfile(),loadUserAch(),loadBattles(),loadFriends()]);renderDash();renderDex();renderBuilds();renderTeams();renderItems();renderProfile();checkAchievements();updProfileNavBadge()};
 
 // ═══════════════════════════════════════
 // APP INITIALIZATION
