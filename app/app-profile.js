@@ -881,21 +881,11 @@ function openFindFriends(){
       '<div class="ff-search-wrap"><input class="ff-search" id="ffSearchInput" placeholder="Search by @username…" oninput="ffFilter(this.value)" autocomplete="off"></div>'+
       '<div class="ff-list" id="ffList"></div>'+
     '</div>'+
-    '<div class="ff-share-pane" id="ffSharePane">'+
-      '<div class="ff-qr-wrap">'+
-        '<div class="ff-qr-hint">Scan or share your link — anyone who opens it can send you a friend request</div>'+
-        '<img id="ffQrImg" style="display:none;width:150px;height:150px;border-radius:8px;image-rendering:pixelated" alt="QR code">'+
-        '<div id="ffQrSpinner" style="width:150px;height:150px;display:flex;align-items:center;justify-content:center;font-size:.75rem;color:var(--muted)">Generating…</div>'+
-      '</div>'+
-      '<div class="ff-link-row"><span class="ff-link-txt" id="ffLinkTxt"></span><button class="ff-copy-btn" id="ffCopyBtn" onclick="ffCopyLink()">Copy</button></div>'+
-      '<button class="ff-share-btn" onclick="ffShareNative()"><i class="ph-bold ph-share-network"></i> Share via…</button>'+
-      '<div class="ff-share-hint">Opens your public profile where others can tap "Add Friend"</div>'+
-    '</div>'+
+    '<div class="ff-share-pane" id="ffSharePane" style="display:none"></div>'+
   '</div>';
   ov.classList.add('open');
   ov.onclick=function(e){if(e.target===ov)closeFindFriends();};
   _ffTab='search';
-  document.getElementById('ffSharePane').style.display='none';
   ffRenderList('');
   setTimeout(function(){var inp=document.getElementById('ffSearchInput');if(inp)inp.focus();},300);
 }
@@ -910,32 +900,143 @@ function ffSwitchTab(tab){
   if(shp)shp.style.display=tab==='share'?'flex':'none';
   if(tab==='share')_ffRenderShare();
 }
+// ─── QR Customiser (Drop I.2b) ───────────────────────────────────────────────
+var _ffQrStyle={color:'red',frame:'neon',overlay:'pokemon'};
+var _ffQrPkmn='';var _ffQrUrl='';var _ffSaveTimer=null;
+var _FF_COLORS={
+  red:    {d:'ef4444',db:'111318',l:'dc2626',lb:'f8fafc',hex:'#ef4444'},
+  gold:   {d:'f59e0b',db:'111318',l:'d97706',lb:'f8fafc',hex:'#f59e0b'},
+  purple: {d:'a78bfa',db:'111318',l:'7c3aed',lb:'f8fafc',hex:'#a78bfa'},
+  sky:    {d:'7dd3fc',db:'111318',l:'0284c7',lb:'f8fafc',hex:'#7dd3fc'},
+  pink:   {d:'ec4899',db:'111318',l:'db2777',lb:'f8fafc',hex:'#ec4899'},
+  green:  {d:'22c55e',db:'111318',l:'16a34a',lb:'f8fafc',hex:'#22c55e'},
+};
+
 function _ffRenderShare(){
   if(_ffQrDone)return;_ffQrDone=true;
+  var pane=document.getElementById('ffSharePane');if(!pane)return;
   var username=userProfile&&userProfile.username;
-  var spin=document.getElementById('ffQrSpinner');
   if(!username){
-    if(spin)spin.innerHTML='<a href="#" onclick="showUsernameModal(null);closeFindFriends()" style="color:var(--pink);font-size:.8rem">Set a username first →</a>';
+    pane.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;padding:2rem 1rem;text-align:center;gap:.5rem">'+
+      '<div style="font-size:1.5rem">🔗</div>'+
+      '<div style="font-size:.82rem;font-weight:700">No username set</div>'+
+      '<a href="#" onclick="showUsernameModal(null);closeFindFriends()" style="color:var(--pink);font-size:.8rem;font-weight:800">Set one now →</a>'+
+    '</div>';
     return;
   }
-  var profileUrl=location.origin+location.pathname.replace(/\/index\.html$/,'/')+'#/u/'+encodeURIComponent(username);
-  var lt=document.getElementById('ffLinkTxt');if(lt)lt.textContent=profileUrl;
-  // Use qrserver.com API — plain img tag, zero JS library dependency
-  var qrApiUrl='https://api.qrserver.com/v1/create-qr-code/?data='+encodeURIComponent(profileUrl)+'&size=200x200&color=111318&bgcolor=FFFFFF&margin=6&qzone=1';
-  // If we already have the stored URL, use it; otherwise use the API URL directly
-  var src=userProfile&&userProfile.qr_code_url?userProfile.qr_code_url:qrApiUrl;
-  var img=document.getElementById('ffQrImg');
-  if(img){
-    img.onload=function(){if(spin)spin.style.display='none';img.style.display='block';};
-    img.onerror=function(){if(spin)spin.innerHTML='<span style="font-size:.7rem;color:var(--muted)">Use the Copy button below</span>';};
-    img.src=src;
-    // Persist the API URL so future opens skip even the API call (instant display from stored URL)
-    if(usr&&userProfile&&!userProfile.qr_code_url){
-      userProfile.qr_code_url=qrApiUrl;
-      upd('user_profiles',{'user_id':'eq.'+usr.id},{qr_code_url:qrApiUrl},true).catch(function(){});
-    }
-  }
+  // Load saved style or use defaults (red+neon+pokemon)
+  var saved={color:'red',frame:'neon',overlay:'pokemon'};
+  if(userProfile&&userProfile.qr_style){try{saved=JSON.parse(userProfile.qr_style);}catch(e){}}
+  _ffQrStyle=saved;
+  _ffQrUrl=location.origin+location.pathname.replace(/\/index\.html$/,'/')+'#/u/'+encodeURIComponent(username);
+  _ffQrPkmn=allBuilds&&allBuilds.length?(allBuilds[0].image_url||allBuilds[0].sprite_url||''):'';
+  // Build colour swatches
+  var swatches=['red','gold','purple','sky','pink','green'].map(function(c){
+    return'<div class="ff-swatch'+(c===saved.color?' ff-swatch-act':'')+'" data-color="'+c+'" style="background:'+_FF_COLORS[c].hex+'" onclick="_ffPickColor(\''+c+'\')"></div>';
+  }).join('');
+  // Build frame options
+  var frames=[['none','None'],['glow','Glow'],['ring','Ring'],['gradient','Gradient'],['neon','Neon'],['champion','Champion']];
+  var frameOpts=frames.map(function(f){
+    return'<button class="ff-frame-opt'+(f[0]===saved.frame?' active':'')+'" data-frame="'+f[0]+'" onclick="_ffPickFrame(\''+f[0]+'\')">'+f[1]+'</button>';
+  }).join('');
+  // Build overlay options
+  var ovOpts=
+    '<div class="ff-ov-opt'+(saved.overlay==='none'?' active':'')+'" data-ov="none" onclick="_ffPickOv(\'none\')" style="font-size:.58rem;font-weight:700;color:var(--muted)">None</div>'+
+    '<div class="ff-ov-opt'+(saved.overlay==='bolt'?' active':'')+'" data-ov="bolt" onclick="_ffPickOv(\'bolt\')">⚡</div>'+
+    '<div class="ff-ov-opt'+(saved.overlay==='pokeball'?' active':'')+'" data-ov="pokeball" onclick="_ffPickOv(\'pokeball\')"><svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="10" fill="#ef4444" stroke="#fff" stroke-width="1.5"/><path d="M1 11h20" stroke="white" stroke-width="1.5"/><circle cx="11" cy="11" r="3.5" fill="#333" stroke="white" stroke-width="1.5"/><circle cx="11" cy="11" r="1.5" fill="white"/></svg></div>'+
+    (_ffQrPkmn?'<div class="ff-ov-opt'+(saved.overlay==='pokemon'?' active':'')+'" data-ov="pokemon" onclick="_ffPickOv(\'pokemon\')"><img src="'+_fesc(_ffQrPkmn)+'" style="width:28px;height:28px;image-rendering:pixelated" onerror="this.parentElement.style.display=\'none\'"></div>':'')+
+    '<div class="ff-ov-opt'+(saved.overlay==='mega'?' active':'')+'" data-ov="mega" onclick="_ffPickOv(\'mega\')"><img src="icons/mega-stone.png" style="width:24px;height:24px;object-fit:contain" onerror="this.parentElement.innerHTML=\'💎\'"></div>';
+  pane.innerHTML=
+    '<div class="ff-qr-area">'+
+      '<div class="ff-qr-hint">Scan to add me as a friend</div>'+
+      '<div id="ffQrWrap"></div>'+
+      '<div class="ff-qr-user" id="ffQrUser">@'+_fesc(username)+'</div>'+
+    '</div>'+
+    '<div class="ff-link-row"><span class="ff-link-txt" id="ffLinkTxt">'+_fesc(_ffQrUrl)+'</span><button class="ff-copy-btn" id="ffCopyBtn" onclick="ffCopyLink()">Copy</button></div>'+
+    '<button class="ff-share-btn" onclick="ffShareNative()"><i class="ph-bold ph-share-network"></i> Share via…</button>'+
+    '<div class="ff-cust">'+
+      '<div class="ff-cust-row"><span class="ff-cust-lbl">Colour</span><div class="ff-swatch-row">'+swatches+'</div></div>'+
+      '<div class="ff-cust-row"><span class="ff-cust-lbl">Frame</span><div class="ff-frame-row">'+frameOpts+'</div></div>'+
+      '<div class="ff-cust-row"><span class="ff-cust-lbl">Icon</span><div class="ff-ov-row">'+ovOpts+'</div></div>'+
+    '</div>'+
+    '<div class="ff-share-hint">Anyone with your link can send you a friend request</div>';
+  _ffApplyQrStyle();
 }
+
+function _ffAccent(){
+  var c=_FF_COLORS[_ffQrStyle.color]||_FF_COLORS.red;
+  var dark=document.documentElement.getAttribute('data-theme')!=='light';
+  return{hex:'#'+(dark?c.d:c.l),qrCol:dark?c.d:c.l,qrBg:dark?c.db:c.lb};
+}
+
+function _ffApplyQrStyle(){
+  var wrap=document.getElementById('ffQrWrap');if(!wrap)return;
+  var s=_ffQrStyle;var a=_ffAccent();
+  var qrUrl='https://api.qrserver.com/v1/create-qr-code/?data='+encodeURIComponent(_ffQrUrl)+
+    '&size=500x500&color='+a.qrCol+'&bgcolor='+a.qrBg+'&margin=4&ecc=H';
+  var imgSt='width:200px;height:200px;display:block;image-rendering:pixelated;border-radius:12px';
+  var wrapHtml='';
+  // Frame
+  switch(s.frame){
+    case'glow':  wrapHtml='<div style="position:relative;display:inline-block"><img style="'+imgSt+';box-shadow:0 0 28px 8px '+a.hex+'55,0 0 12px 3px '+a.hex+'33" src="'+qrUrl+'"></div>';break;
+    case'ring':  wrapHtml='<div style="position:relative;display:inline-block"><img style="'+imgSt+';border:3px solid '+a.hex+';box-shadow:0 4px 20px '+a.hex+'33" src="'+qrUrl+'"></div>';break;
+    case'gradient': wrapHtml='<div style="position:relative;display:inline-block;border-radius:16px;padding:3px;background:linear-gradient(135deg,'+a.hex+','+a.hex+'55,'+a.hex+'cc);box-shadow:0 6px 24px '+a.hex+'33"><div style="border-radius:14px;overflow:hidden;line-height:0"><img style="width:200px;height:200px;display:block;image-rendering:pixelated;border-radius:0" src="'+qrUrl+'"></div></div>';break;
+    case'neon':  wrapHtml='<div style="position:relative;display:inline-block"><img style="'+imgSt+';border:1.5px solid '+a.hex+'99;box-shadow:0 0 6px 2px '+a.hex+',0 0 20px 6px '+a.hex+'66,0 0 40px 10px '+a.hex+'22" src="'+qrUrl+'"></div>';break;
+    case'champion':
+      var corners=['tl','tr','bl','br'].map(function(p){
+        var t=p[0]==='t'?'-2px':'auto',b2=p[0]==='b'?'-2px':'auto',l=p[1]==='l'?'-2px':'auto',r=p[1]==='r'?'-2px':'auto';
+        var rot={tl:0,tr:90,br:180,bl:270}[p];
+        return'<div style="position:absolute;width:18px;height:18px;top:'+t+';bottom:'+b2+';left:'+l+';right:'+r+';pointer-events:none"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M2 16V4a2 2 0 0 1 2-2h12" stroke="'+a.hex+'" stroke-width="2.5" stroke-linecap="round" fill="none" transform="rotate('+rot+',9,9)"/></svg></div>';
+      }).join('');
+      wrapHtml='<div style="position:relative;display:inline-block"><img style="'+imgSt+';border:2px solid '+a.hex+'66" src="'+qrUrl+'">'+corners+'</div>';break;
+    default: wrapHtml='<div style="position:relative;display:inline-block"><img style="'+imgSt+'" src="'+qrUrl+'"></div>';
+  }
+  // Overlay
+  var bg=document.documentElement.getAttribute('data-theme')==='light'?'#ffffff':'#111318';
+  var ovHtml='';
+  if(s.overlay==='bolt')ovHtml='<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:'+bg+';border-radius:50%;border:3px solid '+bg+';width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;line-height:1">⚡</div>';
+  else if(s.overlay==='pokeball')ovHtml='<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:'+bg+';border-radius:50%;border:3px solid '+bg+';width:44px;height:44px;display:flex;align-items:center;justify-content:center"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="13" fill="#ef4444" stroke="'+bg+'" stroke-width="1.5"/><path d="M1 14h26" stroke="'+bg+'" stroke-width="1.5"/><circle cx="14" cy="14" r="4.5" fill="#1a1a2e" stroke="'+bg+'" stroke-width="1.5"/><circle cx="14" cy="14" r="2.5" fill="'+bg+'"/></svg></div>';
+  else if(s.overlay==='pokemon'&&_ffQrPkmn)ovHtml='<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:'+bg+';border-radius:50%;border:3px solid '+bg+';width:48px;height:48px;display:flex;align-items:center;justify-content:center;overflow:hidden"><img src="'+_fesc(_ffQrPkmn)+'" style="width:42px;height:42px;object-fit:contain;image-rendering:pixelated" onerror="this.parentElement.remove()"></div>';
+  else if(s.overlay==='mega')ovHtml='<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:'+bg+';border-radius:50%;border:3px solid '+bg+';width:44px;height:44px;display:flex;align-items:center;justify-content:center;overflow:hidden"><img src="icons/mega-stone.png" style="width:32px;height:32px;object-fit:contain" onerror="this.parentElement.innerHTML=\'💎\'"></div>';
+  // Inject overlay into the position:relative container
+  var tmp=document.createElement('div');tmp.innerHTML=wrapHtml;
+  var inner=tmp.querySelector('[style*="position:relative"]');
+  if(inner&&ovHtml)inner.insertAdjacentHTML('beforeend',ovHtml);
+  wrap.innerHTML=tmp.innerHTML;
+  // Update username colour
+  var uEl=document.getElementById('ffQrUser');if(uEl)uEl.style.color=a.hex;
+  // Update picker active states
+  document.querySelectorAll('.ff-swatch').forEach(function(el){
+    var isAct=el.dataset.color===s.color;
+    el.classList.toggle('ff-swatch-act',isAct);
+    el.style.boxShadow=isAct?'0 0 0 2px var(--bg2),0 0 0 4px '+el.style.background:'';
+    el.style.transform=isAct?'scale(1.2)':'';
+  });
+  document.querySelectorAll('.ff-frame-opt').forEach(function(el){
+    var isAct=el.dataset.frame===s.frame;
+    el.classList.toggle('active',isAct);
+    el.style.borderColor=isAct?a.hex:'';el.style.color=isAct?a.hex:'';
+  });
+  document.querySelectorAll('.ff-ov-opt').forEach(function(el){
+    var isAct=el.dataset.ov===s.overlay;
+    el.classList.toggle('active',isAct);
+    el.style.borderColor=isAct?a.hex:'';
+  });
+}
+
+function _ffPickColor(c){_ffQrStyle.color=c;_ffApplyQrStyle();_ffPersistStyle();}
+function _ffPickFrame(f){_ffQrStyle.frame=f;_ffApplyQrStyle();_ffPersistStyle();}
+function _ffPickOv(o){_ffQrStyle.overlay=o;_ffApplyQrStyle();_ffPersistStyle();}
+function _ffPersistStyle(){
+  clearTimeout(_ffSaveTimer);
+  _ffSaveTimer=setTimeout(function(){
+    if(!usr||!userProfile)return;
+    var j=JSON.stringify(_ffQrStyle);
+    upd('user_profiles',{'user_id':'eq.'+usr.id},{qr_style:j},true)
+      .then(function(){if(userProfile)userProfile.qr_style=j;}).catch(function(){});
+  },500);
+}
+// ─────────────────────────────────────────────────────────────────────────────
 function ffFilter(v){ffRenderList(v);}
 async function ffRenderList(term){
   var el=document.getElementById('ffList');if(!el)return;
