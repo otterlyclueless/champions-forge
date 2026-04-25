@@ -397,7 +397,7 @@ function renderEditorForm(c){
   '</div>'+
   '<div><label class="ed-label">Item</label>'+itemFieldHtml+'</div>'+
 '</div>';})()  +
-      '<div class="ed-row" style="margin-top:.5rem"><div style="grid-column:1 / -1"><label class="ed-label">Nature</label>'+
+      '<div style="margin-top:.5rem"><label class="ed-label">Nature</label>'+
         '<input type="hidden" id="edNat" value="'+(curNatObj?curNatObj.id:'')+'">'+
         '<button type="button" class="ed-nat-btn'+(curNatObj?'':' empty')+'" id="edNatBtn" onclick="openNaturePicker()">'+
           '<div class="ed-nat-btn-left">'+
@@ -406,7 +406,7 @@ function renderEditorForm(c){
           '</div>'+
           '<i class="ph-bold ph-caret-right"></i>'+
         '</button>'+
-      '</div></div>'+
+      '</div>'+
       // Drop E: Move slots — buttons open legal-move picker; hidden inputs preserve saveBuild() contract.
       // Shared font size across all 4 so long names don't bloat and short names don't over-scale.
       (function(){
