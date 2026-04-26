@@ -25,7 +25,7 @@
 <nav class="sb" id="sb">
   <div class="sb-brand"><div class="sb-logo"><img src="icons/logo.png" alt="CF"></div><div><div class="sb-brand-text">Champions Forge</div><div class="sb-brand-sub">Forge your competitive squad</div></div></div>
   <div class="sb-nav">
-    <div class="sb-item active" data-p="dash"><div class="sb-icon"><i class="ph-bold ph-squares-four"></i></div><span class="sb-label">Dashboard</span></div>
+    <div class="sb-item active" data-p="dash"><div class="sb-icon"><i class="ph-bold ph-house"></i></div><span class="sb-label">Home</span></div>
     <div class="sb-item" data-p="dex"><div class="sb-icon"><i class="ph-bold ph-book-open-text"></i></div><span class="sb-label">Pokédex</span><span class="sb-count" id="nc0">—</span></div>
     <div class="sb-item" data-p="builds"><div class="sb-icon"><i class="ph-bold ph-sword"></i></div><span class="sb-label">Builds</span><span class="sb-count" id="nc1">—</span></div>
     <div class="sb-item" data-p="teams"><div class="sb-icon"><i class="ph-bold ph-trophy"></i></div><span class="sb-label">Teams</span><span class="sb-count" id="nc2">—</span></div>
@@ -44,9 +44,17 @@
 </nav>
 
 <div class="main">
-  <!-- Dashboard -->
+  <!-- Home (Drop I.3) -->
   <div class="page show" id="pg-dash">
-    <div class="pg-head"><div class="pg-title"><i class="ph-bold ph-squares-four"></i>Trainer Dashboard</div><div class="pg-sub">Welcome back, Trainer</div></div>
+    <div class="pg-head">
+      <div class="pg-head-row">
+        <div class="pg-title"><i class="ph-bold ph-house"></i>Home</div>
+        <div class="da-hd-btns">
+          <button class="da-hd-btn" id="daNotifBtn" onclick="openNotifSheet()" title="Notifications"><i class="ph-bold ph-bell"></i><span class="da-notif-pip" id="daNotifPip"></span></button>
+          <button class="da-hd-btn" onclick="openSearchSheet()" title="Search"><i class="ph-bold ph-magnifying-glass"></i></button>
+        </div>
+      </div>
+    </div>
     <div id="dashContent"></div>
   </div>
 
@@ -105,25 +113,20 @@
       <button class="ref-tab active" data-tab="abilities" onclick="switchRefTab('abilities')"><i class="ph-bold ph-lightning"></i> Abilities <span class="ref-tab-count" id="ablCount">—</span></button>
       <button class="ref-tab" data-tab="natures" onclick="switchRefTab('natures')"><i class="ph-bold ph-dna"></i> Natures <span class="ref-tab-count">25</span></button>
     </div>
-    <!-- Abilities pane -->
     <div class="ref-pane" id="refAbilitiesPane">
-      <!-- Mode toggle: Abilities | By Pokémon — Drop G.2 -->
       <div class="ref-mode-bar">
         <button class="ref-mode-btn active" data-mode="abilities" onclick="switchAblMode('abilities')"><i class="ph-bold ph-lightning"></i> Abilities</button>
         <button class="ref-mode-btn" data-mode="pkmn" onclick="switchAblMode('pkmn')"><i class="ph-bold ph-paw-print"></i> By Pokémon</button>
       </div>
-      <!-- Abilities search + filter pills (mode=abilities) -->
       <div class="ref-search-block" id="ablSearchBlock">
         <input class="search-box" id="ablSearch" placeholder="Search abilities…" oninput="onAblSearch(this.value)">
         <div class="ref-filter-row" id="ablFilterRow"></div>
       </div>
-      <!-- Pokémon search (mode=pkmn, hidden by default) -->
       <div class="ref-search-block" id="ablPkmnBlock" style="display:none">
         <input class="search-box" id="ablPkmnSearch" placeholder="Search Pokémon…" oninput="onPkmnAblSearch(this.value)">
       </div>
       <div class="abl-list" id="ablList"><div class="empty"><div class="em">⏳</div>Loading…</div></div>
     </div>
-    <!-- Natures pane (hidden by default) -->
     <div class="ref-pane" id="refNaturesPane" style="display:none">
       <div class="ref-search-block">
         <input class="search-box" id="natSearch" placeholder="Search natures…" oninput="onNatSearch(this.value)">
@@ -138,22 +141,18 @@
     <div style="padding:1.2rem 2rem" id="profileContent"><div class="empty"><div class="em">🔒</div>Sign in to view your profile</div></div>
   </div>
 
-  <!-- Public view (Drop F.1) — populated by app-router.js when hash is #/b/<code>, #/t/<code>, or #/u/<name> -->
+  <!-- Public view (Drop F.1) -->
   <div class="page" id="pg-public"></div>
 
-  <!-- Item Picker (build editor) — bottom sheet populated by renderItemPicker() -->
+  <!-- Item Picker -->
   <div class="picker-ov" id="itemPickerOv"></div>
-
-  <!-- Move Picker (Drop E) — full-screen sheet populated by renderMovePickerShell() -->
+  <!-- Move Picker (Drop E) -->
   <div class="picker-ov" id="movePickerOv"></div>
-
-  <!-- Ability Picker (Drop G.2b) — bottom sheet for build editor; populated by openAbilityPicker() -->
+  <!-- Ability Picker (Drop G.2b) -->
   <div class="picker-ov" id="abilityPickerOv" style="align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(2px)"></div>
-
-  <!-- Nature Picker (Drop H) — bottom sheet for build editor; populated by openNaturePicker() -->
+  <!-- Nature Picker (Drop H) -->
   <div class="picker-ov" id="naturePickerOv" style="align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(2px)"></div>
-
-  <!-- Find Friends (Drop I.2) — bottom sheet; populated by openFindFriends() -->
+  <!-- Find Friends (Drop I.2) -->
   <div class="picker-ov" id="findFriendsOv" style="align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(2px)"></div>
 
   <!-- More Sheet (mobile overflow nav) -->
@@ -165,6 +164,41 @@
         <div class="more-sheet-item" onclick="sheetNav('items')"><div class="more-sheet-icon"><i class="ph-bold ph-backpack"></i></div>Items</div>
         <div class="more-sheet-item" onclick="sheetNav('reference')"><div class="more-sheet-icon"><i class="ph-bold ph-books"></i></div>Reference</div>
         <div class="more-sheet-item" onclick="sheetNav('profile')"><div class="more-sheet-icon"><i class="ph-bold ph-user-circle"></i></div>Profile</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Home Notifications Sheet (Drop I.3) -->
+  <div class="home-sheet-ov" id="homeNotifOv" onclick="if(event.target===this)closeNotifSheet()">
+    <div class="home-sheet">
+      <div class="home-sheet-handle"></div>
+      <div class="home-sheet-top">
+        <div class="home-sheet-title">Notifications</div>
+        <button class="home-sheet-close" onclick="closeNotifSheet()">✕</button>
+      </div>
+      <div class="home-sheet-body" id="homeNotifBody"><div class="empty" style="padding:1.5rem 0"><div class="em">⏳</div>Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- Home Search Sheet (Drop I.3) -->
+  <div class="home-sheet-ov" id="homeSearchOv" onclick="if(event.target===this)closeSearchSheet()">
+    <div class="home-sheet">
+      <div class="home-sheet-handle"></div>
+      <div class="home-sheet-top">
+        <div class="home-sheet-title">Search</div>
+        <button class="home-sheet-close" onclick="closeSearchSheet()">✕</button>
+      </div>
+      <div class="home-search-input-wrap">
+        <input class="home-search-input" id="homeSearchInput" type="text" placeholder="Builds, teams, trainers…" oninput="_onHomeSearch(this.value)" autocomplete="off">
+      </div>
+      <div class="home-search-tabs">
+        <button class="home-stab active" onclick="_homeSearchTab(this,'all')">All</button>
+        <button class="home-stab" onclick="_homeSearchTab(this,'builds')">Builds</button>
+        <button class="home-stab" onclick="_homeSearchTab(this,'teams')">Teams</button>
+        <button class="home-stab" onclick="_homeSearchTab(this,'trainers')">Trainers</button>
+      </div>
+      <div class="home-sheet-body" id="homeSearchBody">
+        <div class="empty" style="padding:2rem 0;text-align:center"><div class="em" style="font-size:1.5rem">🔍</div><div style="font-size:.78rem;color:var(--muted)">Type to search…</div></div>
       </div>
     </div>
   </div>
@@ -182,7 +216,7 @@
     </div>
   </div>
 
-  <!-- Username Modal (Drop F.3) — bottom sheet triggered when making content public without a username -->
+  <!-- Username Modal (Drop F.3) -->
   <div class="modal-ov" id="usernameMod">
     <div class="un-sheet">
       <div class="un-sheet-handle"></div>
@@ -203,7 +237,7 @@
 <!-- Detail Panel -->
 <div class="panel-ov" id="detP"><div class="panel-bd" onclick="closeDet()"></div><div class="panel-ct slide-in" id="detInner"></div></div>
 
-  <!-- Reference detail bottom tray — Drop G (ability + nature detail, replaces full slide-over for Reference tab) -->
+  <!-- Reference detail bottom tray — Drop G -->
   <div class="ref-det-ov" id="refDetOv">
     <div class="ref-det-bd" onclick="closeRefDet()"></div>
     <div class="ref-det-sheet">
@@ -215,11 +249,10 @@
 
 <div class="toast-c" id="toasts"></div>
 
-<!-- Drop F.2.1: off-screen render host for shareable image cards (1200×630 PNG via html2canvas) -->
+<!-- Drop F.2.1: off-screen render host for shareable image cards -->
 <div id="imgRenderHost" aria-hidden="true"></div>
 
-<!-- Drop F.2.1 v5: html-to-image for rendering share cards. Uses SVG foreignObject approach
-     which respects CSS filters (blur, shadows) far more reliably than html2canvas. -->
+<!-- Drop F.2.1 v5: html-to-image for rendering share cards. -->
 <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js" defer></script>
 
 <script src="app/app-core.js"></script>
