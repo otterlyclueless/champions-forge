@@ -2691,6 +2691,8 @@ body.share-loading [onclick="tdPillShare()"]::after{
 .da-stat-shiny-row{font-size:.58rem;font-weight:700;color:var(--purple);opacity:.8;margin-top:.2rem}
 /* Feed section divider labels (Your Activity, Discover) */
 .da-feed-section{font-size:.62rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:.65rem .1rem .3rem}
+/* Drop G.3: ability editor warning icon */
+.ed-abl-warn-icon{color:var(--gold);font-size:.85rem;margin-left:auto;margin-right:.2rem;flex-shrink:0}
 
 /* Quick actions — compact single row */
 .da-quick-row{display:flex;gap:.4rem;padding:0 1rem .9rem}
