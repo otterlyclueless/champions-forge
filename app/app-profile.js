@@ -603,6 +603,7 @@ function showNatureDetail(name){
 // ═══════════════════════════════════════
 
 var allAch=[],userAch={},userProfile=null;
+var _likesReceivedCount=0; // Drop I.3: cached total likes on own content
 // Drop I.2: friends state
 var allFriends=[],pendingFriends=[],_frRowOpen=false,_ffTab='search',_ffQrDone=false;
 
@@ -679,6 +680,18 @@ async function checkAchievements(){
   var hasMegaBuild=allBuilds.some(function(b){var p=allPkmn.find(function(x){return x.id===b.pokemon_id});return p&&p.form==='Mega'});
   var _btSet=new Set(allBuilds.map(function(b){var p=allPkmn.find(function(x){return x.id===b.pokemon_id});return p?p.type_1:null}).filter(Boolean));
   var buildTypeVariety=_btSet.size;
+  // Drop I.3: social counters — friends (sync) + likes received (async)
+  var friendsC=allFriends.filter(function(f){return f.status==='accepted';}).length;
+  var myBldIds=allBuilds.map(function(b){return b.id;});
+  var myTmIds=allTeams.map(function(t){return t.id;});
+  try{
+    var _lr=await Promise.allSettled([
+      myBldIds.length?authFetch(API+'/rest/v1/build_likes?build_id=in.('+myBldIds.join(',')+')'+'&select=id',{headers:h(true)}).then(function(r){return r.json();}):Promise.resolve([]),
+      myTmIds.length?authFetch(API+'/rest/v1/team_likes?team_id=in.('+myTmIds.join(',')+')'+'&select=id',{headers:h(true)}).then(function(r){return r.json();}):Promise.resolve([])
+    ]);
+    _likesReceivedCount=((_lr[0].status==='fulfilled'&&Array.isArray(_lr[0].value))?_lr[0].value.length:0)+
+                        ((_lr[1].status==='fulfilled'&&Array.isArray(_lr[1].value))?_lr[1].value.length:0);
+  }catch(e){_likesReceivedCount=0;}
   var newUnlocks=[];
   // Achievement rules are data-driven: each row supplies a `check_type` and threshold to evaluate here.
   for(var i=0;i<allAch.length;i++){
@@ -702,6 +715,9 @@ async function checkAchievements(){
     else if(a.check_type==='both_formats')earned=hasBothFormats;
     else if(a.check_type==='mega_builds')earned=hasMegaBuild;
     else if(a.check_type==='build_type_variety')earned=buildTypeVariety>=a.threshold;
+    // Drop I.3: social check_types
+    else if(a.check_type==='friends_count')earned=friendsC>=a.threshold;
+    else if(a.check_type==='likes_received_count')earned=_likesReceivedCount>=a.threshold;
     if(earned){
       try{var u2=new URL(API+'/rest/v1/user_achievements');u2.searchParams.set('on_conflict','user_id,achievement_id');
         await fetch(u2.toString(),{method:'POST',headers:Object.assign(h(true),{'Prefer':'return=representation,resolution=merge-duplicates'}),body:JSON.stringify({user_id:usr.id,achievement_id:a.id})});
@@ -730,7 +746,10 @@ if(!usr){
     win_condition_count:allBuilds.filter(function(b){return b.win_condition}).length,
     strategic_builds:allBuilds.filter(function(b){return b.win_condition&&b.strengths&&b.weaknesses}).length,
     public_builds_count:allBuilds.filter(function(b){return b.is_public}).length,
-    build_type_variety:new Set(allBuilds.map(function(b){var p=allPkmn.find(function(x){return x.id===b.pokemon_id});return p?p.type_1:null}).filter(Boolean)).size
+    build_type_variety:new Set(allBuilds.map(function(b){var p=allPkmn.find(function(x){return x.id===b.pokemon_id});return p?p.type_1:null}).filter(Boolean)).size,
+    // Drop I.3: social progress
+    friends_count:allFriends.filter(function(f){return f.status==='accepted';}).length,
+    likes_received_count:_likesReceivedCount
   };
   // Trainer Card
   var avHtml=userProfile&&userProfile.avatar_url?'<img src="'+userProfile.avatar_url+'" alt="Avatar">':'<img src="icons/logo.png" alt="PC" style="padding:4px">';
