@@ -105,24 +105,53 @@ async function _loadActivityFeed(){
   var friendIds=accepted.map(function(f){return f.friend_id;});
 
   if(!friendIds.length){
-    body.innerHTML=
-      '<div class="empty" style="padding:1.5rem 0;text-align:center">'+
-        '<div class="em">👥</div>'+
-        '<div style="font-size:.8rem;color:var(--muted)">No friends yet — add some from your Profile to see their activity!</div>'+
-      '</div>';
+    // No friends yet — show own recent activity + Discover section
+    var ownEvs=[];
+    allBuilds.slice(0,5).forEach(function(b){
+      ownEvs.push({type:'build',ts:b.created_at,data:b,who:'You',whoKey:'you',whoId:usr.id});
+    });
+    allTeams.slice(0,3).forEach(function(t){
+      ownEvs.push({type:'team',ts:t.created_at,data:t,who:'You',whoKey:'you',whoId:usr.id});
+    });
+    ownEvs.sort(function(a,b){return new Date(b.ts)-new Date(a.ts);});
+
+    var ownHtml=ownEvs.length?
+      '<div class="da-feed-section">Your Activity</div>'+ownEvs.map(function(ev){return _renderFeedRow(ev);}).join(''):
+      '<div class="da-feed-section">Your Activity</div>'+
+        '<div style="font-size:.78rem;color:var(--muted);padding:.4rem .1rem .8rem">No builds or teams yet — create your first!</div>';
+
+    body.innerHTML=ownHtml+
+      '<div class="da-feed-section" style="margin-top:.3rem">🔍 Discover</div>'+
+      '<div id="daDiscoverBody"><div class="empty" style="padding:.8rem 0"><div class="em">⏳</div></div></div>';
+    _loadDiscover();
     return;
   }
 
-  var fInStr='('+friendIds.join(',')+')';  
+  var fInStr='('+friendIds.join(',')+')';
   var myBuildIds=allBuilds.map(function(b){return b.id;});
   var myTeamIds=allTeams.map(function(t){return t.id;});
 
+  // Parallel fetches against existing tables
   var res=await Promise.allSettled([
-    authFetch(API+'/rest/v1/builds?user_id=in.'+fInStr+'&is_public=eq.true&select=id,pokemon_name,build_name,battle_format,image_url,shiny_url,is_shiny,created_at,share_code,user_id&order=created_at.desc&limit=8',{headers:h(false)}).then(function(r){return r.json();}),
-    authFetch(API+'/rest/v1/teams?user_id=in.'+fInStr+'&is_public=eq.true&select=id,name,created_at,share_code,user_id&order=created_at.desc&limit=8',{headers:h(false)}).then(function(r){return r.json();}),
-    myBuildIds.length?authFetch(API+'/rest/v1/build_likes?build_id=in.('+myBuildIds.join(',')+')'+'&select=id,created_at,build_id,user_id,user_profiles(username,display_name)&order=created_at.desc&limit=10',{headers:h(true)}).then(function(r){return r.json();}):Promise.resolve([]),
-    myTeamIds.length?authFetch(API+'/rest/v1/team_likes?team_id=in.('+myTeamIds.join(',')+')'+'&select=id,created_at,team_id,user_id,user_profiles(username,display_name)&order=created_at.desc&limit=10',{headers:h(true)}).then(function(r){return r.json();}):Promise.resolve([]),
+    // 1 — Friends' public builds
+    authFetch(API+'/rest/v1/builds?user_id=in.'+fInStr+'&is_public=eq.true'+
+      '&select=id,pokemon_name,build_name,battle_format,image_url,shiny_url,is_shiny,created_at,share_code,user_id'+
+      '&order=created_at.desc&limit=8',{headers:h(false)}).then(function(r){return r.json();}),
+    // 2 — Friends' public teams
+    authFetch(API+'/rest/v1/teams?user_id=in.'+fInStr+'&is_public=eq.true'+
+      '&select=id,name,created_at,share_code,user_id'+
+      '&order=created_at.desc&limit=8',{headers:h(false)}).then(function(r){return r.json();}),
+    // 3 — Likes on my builds
+    myBuildIds.length?
+      authFetch(API+'/rest/v1/build_likes?build_id=in.('+myBuildIds.join(',')+')'+'&select=id,created_at,build_id,user_id,user_profiles(username,display_name)&order=created_at.desc&limit=10',{headers:h(true)}).then(function(r){return r.json();}):
+      Promise.resolve([]),
+    // 4 — Likes on my teams
+    myTeamIds.length?
+      authFetch(API+'/rest/v1/team_likes?team_id=in.('+myTeamIds.join(',')+')'+'&select=id,created_at,team_id,user_id,user_profiles(username,display_name)&order=created_at.desc&limit=10',{headers:h(true)}).then(function(r){return r.json();}):
+      Promise.resolve([]),
+    // 5 — My recent achievements
     authFetch(API+'/rest/v1/user_achievements?user_id=eq.'+usr.id+'&select=achievement_id,unlocked_at&order=unlocked_at.desc&limit=8',{headers:h(true)}).then(function(r){return r.json();}),
+    // 6 — Friends' achievements
     authFetch(API+'/rest/v1/user_achievements?user_id=in.'+fInStr+'&select=user_id,achievement_id,unlocked_at&order=unlocked_at.desc&limit=8',{headers:h(true)}).then(function(r){return r.json();})
   ]);
 
@@ -134,6 +163,7 @@ async function _loadActivityFeed(){
   var myAchs=_ok(res[4])?res[4].value:[];
   var fAchs=_ok(res[5])?res[5].value:[];
 
+  // userId → friend object lookup
   var fMap={};
   accepted.forEach(function(f){fMap[f.friend_id]=f;});
 
@@ -141,23 +171,27 @@ async function _loadActivityFeed(){
 
   fBuilds.forEach(function(b){
     var f=fMap[b.user_id]||{};
-    events.push({type:'build',ts:b.created_at,data:b,who:f.display_name||f.username||'Trainer',whoKey:f.username||f.display_name||'?',whoId:b.user_id});
+    events.push({type:'build',ts:b.created_at,data:b,
+      who:f.display_name||f.username||'Trainer',whoKey:f.username||f.display_name||'?',whoId:b.user_id});
   });
   fTeams.forEach(function(t){
     var f=fMap[t.user_id]||{};
-    events.push({type:'team',ts:t.created_at,data:t,who:f.display_name||f.username||'Trainer',whoKey:f.username||f.display_name||'?',whoId:t.user_id});
+    events.push({type:'team',ts:t.created_at,data:t,
+      who:f.display_name||f.username||'Trainer',whoKey:f.username||f.display_name||'?',whoId:t.user_id});
   });
   likesB.forEach(function(l){
     if(l.user_id===usr.id)return;
     var p=l.user_profiles||{};
     var b=allBuilds.find(function(x){return x.id===l.build_id;})||{};
-    events.push({type:'liked_build',ts:l.created_at,data:{build:b},who:p.display_name||p.username||'Someone',whoKey:p.username||p.display_name||'?',whoId:l.user_id});
+    events.push({type:'liked_build',ts:l.created_at,data:{build:b},
+      who:p.display_name||p.username||'Someone',whoKey:p.username||p.display_name||'?',whoId:l.user_id});
   });
   likesT.forEach(function(l){
     if(l.user_id===usr.id)return;
     var p=l.user_profiles||{};
     var t=allTeams.find(function(x){return x.id===l.team_id;})||{};
-    events.push({type:'liked_team',ts:l.created_at,data:{team:t},who:p.display_name||p.username||'Someone',whoKey:p.username||p.display_name||'?',whoId:l.user_id});
+    events.push({type:'liked_team',ts:l.created_at,data:{team:t},
+      who:p.display_name||p.username||'Someone',whoKey:p.username||p.display_name||'?',whoId:l.user_id});
   });
   myAchs.forEach(function(ua){
     var a=(allAch||[]).find(function(x){return x.id===ua.achievement_id;});
@@ -167,10 +201,13 @@ async function _loadActivityFeed(){
     var a=(allAch||[]).find(function(x){return x.id===ua.achievement_id;});
     if(!a)return;
     var f=fMap[ua.user_id]||{};
-    events.push({type:'friend_ach',ts:ua.unlocked_at,data:{ach:a},who:f.display_name||f.username||'Trainer',whoKey:f.username||f.display_name||'?',whoId:ua.user_id});
+    events.push({type:'friend_ach',ts:ua.unlocked_at,data:{ach:a},
+      who:f.display_name||f.username||'Trainer',whoKey:f.username||f.display_name||'?',whoId:ua.user_id});
   });
+  // New accepted friends (last 5, sorted by created_at)
   accepted.slice().sort(function(a,b){return new Date(b.created_at)-new Date(a.created_at);}).slice(0,5).forEach(function(f){
-    events.push({type:'new_friend',ts:f.created_at,data:{friend:f},who:f.display_name||f.username||'Trainer',whoKey:f.username||f.display_name||'',whoId:f.friend_id});
+    events.push({type:'new_friend',ts:f.created_at,data:{friend:f},
+      who:f.display_name||f.username||'Trainer',whoKey:f.username||f.display_name||'',whoId:f.friend_id});
   });
 
   events.sort(function(a,b){return new Date(b.ts)-new Date(a.ts);});
@@ -180,10 +217,60 @@ async function _loadActivityFeed(){
   if(!body)return;
 
   if(!events.length){
-    body.innerHTML='<div class="empty" style="padding:1.5rem 0;text-align:center"><div class="em">😴</div><div style="font-size:.8rem;color:var(--muted)">No activity yet — share some builds!</div></div>';
+    body.innerHTML='<div class="empty" style="padding:1.5rem 0;text-align:center">'+
+      '<div class="em">😴</div><div style="font-size:.8rem;color:var(--muted)">No activity yet — share some builds!</div></div>'+
+      '<div class="da-feed-section" style="margin-top:.3rem">🔍 Discover</div>'+
+      '<div id="daDiscoverBody"><div class="empty" style="padding:.8rem 0"><div class="em">⏳</div></div></div>';
+    _loadDiscover();
     return;
   }
-  body.innerHTML=events.map(function(ev){return _renderFeedRow(ev);}).join('');
+  body.innerHTML=
+    events.map(function(ev){return _renderFeedRow(ev);}).join('')+
+    '<div class="da-feed-section" style="margin-top:.3rem">🔍 Discover</div>'+
+    '<div id="daDiscoverBody"><div class="empty" style="padding:.8rem 0"><div class="em">⏳</div></div></div>';
+  _loadDiscover();
+}
+
+// ── Discover section ──────────────────────────────────────
+async function _loadDiscover(){
+  var body=document.getElementById('daDiscoverBody');
+  if(!body||!usr)return;
+
+  var res=await Promise.allSettled([
+    // Public builds — exclude own, newest first (proxy for popular until we have a likes_count column)
+    authFetch(API+'/rest/v1/builds?is_public=eq.true&user_id=neq.'+usr.id+
+      '&select=id,pokemon_name,build_name,image_url,shiny_url,is_shiny,created_at,user_profiles(display_name,username)'+
+      '&order=created_at.desc&limit=5',{headers:h(false)}).then(function(r){return r.json();}),
+    // Public teams — exclude own
+    authFetch(API+'/rest/v1/teams?is_public=eq.true&user_id=neq.'+usr.id+
+      '&select=id,name,created_at,user_profiles(display_name,username)'+
+      '&order=created_at.desc&limit=3',{headers:h(false)}).then(function(r){return r.json();})
+  ]);
+
+  var dBuilds=res[0].status==='fulfilled'&&Array.isArray(res[0].value)?res[0].value:[];
+  var dTeams=res[1].status==='fulfilled'&&Array.isArray(res[1].value)?res[1].value:[];
+
+  var discEvs=[];
+  dBuilds.forEach(function(b){
+    var p=b.user_profiles||{};
+    discEvs.push({type:'build',ts:b.created_at,data:b,
+      who:p.display_name||p.username||'Trainer',whoKey:p.username||p.display_name||'?',whoId:''});
+  });
+  dTeams.forEach(function(t){
+    var p=t.user_profiles||{};
+    discEvs.push({type:'team',ts:t.created_at,data:t,
+      who:p.display_name||p.username||'Trainer',whoKey:p.username||p.display_name||'?',whoId:''});
+  });
+  discEvs.sort(function(a,b){return new Date(b.ts)-new Date(a.ts);});
+
+  body=document.getElementById('daDiscoverBody');
+  if(!body)return;
+
+  if(!discEvs.length){
+    body.innerHTML='<div style="font-size:.75rem;color:var(--muted);padding:.3rem .1rem .8rem">Nothing public yet — be the first to share!</div>';
+    return;
+  }
+  body.innerHTML=discEvs.map(function(ev){return _renderFeedRow(ev);}).join('');
 }
 
 // ── Feed row renderer ────────────────────────────────────
@@ -237,11 +324,13 @@ function _renderFeedRow(ev){
   }
   if(ev.type==='new_friend'){
     var f=ev.data.friend;
-    return _row(_av('🤝','var(--green)'),'New friend!','You and <span style="color:var(--green)">@'+_esc(f.username||f.display_name||'Trainer')+'</span> are now friends',ts,'');
+    return _row(_av('🤝','var(--green)'),'New friend!',
+      'You and <span style="color:var(--green)">@'+_esc(f.username||f.display_name||'Trainer')+'</span> are now friends',ts,'');
   }
   return '';
 }
 
+// Tap handlers — open existing detail views
 function _openFeedBuild(id){
   if(allBuilds.find(function(x){return x.id===id;})){showBuildDetail(id);dashNav('builds');}
   else if(typeof showPublicBuildById==='function')showPublicBuildById(id);
@@ -276,6 +365,7 @@ function _renderNotifSheet(){
   if(!usr){body.innerHTML='<div class="empty" style="padding:1.5rem 0">Sign in to see notifications</div>';return;}
 
   var rows=[];
+  // Pending friend requests (actionable)
   allFriends.filter(function(f){return f.status==='pending'&&!f.i_am_requester;}).forEach(function(f){
     rows.push({icon:'🤝',bg:'var(--green)',name:(f.display_name||f.username||'Someone')+' sent you a friend request',sub:'Go to Profile → Friends to accept',ts:f.created_at,unread:true});
   });
@@ -354,7 +444,7 @@ async function _doHomeSearch(q){
   (results.builds||[]).forEach(function(b){
     var img=b.is_shiny&&b.shiny_url?b.shiny_url:(b.image_url||'');
     html+='<div class="da-feed-row tappable" onclick="closeSearchSheet();_openFeedBuild(\''+b.id+'\')">'+
-      (img?'<img class="da-feed-img" src="'+_esc(img)+'" onerror="this.style.opacity=\'0.2\'">' :'<div class="da-feed-av" style="background:var(--red)">⚔</div>')+
+      (img?'<img class="da-feed-img" src="'+_esc(img)+'" onerror="this.style.opacity=\'0.2\'">':'<div class="da-feed-av" style="background:var(--red)">⚔</div>')+
       '<div class="da-feed-text"><div class="da-feed-name">'+_esc(b.pokemon_name||'?')+(b.is_shiny?' <span style="color:var(--purple)">✦</span>':'')+'</div>'+
       '<div class="da-feed-sub">Build · '+_esc(b.build_name||'')+'</div></div>'+
       '<div class="da-feed-right"><div class="da-feed-ts" style="color:var(--blue);font-weight:800">Build</div></div></div>';
