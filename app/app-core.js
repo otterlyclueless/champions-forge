@@ -417,6 +417,25 @@ async function loadMoveIndex(){
   }catch(e){console.log('loadMoveIndex failed:',e)}
 }
 
+// Drop G.3: All pokemon_abilities rows (546, loaded once at boot).
+// Enables instant ability legality checks without per-Pokémon API calls.
+var allPkmnAbilities=[];
+async function loadAllPkmnAbilities(){
+  try{var rows=await q('pokemon_abilities',{select:'pokemon_id,ability_id,slot',limit:'600'});allPkmnAbilities=rows;}
+  catch(e){allPkmnAbilities=[];}
+}
+
+// Drop G.3: Ability legality state for a stored ability name on a given species.
+// States: 'empty' | 'legal' | 'pending' (data not loaded) | 'unknown' | 'illegal'
+function abilityLegalityState(name,pokemonId){
+  if(!name)return 'empty';
+  if(!pokemonId)return 'legal';
+  if(!allPkmnAbilities.length)return 'pending';
+  var abl=(window.allAbilities||[]).find(function(a){return a.name===name;});
+  if(!abl)return 'unknown';
+  return allPkmnAbilities.some(function(pa){return pa.pokemon_id===pokemonId&&pa.ability_id===abl.id;})?'legal':'illegal';
+}
+
 // Drop E: Legality state for a move on a given species. Used for transition
 // flags on legacy free-text builds so users can see which of their existing
 // picks are unknown (typo / not-in-champions) or illegal (not in learnset).
