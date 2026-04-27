@@ -409,21 +409,24 @@ function switchRefTab(tab){
 function renderArchetypesRef(q){
   var el=document.getElementById('archRefGrid');if(!el)return;
   var list=typeof BLD_ARCHETYPES!=='undefined'?BLD_ARCHETYPES:[];
+  var catIcons={Offense:'ph-sword',Setup:'ph-trend-up',Defense:'ph-shield',Support:'ph-gear',VGC:'ph-trophy'};
+  var catOrder=['Offense','Setup','Defense','Support','VGC'];
   var lq=(q||'').toLowerCase();
   var filtered=lq?list.filter(function(a){return a.name.toLowerCase().indexOf(lq)!==-1||a.cat.toLowerCase().indexOf(lq)!==-1||a.desc.toLowerCase().indexOf(lq)!==-1}):list;
   if(!filtered.length){el.innerHTML='<div class="empty"><div class="em">🔍</div>No archetypes found</div>';return;}
-  var catOrder=['Offense','Setup','Defense','Support','VGC'];
-  var catIcons={Offense:'⚔️',Setup:'📈',Defense:'🛡️',Support:'⚙️',VGC:'🏆'};
   var cats={};
   filtered.forEach(function(a){if(!cats[a.cat])cats[a.cat]=[];cats[a.cat].push(a);});
   var html='';
   catOrder.forEach(function(cat){
     if(!cats[cat])return;
-    html+='<div class="ref-arch-cat">'+catIcons[cat]+' '+cat+'</div>';
+    html+='<div class="ref-arch-cat"><i class="ph-bold '+catIcons[cat]+'"></i>'+cat+'</div>';
     cats[cat].forEach(function(a){
       html+=
         '<div class="ref-arch-card">'+
-          '<div class="ref-arch-name">'+a.name+'</div>'+
+          '<div class="ref-arch-card-head">'+
+            '<div class="ref-arch-icon"><i class="ph-bold '+a.icon+'"></i></div>'+
+            '<div class="ref-arch-name">'+a.name+'</div>'+
+          '</div>'+
           '<div class="ref-arch-desc">'+a.desc+'</div>'+
         '</div>';
     });
