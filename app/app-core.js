@@ -369,10 +369,24 @@ async function signup(){
       }
       renderDash();renderDex();renderItems();renderBuilds();renderTeams();renderProfile();
       toast('Account created!');
-    }else{
-      authMode='login';
-      toast('Account created. Check your email to confirm, then sign in.');
-      showLoginModal('Account created. Check your email to confirm, then sign in.');
+    }else if(r.ok){
+      // Account exists (previously unconfirmed) or autoconfirm variant — log in directly
+      try{
+        var lr=await fetch(API+'/auth/v1/token?grant_type=password',{
+          method:'POST',
+          headers:{'apikey':ANON,'Content-Type':'application/json'},
+          body:JSON.stringify({email:e,password:p})
+        });
+        var ld=await lr.json();
+        if(!lr.ok)throw new Error(ld.error_description||ld.msg||'Sign in manually');
+        setSessionFromAuth(ld);updAuth();closeCm();await loadUser();
+        renderDash();renderDex();renderItems();renderBuilds();renderTeams();renderProfile();
+        toast('Welcome to Champions Forge! 🎉');
+      }catch(le){
+        authMode='login';
+        toast('Account ready — tap Sign In to continue');
+        showLoginModal();
+      }
     }
   }catch(x){toast(x.message,'err')}
 }
