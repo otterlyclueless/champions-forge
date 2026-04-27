@@ -2495,6 +2495,7 @@ body.share-loading [onclick="tdPillShare()"]::after{
   margin-top:3px;display:flex;gap:8px;justify-content:center;align-items:center;
 }
 #imgRenderHost .imgcard-tc-team-chip{padding:2px 7px;border-radius:4px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15)}
+#imgRenderHost .imgcard-tc-arch-chip{padding:2px 8px;border-radius:4px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);font-size:9px;font-weight:800;color:rgba(255,255,255,.75);letter-spacing:.04em;text-transform:uppercase}
 #imgRenderHost .imgcard-tc .imgcard-url{bottom:12px;right:36px;font-size:10px}
 
 #imgRenderHost .imgcard-tc-grid{
