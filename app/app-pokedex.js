@@ -42,26 +42,63 @@ function togForm(f){
 }
 function togShinyAll(){showShiny=!showShiny;document.getElementById('shinyAll').classList.toggle('active',showShiny);renderDex()}
 async function togShinyObt(ev,pid){ev.stopPropagation();if(!usr){toast('Sign in first','err');return}
-  try{var newVal=!uShinyDex[pid];
-    var u=new URL(API+'/rest/v1/user_pokedex');u.searchParams.set('on_conflict','user_id,pokemon_id');
-    var r=await authFetch(u.toString(),{method:'POST',headers:Object.assign(h(true),{'Prefer':'return=representation,resolution=merge-duplicates'}),body:JSON.stringify({user_id:usr.id,pokemon_id:pid,obtained:uDex[pid]||false,shiny_obtained:newVal})},true);
-    if(!r.ok)throw new Error((await r.json().catch(function(){return{}})).message||r.status);
+  var prevObt=!!uDex[pid],prevShiny=!!uShinyDex[pid];
+  try{var newVal=!prevShiny;
+    var shouldBeObtained=newVal?true:prevObt;
+    if(shouldBeObtained){uDex[pid]=true}else{delete uDex[pid]}
     if(newVal){uShinyDex[pid]=true}else{delete uShinyDex[pid]}
-    toast(newVal?'Shiny obtained!':'Shiny removed');renderDex();renderDash()
-  }catch(e){toast(e.message,'err')}}
+    renderDex();renderDash();
+
+    var u=new URL(API+'/rest/v1/user_pokedex');u.searchParams.set('on_conflict','user_id,pokemon_id');
+    var r=await authFetch(u.toString(),{method:'POST',headers:Object.assign(h(true),{'Prefer':'return=representation,resolution=merge-duplicates'}),body:JSON.stringify({user_id:usr.id,pokemon_id:pid,obtained:shouldBeObtained,shiny_obtained:newVal})},true);
+    if(!r.ok)throw new Error((await r.json().catch(function(){return{}})).message||r.status);
+    toast(newVal?'Shiny obtained!':'Shiny removed')
+  }catch(e){
+    if(prevObt){uDex[pid]=true}else{delete uDex[pid]}
+    if(prevShiny){uShinyDex[pid]=true}else{delete uShinyDex[pid]}
+    renderDex();renderDash();toast(e.message,'err')
+  }}
 function togCardShiny(pid){shinyCards[pid]=!shinyCards[pid];renderDex()}
 function togObtFilter(v){obtFilter=v;document.querySelectorAll('[data-obt]').forEach(function(b){b.classList.toggle('active',b.dataset.obt===v)});renderDex()}
 
-async function togObt(ev,pid){ev.stopPropagation();if(!usr){toast('Sign in first','err');return}
-  try{if(uDex[pid]){
-    await rm('user_pokedex',{'user_id':'eq.'+usr.id,'pokemon_id':'eq.'+pid},true);delete uDex[pid];toast('Removed')
-  }else{
-    // Use upsert to avoid duplicate key errors
-    var u=new URL(API+'/rest/v1/user_pokedex');u.searchParams.set('on_conflict','user_id,pokemon_id');
-    var r=await authFetch(u.toString(),{method:'POST',headers:Object.assign(h(true),{'Prefer':'return=representation,resolution=merge-duplicates'}),body:JSON.stringify({user_id:usr.id,pokemon_id:pid,obtained:true})},true);
+async function togObt(ev,pid){
+  ev.stopPropagation();
+  if(!usr){toast('Sign in first','err');return}
+
+  var prevObt=!!uDex[pid],prevShiny=!!uShinyDex[pid];
+  try{
+    var newVal=!prevObt;
+
+    if(newVal){uDex[pid]=true}else{delete uDex[pid]}
+    renderDex();
+    renderDash();
+
+    var u=new URL(API+'/rest/v1/user_pokedex');
+    u.searchParams.set('on_conflict','user_id,pokemon_id');
+
+    var r=await authFetch(u.toString(),{
+      method:'POST',
+      headers:Object.assign(h(true),{
+        'Prefer':'return=representation,resolution=merge-duplicates'
+      }),
+      body:JSON.stringify({
+        user_id:usr.id,
+        pokemon_id:pid,
+        obtained:newVal,
+        shiny_obtained:prevShiny
+      })
+    },true);
+
     if(!r.ok)throw new Error((await r.json().catch(function(){return{}})).message||r.status);
-    uDex[pid]=true;toast('Obtained!')
-  }renderDex();renderDash()}catch(e){toast(e.message,'err')}}
+    toast(newVal?'Obtained!':'Removed');
+  }catch(e){
+    if(prevObt){uDex[pid]=true}else{delete uDex[pid]}
+    if(prevShiny){uShinyDex[pid]=true}else{delete uShinyDex[pid]}
+    renderDex();
+    renderDash();
+    toast(e.message,'err');
+  }
+}
 
 function grad(p){var t1=TC[p.type_1]||TC.Normal,t2=p.type_2?TC[p.type_2]:null;return t2?'linear-gradient(135deg,'+t1.m+'55,'+t2.m+'55)':'linear-gradient(135deg,'+t1.l+'80,'+t1.m+'40)'}
 
@@ -81,30 +118,37 @@ function renderDex(){
   var progFill=document.getElementById('dexProgFill');
   var progText=document.getElementById('dexProgText');
   if(usr&&progEl){
-    var obtCount=Object.keys(uDex).length,totalCount=allPkmn.length||258;
-    progEl.style.display='flex';
+var obtainedIds={};
+Object.keys(uDex).forEach(function(id){obtainedIds[id]=true});
+Object.keys(uShinyDex).forEach(function(id){obtainedIds[id]=true});
+var obtCount=Object.keys(obtainedIds).length,totalCount=allPkmn.length||258;    progEl.style.display='flex';
     if(progFill)progFill.style.width=(obtCount/totalCount*100)+'%';
     if(progText)progText.textContent=obtCount+' / '+totalCount+' · ✦ '+Object.keys(uShinyDex).length;
   }else if(progEl){progEl.style.display='none'}
 
   var s=document.getElementById('dexSearch').value.toLowerCase();
-  var f=allPkmn.filter(function(p){if(s&&p.name.toLowerCase().indexOf(s)===-1&&String(p.dex_number).indexOf(s)===-1)return false;if(activeType&&p.type_1!==activeType&&p.type_2!==activeType)return false;if(activeForm&&p.form!==activeForm)return false;if(usr&&obtFilter==='yes'&&!uDex[p.id])return false;if(usr&&obtFilter==='no'&&uDex[p.id])return false;return true});
+var f=allPkmn.filter(function(p){var isObt=!!uDex[p.id]||!!uShinyDex[p.id];if(s&&p.name.toLowerCase().indexOf(s)===-1&&String(p.dex_number).indexOf(s)===-1)return false;if(activeType&&p.type_1!==activeType&&p.type_2!==activeType)return false;if(activeForm&&p.form!==activeForm)return false;if(usr&&obtFilter==='yes'&&!isObt)return false;if(usr&&obtFilter==='no'&&isObt)return false;return true});
   var g=document.getElementById('dexGrid');
   if(!f.length){g.innerHTML='<div class="empty"><div class="em">🔍</div>No Pokémon match</div>';return}
 
   // 3-column gallery mode
   g.innerHTML=f.map(function(p){
     var t1=TC[p.type_1]||TC.Normal,t2=p.type_2?TC[p.type_2]:null;
-    var obt=!!uDex[p.id];var isU=usr&&!obt;
+var obt=!!uDex[p.id]||!!uShinyDex[p.id];var isU=usr&&!obt;
     var hasS=!!p.shiny_url;var shObt=!!uShinyDex[p.id];
     var sS=(showShiny||(shinyCards[p.id])||shObt)&&hasS;
     var img=sS?p.shiny_url:(p.image_url||'');
     var cls='pb-card'+(isU?' unobt':'')+(shObt?' shiny-holo':'');
+    var actionState=shObt?' status-shiny':(obt?' status-obt':' status-none');
 
     return '<div class="'+cls+'" onclick="openDet(\''+p.id+'\')">'+
-      (usr&&obt?'<div class="pb-card-obt on">✓</div>':'')+
+      // removed intrusive obtained badge
       '<div class="pb-card-art" style="background:'+grad(p)+'">'+
         (img?'<img src="'+img+'" onerror="this.style.opacity=\'0.2\'" loading="lazy">':'')+
+        (usr?'<div class="pb-card-actions'+actionState+'">'+
+          '<button class="pb-quick-btn standard '+(obt?'on':'')+'" onclick="togObt(event,\''+p.id+'\')" title="Toggle obtained">✓</button>'+
+          (hasS?'<button class="pb-quick-btn shiny '+(shObt?'on':'')+'" onclick="togShinyObt(event,\''+p.id+'\')" title="Toggle shiny obtained">✦</button>':'')+
+        '</div>':'')+
       '</div>'+
       '<div class="pb-card-name">'+p.name+'</div>'+
       '<div class="pb-card-dex">#'+String(p.dex_number).padStart(4,'0')+
@@ -261,7 +305,7 @@ async function loadDexAbilities(pokemonId){
   el.innerHTML='<div class="dex-abl-label">Abilities</div>'+
     '<div class="dex-abl-pills">'+
     opts.map(function(opt){
-      return '<div class="dex-abl-pill '+(CLS[opt.slot]||'')+'" onclick="if(typeof showAbilityDetail===\'function\')showAbilityDetail(\''+opt.id+'\')">'+
+      return '<div class="dex-abl-pill '+(CLS[opt.slot]||'')+'" onclick="if(typeof showAbilityDetail===\'function\')showAbilityDetail(\''+opt.id+'\',{collapsePokemon:true})">'+
         '<span class="dex-abl-slot">'+(LABELS[opt.slot]||opt.slot)+'</span>'+
         '<span class="dex-abl-name">'+opt.name+'</span>'+
       '</div>';
@@ -273,19 +317,18 @@ function openDet(pid){
   var p=allPkmn.find(function(x){return x.id===pid});if(!p)return;
   var t1=TC[p.type_1]||TC.Normal,t2=p.type_2?TC[p.type_2]:null;
   var gd=t2?'linear-gradient(135deg,'+t1.m+'DD,'+t2.m+'DD)':'linear-gradient(135deg,'+t1.m+'CC,'+t1.d+'DD)';
-  var obt=!!uDex[p.id];var hasS=!!p.shiny_url;
+var obt=!!uDex[p.id]||!!uShinyDex[p.id];var hasS=!!p.shiny_url;var startShiny=hasS&&!!uShinyDex[p.id];var startImg=startShiny?p.shiny_url:p.image_url;
   var mH=renderMatchupHtml(p.type_1,p.type_2);
   var bsH=bsBuildSection(p);
   // Hero card — matches .bd-hero pattern
-  var html='<div class="panel-art" id="panelArt" style="background:'+gd+'">'+
+var html='<div class="panel-art '+(startShiny?'shiny-holo':'')+'" id="panelArt" style="background:'+gd+'">'+
     '<div class="panel-art-dex">#'+String(p.dex_number).padStart(4,'0')+'</div>'+
     '<button class="p-close" onclick="closeDet()">✕</button>'+
-    (p.image_url?'<img id="dImg" src="'+p.image_url+'" alt="'+p.name+'">':'')+
+(startImg?'<img id="dImg" src="'+startImg+'" alt="'+p.name+'">':'')+
     '<div class="panel-art-types"><span class="type-pill" style="background:'+t1.m+'">'+p.type_1+'</span>'+(t2?'<span class="type-pill" style="background:'+t2.m+'">'+p.type_2+'</span>':'')+'</div>'+
-    '<div class="bd-shiny-badge" id="dShinyBadge" style="display:none">✦ Shiny Variant</div>'+
-    (hasS?'<div class="sw-bar"><button class="sw-on" id="swN" onclick="dSwap(false,\''+p.id+'\')">Standard</button><button class="sw-off" id="swS" onclick="dSwap(true,\''+p.id+'\')">✦ Shiny</button></div>':'')+
+(hasS?'<div class="sw-wrap"><div class="sw-bar"><button class="'+(startShiny?'sw-off':'sw-on')+'" id="swN" onclick="dSwap(false,\''+p.id+'\')">Standard</button><button class="'+(startShiny?'sw-on':'sw-off')+'" id="swS" onclick="dSwap(true,\''+p.id+'\')">✦ Shiny</button></div><div class="bd-shiny-badge below" id="dShinyBadge" style="display:'+(startShiny?'inline-flex':'none')+'">✦ Shiny Variant</div></div>':'')+
   '</div>';
-  html+='<div class="p-header"><h2>'+p.name+'</h2><div class="p-meta">'+(p.form&&p.form!=='Base'?'<span class="form-pill '+(p.form==='Mega'?'form-mega':'form-regional')+'">'+p.form+'</span>':'')+'<span style="font-size:.72rem;color:var(--muted);font-weight:600">#'+String(p.dex_number).padStart(4,'0')+'</span></div>'+(usr?'<button class="obt-tog '+(obt?'on':'off')+'" onclick="togObt(event,\''+p.id+'\');openDet(\''+p.id+'\')"><div class="obt-box '+(obt?'on':'off')+'">'+(obt?'✓':'')+'</div>'+(obt?'Obtained':'Not Obtained')+'</button>':'')+'</div>';
+  html+='<div class="p-header"><div class="p-title-wrap"><h2>'+p.name+'</h2><div class="p-meta">'+(p.form&&p.form!=='Base'?'<span class="form-pill '+(p.form==='Mega'?'form-mega':'form-regional')+'">'+p.form+'</span>':'')+'<span style="font-size:.72rem;color:var(--muted);font-weight:600">#'+String(p.dex_number).padStart(4,'0')+'</span></div></div>'+(usr?'<div class="dex-detail-icon-toggles" aria-label="Collection toggles"><button class="dex-icon-tog '+(obt?'on':'off')+'" onclick="togObt(event,\''+p.id+'\');openDet(\''+p.id+'\')" title="Toggle standard obtained" aria-label="Toggle standard obtained"><span>✓</span></button>'+(hasS?'<button class="dex-icon-tog shiny '+(uShinyDex[p.id]?'on':'off')+'" onclick="togShinyObt(event,\''+p.id+'\');openDet(\''+p.id+'\')" title="Toggle shiny obtained" aria-label="Toggle shiny obtained"><span>✦</span></button>':'')+'</div>':'')+'</div>';
   // Drop G.2c: Ability pills — placeholder filled asynchronously
   html+='<div class="dex-abl-section" id="dexAblPills"><div class="dex-abl-label">Abilities</div><div style="font-size:.75rem;color:var(--muted);padding:.1rem 0">Loading…</div></div>';
   if(bsH){html+='<button class="sec-tog" onclick="var b=this.nextElementSibling;b.style.display=b.style.display===\'none\'?\'block\':\'none\';if(b.style.display!==\'none\')bsRefresh()"><div class="sl"><span>📊</span><span>Stats & Calculator</span></div><span>▾</span></button><div class="sec-body">'+bsH+'</div>';}

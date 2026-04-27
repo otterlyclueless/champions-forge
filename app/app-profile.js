@@ -313,7 +313,8 @@ function renderAbilities(){
   el.innerHTML=html;
 }
 
-function showAbilityDetail(idOrName){
+function showAbilityDetail(idOrName,opts){
+  opts=opts||{};
   var a=allAbilities.find(function(x){return x.id===idOrName||x.name===idOrName});
   if(!a)return;
   var cat=_ablCategory(a.name);var c=ABL_CATS[cat];
@@ -340,14 +341,13 @@ function showAbilityDetail(idOrName){
         ?'<span style="display:inline-flex;align-items:center;gap:.3rem;padding:.28rem .65rem;border-radius:8px;font-size:.71rem;font-weight:700;background:var(--red-bg);color:var(--red)"><i class="ph-bold ph-sword"></i> Used in '+usedCount+' build'+(usedCount!==1?'s':'')+'</span>'
         :'<span style="display:inline-flex;padding:.28rem .65rem;border-radius:8px;font-size:.71rem;font-weight:700;background:var(--surface);color:var(--muted)">Not used in any builds yet</span>')+
     '</div>'+
-    _ablDetPkmnSection(a);
+_ablDetPkmnSection(a,opts.collapsePokemon);
   document.getElementById('refDetOv').classList.add('open');
 }
 
 // Drop G.3: "Pokémon with this ability" section rendered in the ability detail tray.
 // Reads allPkmnAbilities (loaded at boot) + allPkmn. Groups by slot: 1, 2, hidden.
-function _ablDetPkmnSection(a){
-  var rows=(window.allPkmnAbilities||[]).filter(function(pa){return pa.ability_id===a.id;});
+function _ablDetPkmnSection(a,collapsed){  var rows=(window.allPkmnAbilities||[]).filter(function(pa){return pa.ability_id===a.id;});
   if(!rows.length)return '';
   var bySlot={'1':[],'2':[],'hidden':[]};
   rows.forEach(function(pa){
@@ -360,10 +360,13 @@ function _ablDetPkmnSection(a){
     bySlot[sl].sort(function(a,b){return (a.dex_number||0)-(b.dex_number||0);});
   });
   var slotMeta={'1':{lbl:'Slot 1',c:'#a78bfa',bg:'rgba(167,139,250,.12)'},'2':{lbl:'Slot 2',c:'#3b82f6',bg:'rgba(59,130,246,.12)'},'hidden':{lbl:'Hidden',c:'#f59e0b',bg:'rgba(245,158,11,.12)'}};
-  var html='<div class="p-header" style="padding:.7rem 1.2rem 1.2rem;border-top:1px solid var(--border)">'+
-    '<div style="font-size:.62rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:.7rem">'+
-      'Pok\u00e9mon with this ability <span style="font-weight:600;color:var(--muted)">('+rows.length+')</span>'+
-    '</div>';
+var html='<div class="p-header" style="padding:.7rem 1.2rem 1.2rem;border-top:1px solid var(--border)">'+
+  '<details class="abl-pkmn-details" '+(collapsed?'':'open')+'>'+
+    '<summary class="abl-pkmn-summary">'+
+      '<span>Pok\u00e9mon with this ability</span>'+
+      '<span class="abl-pkmn-count">('+rows.length+')</span>'+
+    '</summary>'+
+    '<div class="abl-pkmn-detail-body">';
   ['1','2','hidden'].forEach(function(sl){
     var pokes=bySlot[sl];if(!pokes||!pokes.length)return;
     var m=slotMeta[sl];
@@ -383,7 +386,7 @@ function _ablDetPkmnSection(a){
       '</div>'+
     '</div>';
   });
-  html+='</div>';
+html+='</div></details></div>';
   return html;
 }
 

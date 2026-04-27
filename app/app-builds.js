@@ -181,7 +181,7 @@ html+='<div style="display:flex;align-items:center;gap:.65rem;padding:.6rem .7re
 
 var buildView='list',editBuildId=null,detailBuildId=null,spV={hp:0,atk:0,def:0,spa:0,spd:0,spe:0},selPkmnId='',SP_MAX=66;
 // Editor state (mobile-first 2-step flow)
-var editorStep='picker',pickerShinyAll=false,editorShiny=false,pickerTypeFilter=null,pickerFormFilter=null,pickerSearchValue='';
+var editorStep='picker',pickerShinyAll=false,editorShiny=false,pickerObtainedOnly=false,pickerTypeFilter=null,pickerFormFilter=null,pickerSearchValue='';
 var statCols={hp:'#ef4444',atk:'#f08030',def:'#f7d02c',spa:'#6390f0',spd:'#7ac74c',spe:'#f95587'};
 var statNames={hp:'HP',atk:'ATTACK',def:'DEFENSE',spa:'SP. ATK',spd:'SP. DEF',spe:'SPEED'};
 
@@ -197,7 +197,7 @@ function showBuildDetail(id){detailBuildId=id;buildView='detail';
 function showBuildEditor(id){
   editBuildId=id||null;
   buildView='editor';
-  pickerSearchValue='';pickerTypeFilter=null;pickerFormFilter=null;pickerShinyAll=false;
+pickerSearchValue='';pickerTypeFilter=null;pickerFormFilter=null;pickerShinyAll=false;pickerObtainedOnly=false;
   if(id){
     var b=allBuilds.find(function(x){return x.id===id});
     if(b){
@@ -220,12 +220,47 @@ function showBuildEditor(id){
 // Step transitions
 function editorBackToPicker(){editorStep='picker';renderBuilds()}
 function togglePickerShiny(){pickerShinyAll=!pickerShinyAll;renderBuilds()}
+function togglePickerObtained(){pickerObtainedOnly=!pickerObtainedOnly;renderBuilds()}
 function togglePickerType(t){pickerTypeFilter=pickerTypeFilter===t?null:t;renderBuilds()}
 function togglePickerForm(f){pickerFormFilter=pickerFormFilter===f?null:f;renderBuilds()}
 function toggleBuildShiny(){editorShiny=!editorShiny;renderBuilds()}
 
 function closeAllBldOms(){document.querySelectorAll('[id^="bldOm-"]').forEach(function(m){m.classList.remove('open')})}
 function toggleBldOm(id){var m=document.getElementById('bldOm-'+id);if(!m)return;var wasOpen=m.classList.contains('open');closeAllBldOms();if(!wasOpen)m.classList.add('open')}
+function bldMenuDelete(ev,id){
+  if(ev){ev.preventDefault();ev.stopPropagation();if(ev.stopImmediatePropagation)ev.stopImmediatePropagation()}
+  var b=allBuilds.find(function(x){return x.id===id});
+  if(!b){toast('Build not found','err');return false}
+  closeAllBldOms();
+  setTimeout(function(){confirmDelBuild(id,b.build_name||'this build')},0);
+  return false;
+}
+function bindBuildListMenuActions(){
+  if(window.__buildListDeleteBound)return;
+  window.__buildListDeleteBound=true;
+
+  document.addEventListener('click',function(ev){
+    var delBtn=ev.target.closest&&ev.target.closest('.bld-list-delete');
+    if(!delBtn)return;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+    if(ev.stopImmediatePropagation)ev.stopImmediatePropagation();
+
+    closeAllBldOms();
+
+    var id=delBtn.getAttribute('data-build-id');
+    var b=allBuilds.find(function(x){return x.id===id});
+
+    if(!b){
+      toast('Build not found','err');
+      return false;
+    }
+
+    confirmDelBuild(id,b.build_name||'this build');
+    return false;
+  },true);
+}
 
 function renderBuilds(){
   var c=document.getElementById('buildsView');
@@ -240,7 +275,7 @@ function renderBuilds(){
   c.innerHTML=hdr+'<div class="bld-stack">'+sortedBuilds.map(function(b){
     bImg=b.is_shiny&&b.shiny_url?b.shiny_url:(b.image_url||'');
     t1=TC[b.type_1]||TC.Normal;t2=b.type_2?TC[b.type_2]:null;
-    safeName=b.build_name.replace(/'/g,"\\'");
+    safeName=(b.build_name||'this build').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     return '<div class="bld-card'+(b.is_favourite?' fav-card':'')+'" onclick="showBuildDetail(\''+b.id+'\')">'+
       '<div class="bld-head">'+
         '<div class="bld-head-left">'+
@@ -262,7 +297,7 @@ function renderBuilds(){
               (b.is_public&&b.share_code?'<button class="om-item" onclick="event.stopPropagation();closeAllBldOms();shareImage(\'build\',\''+b.id+'\')"><span class="om-item-icon">🔗</span>Share build</button>':'')+
               '<button class="om-item" onclick="event.stopPropagation();closeAllBldOms();exportShowdown(\''+b.id+'\')"><span class="om-item-icon">📤</span>Export to Showdown</button>'+
               '<div class="om-sep"></div>'+
-              '<button class="om-item destructive" onclick="event.stopPropagation();closeAllBldOms();confirmDelBuild(\''+b.id+'\',\''+safeName+'\')"><span class="om-item-icon">🗑</span>Delete build</button>'+
+              '<button class="om-item destructive" type="button" onpointerup="return bldMenuDelete(event,\''+b.id+'\')" onclick="return false"><span class="om-item-icon">🗑</span>Delete build</button>'+
             '</div>'+
           '</div>'+
         '</div>'+
@@ -270,7 +305,7 @@ function renderBuilds(){
       '<div class="bld-tags">'+(b.battle_format?'<span class="btag btag-fmt">'+b.battle_format+'</span>':'')+(b.archetype?'<span class="btag btag-arch">'+b.archetype+'</span>':'')+(b.item_name?'<span class="btag btag-item">'+b.item_name+'</span>':'')+(b.nature_name?'<span class="btag btag-nat">'+b.nature_name+'</span>':'')+(b.ability?'<span class="btag btag-abi">'+b.ability+'</span>':'')+bldMoveWarnPill(b)+bldAbiWarnPill(b)+'</div>'+
       '<div class="bld-moves"><div class="bmove">'+(b.move_1||'—')+'</div><div class="bmove">'+(b.move_2||'—')+'</div><div class="bmove">'+(b.move_3||'—')+'</div><div class="bmove">'+(b.move_4||'—')+'</div></div>'+
     '</div>';
-  }).join('')+'</div>'
+  }).join('')+'</div>';
 }
 
 // Drop E: Unified move-card font size. Takes the longest name across a build's
@@ -323,7 +358,7 @@ function renderEditorPicker(c){
   var hdr='<div class="pg-head"><div class="pg-top"><div><div class="pg-title" style="cursor:pointer" onclick="showBuildList()">← '+(editBuildId?'Edit Build':'New Build')+'</div><div class="pg-sub">Choose your Pokémon</div></div></div></div>';
   var search='<input class="ed-input" id="pkSrch" placeholder="🔍 Search by name or number" type="search" value="'+pickerSearchValue.replace(/"/g,'&quot;')+'" oninput="pickerSearchValue=this.value;filterPkPicker()">';
   var typeRow='<div class="epc-filter-row" style="margin-top:.5rem"><span class="epc-filter-lbl">Type</span><div class="epc-filter-scroll">'+Object.keys(TC).sort().map(function(t){return '<button class="epc-filter'+(pickerTypeFilter===t?' active':'')+'" onclick="togglePickerType(\''+t+'\')">'+t+'</button>'}).join('')+'</div></div>';
-  var formRow='<div class="epc-filter-row" style="margin-top:.4rem;justify-content:space-between"><div style="display:flex;align-items:center;gap:.35rem"><span class="epc-filter-lbl">Form</span>'+['Base','Mega','Regional'].map(function(f){return '<button class="epc-filter'+(pickerFormFilter===f?' active':'')+'" onclick="togglePickerForm(\''+f+'\')">'+f+'</button>'}).join('')+'</div><button class="shiny-btn'+(pickerShinyAll?' active':'')+'" onclick="togglePickerShiny()">✦ Shiny</button></div>';
+  var formRow='<div class="epc-filter-row" style="margin-top:.4rem;justify-content:space-between"><div style="display:flex;align-items:center;gap:.35rem;min-width:0"><span class="epc-filter-lbl">Form</span>'+['Base','Mega','Regional'].map(function(f){return '<button class="epc-filter'+(pickerFormFilter===f?' active':'')+'" onclick="togglePickerForm(\''+f+'\')">'+f+'</button>'}).join('')+'</div><div class="epc-picker-toggles"><button class="shiny-btn'+(pickerObtainedOnly?' active':'')+'" onclick="togglePickerObtained()">✓ Owned</button><button class="shiny-btn'+(pickerShinyAll?' active':'')+'" onclick="togglePickerShiny()">✦ Shiny</button></div></div>';
   c.innerHTML=hdr+'<div style="padding:.9rem 1rem 1.5rem">'+search+typeRow+formRow+'<div class="epc-grid" id="pkPicker"></div></div>';
   filterPkPicker();
 }
@@ -437,7 +472,7 @@ function renderEditorForm(c){
     // positioned AFTER Strategy (the last content card) and BEFORE the sticky save-bar.
     edShareSectionHtml()+
     '</div>'+
-    '<div class="save-bar"><button class="btn btn-ghost" onclick="showBuildList()">Cancel</button><button class="btn btn-red" onclick="saveBuild()">💾 Save Build</button></div>';
+    '<div class="save-bar"><button class="btn btn-ghost" onclick="showBuildList()">Cancel</button><button class="btn btn-red" id="saveBuildBtn" onclick="saveBuild()">💾 Save Build</button></div>';
   // Paint bars/hex after DOM is attached
   requestAnimationFrame(function(){requestAnimationFrame(edRefresh)});
   // Drop E: kick off learnset load in background so legality flags on the 4
@@ -1065,17 +1100,19 @@ function filterPkPicker(){
   var s=(inp?inp.value:pickerSearchValue).toLowerCase();
   pickerSearchValue=s;
   var f=allPkmn.filter(function(p){
-    if(s&&p.name.toLowerCase().indexOf(s)===-1&&String(p.dex_number).indexOf(s)===-1)return false;
-    if(pickerTypeFilter&&p.type_1!==pickerTypeFilter&&p.type_2!==pickerTypeFilter)return false;
-    if(pickerFormFilter&&p.form!==pickerFormFilter)return false;
-    return true;
+var isObt=!!uDex[p.id]||!!uShinyDex[p.id];
+if(s&&p.name.toLowerCase().indexOf(s)===-1&&String(p.dex_number).indexOf(s)===-1)return false;
+if(pickerTypeFilter&&p.type_1!==pickerTypeFilter&&p.type_2!==pickerTypeFilter)return false;
+if(pickerFormFilter&&p.form!==pickerFormFilter)return false;
+if(pickerObtainedOnly&&!isObt)return false;
+return true;
   });
   var grid=document.getElementById('pkPicker');
   if(!grid)return;
   if(!f.length){grid.innerHTML='<div style="grid-column:1/-1;color:var(--muted);text-align:center;padding:2rem;font-size:.85rem">No Pokémon match</div>';return}
   grid.innerHTML=f.slice(0,150).map(function(p){
     var t1=TC[p.type_1]||TC.Normal,t2=p.type_2?TC[p.type_2]:null;
-    var showShiny=pickerShinyAll&&p.shiny_url;
+var showShiny=(pickerShinyAll||!!uShinyDex[p.id])&&p.shiny_url;
     var img=showShiny?p.shiny_url:(p.image_url||'');
     var cls='epc-card'+(p.id===selPkmnId?' selected':'')+(showShiny?' shiny-holo':'');
     var isMega=p.form==='Mega';
@@ -1090,7 +1127,7 @@ function pickPk(id){
   selPkmnId=id;
   var p=allPkmn.find(function(x){return x.id===id});
   // Carry shiny selection from picker into build
-  if(editorStep==='picker'&&pickerShinyAll&&p&&p.shiny_url)editorShiny=true;
+if(editorStep==='picker'&&p&&p.shiny_url)editorShiny=!!pickerShinyAll||!!uShinyDex[p.id];
   editorStep='form';
   renderBuilds();
 }
@@ -1100,13 +1137,40 @@ function setSp(s,v){edSet(s,v)}
 function adjSp(s,d){edAdj(s,d)}
 
 async function saveBuild(){
-  if(!selPkmnId){toast('Select a Pokémon','err');return}
-  var name=document.getElementById('edName').value.trim();if(!name){toast('Enter a build name','err');return}
-  // Read shiny from JS state (mobile pass) with fallback to legacy #edShiny button
-  var isShiny=editorShiny||(document.getElementById('edShiny')&&document.getElementById('edShiny').classList.contains('active'));
-  // Mirror the editor fields into the flat Supabase row shape used by the `builds` table.
-  var body={user_id:usr.id,pokemon_id:selPkmnId,name:name,battle_format:document.getElementById('edFmt').value,archetype:document.getElementById('edArch').value||null,item_id:document.getElementById('edItem').value||null,nature_id:document.getElementById('edNat').value||null,ability:document.getElementById('edAbi').value||null,move_1:document.getElementById('edM1').value||null,move_2:document.getElementById('edM2').value||null,move_3:document.getElementById('edM3').value||null,move_4:document.getElementById('edM4').value||null,hp_sp:spV.hp,atk_sp:spV.atk,def_sp:spV.def,spa_sp:spV.spa,spd_sp:spV.spd,spe_sp:spV.spe,is_shiny:isShiny,win_condition:document.getElementById('edWin').value||null,strengths:document.getElementById('edStr').value||null,weaknesses:document.getElementById('edWeak').value||null,status:'Testing'};
-  try{if(editBuildId){await upd('builds',{'id':'eq.'+editBuildId},body,true);toast('Build updated!')}else{await ins('builds',body,true);toast('Build created!')}await loadBuilds();showBuildList()}catch(e){toast(e.message,'err')}
+  if(window.__savingBuild){return}
+  window.__savingBuild=true;
+  var btn=document.getElementById('saveBuildBtn');
+  var originalText='💾 Save Build';
+  if(btn){
+    originalText=btn.innerHTML;
+    btn.disabled=true;
+    btn.style.opacity=.6;
+    btn.innerHTML='Saving...';
+  }
+  try {
+    if(!selPkmnId){toast('Select a Pokémon','err');return}
+    var name=document.getElementById('edName').value.trim();if(!name){toast('Enter a build name','err');return}
+    // Read shiny from JS state (mobile pass) with fallback to legacy #edShiny button
+    var isShiny=editorShiny||(document.getElementById('edShiny')&&document.getElementById('edShiny').classList.contains('active'));
+    // Mirror the editor fields into the flat Supabase row shape used by the `builds` table.
+    var body={user_id:usr.id,pokemon_id:selPkmnId,name:name,battle_format:document.getElementById('edFmt').value,archetype:document.getElementById('edArch').value||null,item_id:document.getElementById('edItem').value||null,nature_id:document.getElementById('edNat').value||null,ability:document.getElementById('edAbi').value||null,move_1:document.getElementById('edM1').value||null,move_2:document.getElementById('edM2').value||null,move_3:document.getElementById('edM3').value||null,move_4:document.getElementById('edM4').value||null,hp_sp:spV.hp,atk_sp:spV.atk,def_sp:spV.def,spa_sp:spV.spa,spd_sp:spV.spd,spe_sp:spV.spe,is_shiny:isShiny,win_condition:document.getElementById('edWin').value||null,strengths:document.getElementById('edStr').value||null,weaknesses:document.getElementById('edWeak').value||null,status:'Testing'};
+    if(editBuildId){
+      await upd('builds',{'id':'eq.'+editBuildId},body,true);toast('Build updated!');
+    } else {
+      await ins('builds',body,true);toast('Build created!');
+    }
+    await loadBuilds();showBuildList();
+  } catch(e) {
+    toast(e.message,'err');
+  } finally {
+    window.__savingBuild=false;
+    var btn=document.getElementById('saveBuildBtn');
+    if(btn){
+      btn.disabled=false;
+      btn.style.opacity=1;
+      btn.innerHTML=originalText;
+    }
+  }
 }
 // Reset the shared confirmMod to its default delete-style state.
 // Called before opening as a delete confirmation so stale login-modal text doesn't leak through.

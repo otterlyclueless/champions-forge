@@ -200,22 +200,49 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;t
 .dex-type-pill.active{border-color:var(--tc);background:color-mix(in srgb,var(--tc) 25%,var(--surface));box-shadow:0 0 8px color-mix(in srgb,var(--tc) 30%,transparent)}
 
 /* Subsection: Pokédex grid — 3-col gallery mode (.pb-*) */
-.dex-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;padding:.65rem 1rem 1rem}
-.pb-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;text-align:center;padding:.5rem .3rem .4rem;position:relative;transition:border-color .15s}
+.dex-grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;padding:.75rem 1rem 1.1rem}
+.pb-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;text-align:center;padding:.65rem .45rem .55rem;position:relative;transition:border-color .15s}
 .pb-card:active{transform:scale(.97)}
 .pb-card.unobt{border-style:dashed;filter:grayscale(25%);opacity:.5}
 /* Shiny holo on gallery cards */
 @keyframes holoShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 .pb-card.shiny-holo{border-color:transparent}
 .pb-card.shiny-holo::after{content:'';position:absolute;inset:-2px;border-radius:13px;background:linear-gradient(135deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3,#54a0ff,#5f27cd,#ff6b6b);background-size:300% 300%;animation:holoShift 4s ease infinite;z-index:-1;opacity:.7}
-.pb-card-art{height:72px;display:flex;align-items:center;justify-content:center;position:relative;border-radius:8px;overflow:hidden}
-.pb-card-art img{width:60px;height:60px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.15))}
+.pb-card-art{height:104px;display:flex;align-items:center;justify-content:center;position:relative;border-radius:10px;overflow:hidden}
+.pb-card-art img{width:88px;height:88px;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,.2))}
 .pb-card-obt{position:absolute;top:4px;right:4px;width:16px;height:16px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;z-index:2}
 .pb-card-obt.on{background:var(--green);color:#fff}
-.pb-card-name{font-size:.6rem;font-weight:700;margin-top:.2rem;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pb-card-dex{font-size:.48rem;color:var(--muted);font-family:monospace;font-weight:700}
+.pb-card-name{font-size:.76rem;font-weight:800;margin-top:.35rem;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pb-card-dex{font-size:.58rem;color:var(--muted);font-family:monospace;font-weight:700;margin-top:1px}
 .pb-card-types{display:flex;gap:2px;justify-content:center;margin-top:3px}
-.pb-card-types .type-pill{font-size:7px;padding:1px 4px}
+.pb-card-types .type-pill{font-size:8px;padding:2px 6px}
+
+/* Quick obtained controls on Pokédex cards */
+.pb-card-actions{position:absolute;right:.35rem;bottom:.35rem;display:flex;flex-direction:column;gap:.22rem;z-index:4;opacity:.72;transition:opacity .15s ease}
+.pb-card-actions.status-obt,.pb-card-actions.status-shiny{opacity:.95}
+.pb-card-actions.status-obt .pb-quick-btn.shiny,.pb-card-actions.status-shiny .pb-quick-btn.standard{display:none}
+.pb-quick-btn{width:24px;height:24px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:rgba(15,23,42,.45);color:rgba(255,255,255,.72);display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:900;line-height:1;box-shadow:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;font-family:inherit;padding:0;transition:transform .12s ease,background .12s ease,border-color .12s ease,color .12s ease}
+.pb-quick-btn:active{transform:scale(.92)}
+.pb-quick-btn.on{background:var(--green);border-color:transparent;color:#fff}
+.pb-quick-btn.shiny{color:#fde68a}
+.pb-quick-btn.shiny.on{background:linear-gradient(135deg,#facc15,#f97316,#ec4899);border-color:transparent;color:#fff}
+
+@media(min-width:720px){.dex-grid{grid-template-columns:repeat(3,1fr);max-width:760px}.pb-card-art{height:112px}.pb-card-art img{width:94px;height:94px}}
+.dex-detail-toggles{display:grid;gap:.45rem;margin-top:.65rem}
+.obt-tog.shiny.on{border-color:rgba(250,204,21,.65);background:linear-gradient(135deg,rgba(250,204,21,.18),rgba(236,72,153,.14));color:#f59e0b}
+
+.obt-tog.shiny .obt-box.on{background:linear-gradient(135deg,#facc15,#f97316,#ec4899);color:#fff}
+
+/* Detail modal icon toggles (clean UX upgrade) */
+.p-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+.p-title-wrap{min-width:0;flex:1}
+.dex-detail-icon-toggles{display:flex;gap:.45rem;margin-top:.15rem;align-items:center;flex-shrink:0}
+.dex-icon-tog{width:36px;height:36px;border-radius:999px;border:1px solid var(--border);background:var(--card);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:.95rem;font-weight:900;line-height:1;box-shadow:var(--shadow-sm);cursor:pointer;font-family:inherit;padding:0;transition:transform .12s,background .12s,border-color .12s,color .12s}
+.dex-icon-tog span{transform:translateY(-.5px)}
+.dex-icon-tog:active{transform:scale(.94)}
+.dex-icon-tog.on{background:var(--green);border-color:rgba(34,197,94,.55);color:#fff}
+.dex-icon-tog.shiny{color:#d97706}
+.dex-icon-tog.shiny.on{background:linear-gradient(135deg,#facc15,#f97316,#ec4899);border-color:rgba(250,204,21,.65);color:#fff}
 
 /* Legacy pk-card styles kept for backward compat */
 .form-pill{padding:1px 7px;border-radius:20px;font-size:9px;font-weight:700;text-transform:uppercase}
@@ -225,14 +252,17 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;t
 .panel-ov{position:fixed;inset:0;z-index:200;display:none;justify-content:flex-end}.panel-ov.open{display:flex}
 .panel-bd{position:absolute;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(2px)}
 .panel-ct{position:relative;width:100%;max-width:420px;background:var(--bg2);box-shadow:-4px 0 30px rgba(0,0,0,.15);overflow-y:auto;z-index:1;transition:background .3s}
-.panel-art{position:relative;height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1.2rem 1rem .8rem;border-radius:0}
+.panel-art{position:relative;height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:1.2rem 1rem 1.4rem;border-radius:0}
 .panel-art .wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.04;pointer-events:none}
-.panel-art img{width:140px;height:140px;object-fit:contain;position:relative;z-index:2;filter:drop-shadow(0 6px 16px rgba(0,0,0,.3))}
+.panel-art img{width:140px;height:140px;object-fit:contain;position:relative;z-index:2;filter:drop-shadow(0 6px 16px rgba(0,0,0,.3));margin-bottom:2rem}
 .panel-art-dex{position:absolute;top:-6px;right:-6px;font-size:5rem;font-weight:900;opacity:.07;pointer-events:none;line-height:1;font-family:monospace;z-index:0}
 .panel-art-types{margin-top:.5rem;display:flex;gap:5px;justify-content:center;position:relative;z-index:2}
 .panel-art-types .type-pill{font-size:.7rem;padding:3px 12px}
 .panel-art .bd-shiny-badge{margin-top:.35rem;position:relative;z-index:2}
 .panel-art .sw-bar{position:relative;z-index:2}
+.sw-wrap{position:absolute;left:50%;bottom:1.8rem;transform:translateX(-50%);z-index:5;display:flex;align-items:center;justify-content:center;margin-top:0}
+.sw-wrap .sw-bar{margin-top:0}
+.bd-shiny-badge.below{position:absolute;left:50%;top:calc(100% + .35rem);transform:translateX(-50%);margin-top:0;font-size:.62rem;padding:.22rem .5rem;box-shadow:0 6px 16px rgba(0,0,0,.16);white-space:nowrap}
 /* Shiny holo on panel-art — no >* rule; z-index set per-element above */
 .panel-art.shiny-holo::before{content:'';position:absolute;inset:-3px;background:linear-gradient(135deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3,#54a0ff,#5f27cd,#ff6b6b);background-size:300% 300%;animation:holoShift 4s ease infinite;z-index:0;opacity:.7}
 .p-close{position:absolute!important;top:12px;right:12px;z-index:10;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.25);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.85rem}.p-close:hover{background:rgba(0,0,0,.45)}
@@ -2763,3 +2793,15 @@ body.share-loading [onclick="tdPillShare()"]::after{
 .home-search-tabs{display:flex;gap:.3rem;padding:0 1rem .7rem;flex-shrink:0}
 .home-stab{padding:.26rem .65rem;border-radius:20px;font-size:.68rem;font-weight:700;background:var(--surface);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-family:inherit;transition:all .12s}
 .home-stab.active{background:var(--red);border-color:var(--red);color:#fff}
+
+/* Ability detail collapsible Pokémon list */
+.abl-pkmn-details{width:100%}
+.abl-pkmn-summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:.6rem;cursor:pointer;font-size:.56rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:.55rem;user-select:none}
+.abl-pkmn-summary::-webkit-details-marker{display:none}
+.abl-pkmn-summary::after{content:'▾';font-size:.62rem;color:var(--muted);transition:transform .15s ease}
+.abl-pkmn-details[open] .abl-pkmn-summary::after{transform:rotate(180deg)}
+.abl-pkmn-count{font-weight:600;color:var(--muted);margin-left:auto;font-size:.54rem}
+.abl-pkmn-detail-body{padding-top:.05rem}
+
+.epc-picker-toggles{display:flex;align-items:center;gap:.35rem;flex-shrink:0}
+.epc-picker-toggles .shiny-btn{white-space:nowrap}
