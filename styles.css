@@ -2815,6 +2815,18 @@ body.share-loading [onclick="tdPillShare()"]::after{
 .prof-ach-pill.active{border-color:var(--red);background:var(--red-bg);color:var(--red)}
 
 /* Account section */
+/* More sheet footer — theme toggle + support */
+.more-sheet-footer{border-top:1px solid var(--border);padding:.75rem 1rem;display:flex;flex-direction:column;gap:.55rem}
+.more-sheet-theme-row{display:flex;align-items:center;justify-content:space-between}
+.more-sheet-theme-label{font-size:.78rem;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:.35rem}
+.ms-theme-btns{display:flex;gap:.3rem}
+.ms-theme-btn{padding:.3rem .7rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:inherit;font-size:.72rem;font-weight:700;cursor:pointer;transition:all .12s}
+.ms-theme-btn.active{border-color:var(--gold);background:var(--gold-bg);color:var(--gold)}
+.more-sheet-support{display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.55rem .75rem;border-radius:10px;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-size:.78rem;font-weight:700;text-decoration:none;font-family:inherit;transition:all .12s;-webkit-tap-highlight-color:transparent}
+.more-sheet-support:hover{border-color:var(--gold);color:var(--gold)}
+/* Profile support button */
+.prof-support-btn{display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.6rem .75rem;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:.82rem;font-weight:700;text-decoration:none;font-family:inherit;transition:all .12s;-webkit-tap-highlight-color:transparent}
+.prof-support-btn:hover{border-color:var(--gold);color:var(--gold)}
 .prof-account-section{padding-bottom:2rem}
 .prof-account-btns{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.6rem}
 .prof-account-actions{padding:.6rem 1rem .4rem;display:flex;flex-direction:column;gap:.5rem}
