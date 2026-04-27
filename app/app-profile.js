@@ -422,7 +422,7 @@ function renderArchetypesRef(q){
     html+='<div class="ref-arch-cat"><i class="ph-bold '+catIcons[cat]+'"></i>'+cat+'</div>';
     cats[cat].forEach(function(a){
       html+=
-        '<div class="ref-arch-card">'+
+        '<div class="ref-arch-card" style="--ac:'+a.color+'">'+
           '<div class="ref-arch-card-head">'+
             '<div class="ref-arch-icon"><i class="ph-bold '+a.icon+'"></i></div>'+
             '<div class="ref-arch-name">'+a.name+'</div>'+
