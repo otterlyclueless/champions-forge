@@ -602,17 +602,23 @@ function removeTeamMember(buildId){var i=selBuildIds.indexOf(buildId);if(i!==-1)
 
 function renderTeamEditor(c){
   var t=editTeamId?allTeams.find(function(x){return x.id===editTeamId}):null;
+  // Snapshot live editor values before re-render so slot changes don't wipe unsaved text
+  var _ne=document.getElementById('tmName'),_no2=document.getElementById('tmNotes'),_nf=document.getElementById('tmFmt');
+  var liveName=_ne!==null?_ne.value:(t?t.name||'':'');
+  var liveNotes=_no2!==null?_no2.value:(t?t.notes||'':'');
+  var liveFmt=_nf!==null?_nf.value:(t?t.format||'Singles':'Singles');
+
   var hdr='<div class="pg-head"><div class="pg-top"><div><div class="pg-title" style="cursor:pointer" onclick="showTeamList()">← '+(t?'Edit Team':'New Team')+'</div><div class="pg-sub">Assemble your roster</div></div></div></div>';
-  var fmtSelectedS=t&&t.format==='Singles'?' selected':'';
-  var fmtSelectedD=t&&t.format==='Doubles'?' selected':'';
-  var fmtCls=(t&&t.format==='Doubles')?'fmt-d':'fmt-s';
+  var fmtSelectedS=liveFmt==='Singles'?' selected':'';
+  var fmtSelectedD=liveFmt==='Doubles'?' selected':'';
+  var fmtCls=liveFmt==='Doubles'?'fmt-d':'fmt-s';
   teamRosterSize=Math.max(selBuildIds.length,Math.min(6,teamRosterSize||Number(t&&t.roster_size)||6));
-  var fmtLabel=t&&t.format?t.format:'Singles';
+  var fmtLabel=liveFmt||'Singles';
 
   // Team Info card
   var teamInfo='<div class="card">'+
     '<label class="ed-label" style="margin-top:0">Team Name</label>'+
-    '<input class="ed-input" id="tmName" value="'+(t?(t.name||'').replace(/"/g,'&quot;'):'')+'" placeholder="e.g. Storm Surge Protocol">'+
+    '<input class="ed-input" id="tmName" value="'+liveName.replace(/"/g,'&quot;')+'" placeholder="e.g. Storm Surge Protocol">'+
     '<label class="ed-label">Format</label>'+
     '<select class="ed-select" id="tmFmt"><option value="Singles"'+fmtSelectedS+'>Singles</option><option value="Doubles"'+fmtSelectedD+'>Doubles</option></select>'+
     '<label class="ed-label">Roster Size</label>'+
@@ -621,7 +627,7 @@ function renderTeamEditor(c){
     '</select>'+
     '<div style="font-size:.68rem;color:var(--muted);margin-top:.35rem">Defaults to 6. Use 4 for compact doubles rosters or practice squads.</div>'+ 
     '<label class="ed-label">Notes</label>'+
-    '<textarea class="ed-textarea" id="tmNotes" placeholder="Strategy, matchups, meta notes...">'+(t?t.notes||'':'')+'</textarea>'+
+    '<textarea class="ed-textarea" id="tmNotes" placeholder="Strategy, matchups, meta notes...">'+liveNotes+'</textarea>'+
   '</div>';
 
   // Build members in order of selBuildIds
