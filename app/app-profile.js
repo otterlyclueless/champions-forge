@@ -829,13 +829,11 @@ function _profSection(key,title,badge,open,content){
   '</div>';
 }
 function openBuildFromProfile(id){
-  if(typeof appNavContext!=='undefined')appNavContext.buildSource='profile';
-  if(typeof showBuildDetail==='function')showBuildDetail(id);
+  if(typeof showBuildDetail==='function')showBuildDetail(id,'profile');
   if(typeof dashNav==='function')dashNav('builds');
 }
 function openTeamFromProfile(id){
-  if(typeof appNavContext!=='undefined')appNavContext.teamSource='profile';
-  if(typeof showTeamDetail==='function')showTeamDetail(id);
+  if(typeof showTeamDetail==='function')showTeamDetail(id,'profile');
   if(typeof dashNav==='function')dashNav('teams');
 }
 
