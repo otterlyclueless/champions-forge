@@ -398,9 +398,39 @@ function switchRefTab(tab){
   });
   var ap=document.getElementById('refAbilitiesPane');
   var np=document.getElementById('refNaturesPane');
+  var acp=document.getElementById('refArchetypesPane');
   if(ap)ap.style.display=tab==='abilities'?'':'none';
   if(np)np.style.display=tab==='natures'?'':'none';
+  if(acp)acp.style.display=tab==='archetypes'?'':'none';
+  if(tab==='archetypes')renderArchetypesRef('');
 }
+
+// ── Archetypes Reference ───────────────────────────────────
+function renderArchetypesRef(q){
+  var el=document.getElementById('archRefGrid');if(!el)return;
+  var list=typeof BLD_ARCHETYPES!=='undefined'?BLD_ARCHETYPES:[];
+  var lq=(q||'').toLowerCase();
+  var filtered=lq?list.filter(function(a){return a.name.toLowerCase().indexOf(lq)!==-1||a.cat.toLowerCase().indexOf(lq)!==-1||a.desc.toLowerCase().indexOf(lq)!==-1}):list;
+  if(!filtered.length){el.innerHTML='<div class="empty"><div class="em">🔍</div>No archetypes found</div>';return;}
+  var catOrder=['Offense','Setup','Defense','Support','VGC'];
+  var catIcons={Offense:'⚔️',Setup:'📈',Defense:'🛡️',Support:'⚙️',VGC:'🏆'};
+  var cats={};
+  filtered.forEach(function(a){if(!cats[a.cat])cats[a.cat]=[];cats[a.cat].push(a);});
+  var html='';
+  catOrder.forEach(function(cat){
+    if(!cats[cat])return;
+    html+='<div class="ref-arch-cat">'+catIcons[cat]+' '+cat+'</div>';
+    cats[cat].forEach(function(a){
+      html+=
+        '<div class="ref-arch-card">'+
+          '<div class="ref-arch-name">'+a.name+'</div>'+
+          '<div class="ref-arch-desc">'+a.desc+'</div>'+
+        '</div>';
+    });
+  });
+  el.innerHTML=html;
+}
+function onArchRefSearch(q){renderArchetypesRef(q);}
 
 // ═══════════════════════════════════════
 // ABILITY MODE TOGGLE (Abilities | By Pokémon) — Drop G.2
