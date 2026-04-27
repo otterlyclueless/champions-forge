@@ -580,6 +580,13 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;t
 
 /* Nature hybrid cards (new design) */
 .nat-hybrid-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.55rem;padding:.7rem 2rem 5rem}
+.ref-arch-list{padding:.7rem 2rem 5rem}
+.ref-arch-cat{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:.9rem 0 .35rem;display:flex;align-items:center;gap:.4rem}
+.ref-arch-cat:first-child{margin-top:.2rem}
+.ref-arch-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.75rem .9rem;margin-bottom:.45rem;transition:border-color .15s}
+.ref-arch-card:hover{border-color:var(--border2)}
+.ref-arch-name{font-size:.88rem;font-weight:800;color:var(--text);margin-bottom:.2rem}
+.ref-arch-desc{font-size:.76rem;color:var(--muted);line-height:1.45}
 .nat-hybrid{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:.75rem .7rem .65rem;cursor:pointer;transition:border-color .12s,transform .1s}
 .nat-hybrid:hover{border-color:var(--border2)}
 .nat-hybrid:active{transform:scale(.97)}
@@ -2496,6 +2503,7 @@ body.share-loading [onclick="tdPillShare()"]::after{
 }
 #imgRenderHost .imgcard-tc-team-chip{padding:2px 7px;border-radius:4px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15)}
 #imgRenderHost .imgcard-tc-arch-chip{padding:2px 8px;border-radius:4px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);font-size:9px;font-weight:800;color:rgba(255,255,255,.75);letter-spacing:.04em;text-transform:uppercase}
+#imgRenderHost .tc-mem-archetype{font-size:8.5px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.03em;text-align:center;line-height:1;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;text-transform:uppercase}
 #imgRenderHost .imgcard-tc .imgcard-url{bottom:12px;right:36px;font-size:10px}
 
 #imgRenderHost .imgcard-tc-grid{
