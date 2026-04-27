@@ -187,29 +187,30 @@ var statNames={hp:'HP',atk:'ATTACK',def:'DEFENSE',spa:'SP. ATK',spd:'SP. DEF',sp
 
 // ── Build Archetypes ──────────────────────────────────────
 var BLD_ARCHETYPES=[
-  {name:'Physical Sweeper',cat:'Offense',desc:'Fast Pokémon that hits hard with physical moves. Pairs well with Swords Dance or Dragon Dance.'},
-  {name:'Special Sweeper',cat:'Offense',desc:'Fast Pokémon dealing heavy special damage. Often boosted by Nasty Plot or Calm Mind.'},
-  {name:'Mixed Attacker',cat:'Offense',desc:'Hits from both physical and special sides to beat specially or physically defensive cores.'},
-  {name:'Wallbreaker',cat:'Offense',desc:'Immense raw power to break through defensive cores, even at the cost of speed.'},
-  {name:'Revenge Killer',cat:'Offense',desc:'Outspeeds and finishes off weakened foes — often equipped with a Choice Scarf.'},
-  {name:'Setup Sweeper',cat:'Setup',desc:'Uses boosting moves (Dragon Dance, Swords Dance, Calm Mind) then sweeps the opposing team.'},
-  {name:'Trick Room Abuser',cat:'Setup',desc:'Very slow but hits extremely hard — designed to thrive when Trick Room is active.'},
-  {name:'Physical Wall',cat:'Defense',desc:'High Defence and HP. Built to tank physical hits and support the team with utility moves.'},
-  {name:'Special Wall',cat:'Defense',desc:'High Sp. Defence and HP. Absorbs special attacks reliably and recovers HP over time.'},
-  {name:'Tank',cat:'Defense',desc:'Balanced bulk with offensive presence — takes hits and dishes them back without setup.'},
-  {name:'Cleric',cat:'Defense',desc:'Heals and cures the team via Wish, Heal Bell, Aromatherapy, or reliable recovery moves.'},
-  {name:'Trick Room Setter',cat:'Support',desc:'Sets Trick Room to invert speed order and empower slow, powerful teammates.'},
-  {name:'Hazard Setter',cat:'Support',desc:'Lays Stealth Rock, Spikes, or Toxic Spikes to chip every switching opponent.'},
-  {name:'Hazard Remover',cat:'Support',desc:'Clears entry hazards via Rapid Spin or Defog to protect the team from chip damage.'},
-  {name:'Pivot',cat:'Support',desc:'Gains free switches via U-turn, Volt Switch, or Flip Turn to maintain momentum.'},
-  {name:'Screens Support',cat:'Support',desc:'Sets Light Screen and Reflect (or Aurora Veil) to halve incoming damage for the whole team.'},
-  {name:'Weather Setter',cat:'Support',desc:'Activates sun, rain, sand, or snow to empower weather-boosted teammates and abilities.'},
-  {name:'Terrain Setter',cat:'Support',desc:'Sets Electric, Grassy, Misty, or Psychic Terrain to power up terrain-reliant strategies.'},
-  {name:'Support',cat:'Support',desc:'Broad utility: status moves, chip damage, disruption, and generally enabling the team.'},
-  {name:'Speed Control',cat:'VGC',desc:'Controls turn order via Tailwind, Trick Room, Icy Wind, or Electroweb (VGC staple).'},
-  {name:'Redirection',cat:'VGC',desc:'Follow Me or Rage Powder to redirect attacks away from key teammates (VGC double battles).'},
-  {name:'Fake Out Lead',cat:'VGC',desc:'Opens with Fake Out to flinch an opponent and waste their turn in double battles.'}
+  {name:'Physical Sweeper',   cat:'Offense', icon:'ph-sword',                   color:'#f97316',desc:'Fast Pokémon that hits hard with physical moves. Pairs well with Swords Dance or Dragon Dance.'},
+  {name:'Special Sweeper',    cat:'Offense', icon:'ph-sparkle',                 color:'#a78bfa',desc:'Fast Pokémon dealing heavy special damage. Often boosted by Nasty Plot or Calm Mind.'},
+  {name:'Mixed Attacker',     cat:'Offense', icon:'ph-arrows-merge',            color:'#fb923c',desc:'Hits from both physical and special sides to beat specially or physically defensive cores.'},
+  {name:'Wallbreaker',        cat:'Offense', icon:'ph-hammer',                  color:'#ef4444',desc:'Immense raw power to break through defensive cores, even at the cost of speed.'},
+  {name:'Revenge Killer',     cat:'Offense', icon:'ph-crosshair',               color:'#ec4899',desc:'Outspeeds and finishes off weakened foes — often equipped with a Choice Scarf.'},
+  {name:'Setup Sweeper',      cat:'Setup',   icon:'ph-trend-up',                color:'#f59e0b',desc:'Uses boosting moves (Dragon Dance, Swords Dance, Calm Mind) then sweeps the opposing team.'},
+  {name:'Trick Room Abuser',  cat:'Setup',   icon:'ph-clock-counter-clockwise', color:'#7c3aed',desc:'Very slow but hits extremely hard — designed to thrive when Trick Room is active.'},
+  {name:'Physical Wall',      cat:'Defense', icon:'ph-shield',                  color:'#3b82f6',desc:'High Defence and HP. Built to tank physical hits and support the team with utility moves.'},
+  {name:'Special Wall',       cat:'Defense', icon:'ph-shield-star',             color:'#06b6d4',desc:'High Sp. Defence and HP. Absorbs special attacks reliably and recovers HP over time.'},
+  {name:'Tank',               cat:'Defense', icon:'ph-anchor',                  color:'#64748b',desc:'Balanced bulk with offensive presence — takes hits and dishes them back without setup.'},
+  {name:'Cleric',             cat:'Defense', icon:'ph-first-aid',               color:'#22c55e',desc:'Heals and cures the team via Wish, Heal Bell, Aromatherapy, or reliable recovery moves.'},
+  {name:'Trick Room Setter',  cat:'Support', icon:'ph-clock-clockwise',         color:'#8b5cf6',desc:'Sets Trick Room to invert speed order and empower slow, powerful teammates.'},
+  {name:'Hazard Setter',      cat:'Support', icon:'ph-warning',                 color:'#f97316',desc:'Lays Stealth Rock, Spikes, or Toxic Spikes to chip every switching opponent.'},
+  {name:'Hazard Remover',     cat:'Support', icon:'ph-eraser',                  color:'#10b981',desc:'Clears entry hazards via Rapid Spin or Defog to protect the team from chip damage.'},
+  {name:'Pivot',              cat:'Support', icon:'ph-arrows-left-right',       color:'#14b8a6',desc:'Gains free switches via U-turn, Volt Switch, or Flip Turn to maintain momentum.'},
+  {name:'Screens Support',    cat:'Support', icon:'ph-rectangle',               color:'#60a5fa',desc:'Sets Light Screen and Reflect (or Aurora Veil) to halve incoming damage for the whole team.'},
+  {name:'Weather Setter',     cat:'Support', icon:'ph-cloud',                   color:'#38bdf8',desc:'Activates sun, rain, sand, or snow to empower weather-boosted teammates and abilities.'},
+  {name:'Terrain Setter',     cat:'Support', icon:'ph-map-trifold',             color:'#4ade80',desc:'Sets Electric, Grassy, Misty, or Psychic Terrain to power up terrain-reliant strategies.'},
+  {name:'Support',            cat:'Support', icon:'ph-handshake',               color:'#94a3b8',desc:'Broad utility: status moves, chip damage, disruption, and generally enabling the team.'},
+  {name:'Speed Control',      cat:'VGC',     icon:'ph-gauge',                   color:'#c084fc',desc:'Controls turn order via Tailwind, Trick Room, Icy Wind, or Electroweb (VGC staple).'},
+  {name:'Redirection',        cat:'VGC',     icon:'ph-person-simple-run',       color:'#fb7185',desc:'Follow Me or Rage Powder to redirect attacks away from key teammates (VGC double battles).'},
+  {name:'Fake Out Lead',      cat:'VGC',     icon:'ph-hand-pointing',           color:'#fbbf24',desc:'Opens with Fake Out to flinch an opponent and waste their turn in double battles.'}
 ];
+function archColour(name){var a=BLD_ARCHETYPES.find(function(x){return x.name===name;});return a?a.color:'#94a3b8';}
 var edSelArch='';
 
 // Move-list constants for auto-suggest
@@ -227,15 +228,33 @@ var _BA_SPEED=['Tailwind','Icy Wind','Electroweb','Thunder Wave'];
 var _BA_HEAL=['Wish','Heal Bell','Aromatherapy','Soft-Boiled','Recover','Roost','Moonlight','Morning Sun','Synthesis','Slack Off','Shore Up','Milk Drink'];
 
 function selBldArch(val){
-  edSelArch=edSelArch===val?'':val;
+  edSelArch=val||'';
   var el=document.getElementById('edArch');if(el)el.value=edSelArch;
-  var picker=document.getElementById('edArchPicker');if(!picker)return;
-  picker.innerHTML=_bldArchChips();
+  _refreshEdArchBtn();
 }
-function _bldArchChips(){
-  return BLD_ARCHETYPES.map(function(a){
-    return '<button class="ti-chip ti-arch-chip'+(a.name===edSelArch?' active':'')+'" onclick="selBldArch(\''+a.name.replace(/'/g,"\\'")+'\')" type="button">'+a.name+'</button>';
-  }).join('');
+function _refreshEdArchBtn(){
+  var btn=document.getElementById('edArchBtn');if(!btn)return;
+  var preset=edSelArch?BLD_ARCHETYPES.find(function(a){return a.name===edSelArch;}):null;
+  var isCustom=edSelArch&&!preset;
+  if(preset){
+    btn.className='ed-arch-btn';
+    btn.innerHTML='<i class="ph-bold '+preset.icon+'" style="font-size:.9rem;color:'+preset.color+'"></i><span style="flex:1">'+preset.name+'</span><i class="ph-bold ph-caret-right"></i>';
+  }else if(isCustom){
+    btn.className='ed-arch-btn';
+    btn.innerHTML='<i class="ph-bold ph-pencil" style="font-size:.9rem;opacity:.7"></i><span style="flex:1">'+edSelArch+'</span><i class="ph-bold ph-caret-right"></i>';
+  }else{
+    btn.className='ed-arch-btn empty';
+    btn.innerHTML='<span style="flex:1">Select archetype…</span><i class="ph-bold ph-caret-right"></i>';
+  }
+}
+function _edArchBtnHtml(){
+  var preset=edSelArch?BLD_ARCHETYPES.find(function(a){return a.name===edSelArch;}):null;
+  var isCustom=edSelArch&&!preset;
+  var inner='';
+  if(preset)inner='<i class="ph-bold '+preset.icon+'" style="font-size:.9rem;color:'+preset.color+'"></i><span style="flex:1">'+preset.name+'</span><i class="ph-bold ph-caret-right"></i>';
+  else if(isCustom)inner='<i class="ph-bold ph-pencil" style="font-size:.9rem;opacity:.7"></i><span style="flex:1">'+edSelArch+'</span><i class="ph-bold ph-caret-right"></i>';
+  else inner='<span style="flex:1">Select archetype…</span><i class="ph-bold ph-caret-right"></i>';
+  return '<button type="button" class="ed-arch-btn'+(edSelArch?'':' empty')+'" id="edArchBtn" onclick="openArchPicker()">'+inner+'</button>';
 }
 function suggestBuildArchetype(){
   var moves=[document.getElementById('edM1'),document.getElementById('edM2'),document.getElementById('edM3'),document.getElementById('edM4')].map(function(el){return el?el.value||'':''}).filter(Boolean);
@@ -406,7 +425,7 @@ function renderBuilds(){
           '</div>'+
         '</div>'+
       '</div>'+
-      '<div class="bld-tags">'+(b.battle_format?'<span class="btag btag-fmt">'+b.battle_format+'</span>':'')+(b.archetype?'<span class="btag btag-arch">'+b.archetype+'</span>':'')+(b.item_name?'<span class="btag btag-item">'+b.item_name+'</span>':'')+(b.nature_name?'<span class="btag btag-nat">'+b.nature_name+'</span>':'')+(b.ability?'<span class="btag btag-abi">'+b.ability+'</span>':'')+bldMoveWarnPill(b)+bldAbiWarnPill(b)+'</div>'+
+      '<div class="bld-tags">'+(b.battle_format?'<span class="btag btag-fmt">'+b.battle_format+'</span>':'')+(b.archetype?'<span class="btag btag-arch" style="--ac:'+archColour(b.archetype)+'">'+b.archetype+'</span>':'')+(b.item_name?'<span class="btag btag-item">'+b.item_name+'</span>':'')+(b.nature_name?'<span class="btag btag-nat">'+b.nature_name+'</span>':'')+(b.ability?'<span class="btag btag-abi">'+b.ability+'</span>':'')+bldMoveWarnPill(b)+bldAbiWarnPill(b)+'</div>'+
       '<div class="bld-moves"><div class="bmove">'+(b.move_1||'—')+'</div><div class="bmove">'+(b.move_2||'—')+'</div><div class="bmove">'+(b.move_3||'—')+'</div><div class="bmove">'+(b.move_4||'—')+'</div></div>'+
     '</div>';
   }).join('')+'</div>';
@@ -532,7 +551,7 @@ function renderEditorForm(c){
     selectedCard+
     '<div class="ed-card" style="margin-top:1rem"><label class="ed-label" style="margin-top:0">Build Name</label><input class="ed-input" id="edName" value="'+(b?b.build_name:'').replace(/"/g,'&quot;')+'" placeholder="e.g. Sweeper '+dName+'">'+
       '<div class="ed-row" style="margin-top:.5rem"><div><label class="ed-label">Format</label><select class="ed-select" id="edFmt"><option value="Singles"'+(b&&b.battle_format==='Singles'?' selected':'')+'>Singles</option><option value="Doubles"'+(b&&b.battle_format==='Doubles'?' selected':'')+'>Doubles</option></select></div></div>'+
-      '<div style="margin-top:.55rem"><label class="ed-label" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem">Archetype<button class="btn btn-ghost" style="font-size:.62rem;padding:.18rem .5rem;min-height:auto;line-height:1.3;font-family:inherit" onclick="onSuggestArch()" type="button">✨ Suggest</button></label><div class="ti-picker" id="edArchPicker">'+_bldArchChips()+'</div><input type="hidden" id="edArch" value="'+edSelArch+'"></div>'+
+      '<div style="margin-top:.55rem"><label class="ed-label" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.3rem">Archetype<button class="btn btn-ghost" style="font-size:.62rem;padding:.18rem .5rem;min-height:auto;line-height:1.3;font-family:inherit" onclick="onSuggestArch()" type="button">✨ Suggest</button></label>'+_edArchBtnHtml()+'<input type="hidden" id="edArch" value="'+edSelArch+'"></div>'+
     '</div>'+
     '<div class="ed-card" style="margin-top:1rem"><h3 style="display:flex;align-items:center;gap:8px">Stat Allocation'+(isMega?'<img src="'+MEGA_STONE_URL+'" alt="Mega" style="width:20px;height:20px;object-fit:contain;display:block;flex-shrink:0" onerror="this.style.display=\'none\'">':'')+'</h3><div id="statSection">'+statSectionHtml+'</div></div>'+
     '<div class="ed-card" style="margin-top:1rem"><h3>Moves & Ability</h3>'+
@@ -1164,7 +1183,7 @@ function renderBuildDetail(c){
       (isShiny?'<div class="bd-shiny-badge">✦ Shiny Variant</div>':'')+
     '</div>'+
     // Summary tags
-    '<div class="bd-summary">'+(b.battle_format?'<span class="btag btag-fmt">'+b.battle_format+'</span>':'')+(b.archetype?'<span class="btag btag-arch">'+b.archetype+'</span>':'')+(b.item_name?'<span class="btag btag-item">'+b.item_name+'</span>':'')+(b.nature_name?'<span class="btag btag-nat">'+b.nature_name+'</span>':'')+(b.ability?'<span class="btag btag-abi'+(_ablState==='illegal'?' btag-warn':'')+'">'+(_ablState==='illegal'?'<i class="ph-fill ph-warning"></i> ':'')+b.ability+'</span>':'')+'</div>'+
+    '<div class="bd-summary">'+(b.battle_format?'<span class="btag btag-fmt">'+b.battle_format+'</span>':'')+(b.archetype?'<span class="btag btag-arch" style="--ac:'+archColour(b.archetype)+'">'+b.archetype+'</span>':'')+(b.item_name?'<span class="btag btag-item">'+b.item_name+'</span>':'')+(b.nature_name?'<span class="btag btag-nat">'+b.nature_name+'</span>':'')+(b.ability?'<span class="btag btag-abi'+(_ablState==='illegal'?' btag-warn':'')+'">'+(_ablState==='illegal'?'<i class="ph-fill ph-warning"></i> ':'')+b.ability+'</span>':'')+'</div>'+
     // Configuration
     '<div class="card"><h3 style="font-size:.85rem;font-weight:800;margin-bottom:.7rem">⚙️ Configuration</h3>'+
       '<div class="bd-config">'+
