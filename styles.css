@@ -3276,15 +3276,22 @@ body.share-loading [onclick="tdPillShare()"]::after{
     grid-template-columns:repeat(6,1fr);padding:.65rem;gap:.3rem;
   }
 
-  /* ── Pokédex: 4-column grid, generous card art ── */
-  .dex-grid{grid-template-columns:repeat(4,1fr);max-width:none;padding:.85rem 1.5rem 1.5rem;gap:.75rem}
-  .pb-card-art{height:152px}
-  .pb-card-art img{width:128px;height:128px}
+  /* ── Pokédex: 4-column grid ── */
+  .dex-grid{grid-template-columns:repeat(4,1fr);max-width:none;padding:.85rem 1.5rem 1.5rem;gap:.85rem}
+
+  /* Cards: bigger, bolder, more stylised on desktop */
+  .pb-card{padding:.95rem .75rem .85rem}
+  .pb-card-art{height:188px}
+  .pb-card-art img{width:168px;height:168px}
+  .pb-card-name{font-size:.95rem;font-weight:900;margin-top:.5rem;letter-spacing:-.01em}
+  .pb-card-dex{font-size:.65rem;font-weight:700;margin-top:2px}
+  .pb-card-types{margin-top:5px;gap:4px}
+  .pb-card-types .type-pill{font-size:10px;padding:3px 10px}
 }
 
 /* ═══════ WIDESCREEN (1600px+) ═══════ */
 
 @media(min-width:1600px){
-  /* Pokédex: 5 columns at true widescreen — cards stay generous */
+  /* Pokédex: 5 columns at true widescreen */
   .dex-grid{grid-template-columns:repeat(5,1fr)}
 }
