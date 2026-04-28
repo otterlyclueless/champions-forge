@@ -3398,20 +3398,36 @@ body.share-loading [onclick="tdPillShare()"]::after{
   .picker-sheet{border-radius:20px!important;max-height:78vh;margin:0}
 
   /* ── Desktop Finder-window: third picker column ── */
-  /* Starts at 0 width, slides open to 380px when .open */
+  /* Starts at width:0, slides to 380px. Height set by JS to match form col. */
   .ed-picker-col{
     width:0;overflow:hidden;flex-shrink:0;
-    background:var(--bg2);
-    border-left:1px solid transparent;
+    background:var(--card);
+    border:1px solid transparent;
     transition:width .28s cubic-bezier(.4,0,.2,1),border-color .28s;
     position:sticky;top:0;align-self:flex-start;
-    max-height:calc(100vh - 140px);
-    border-radius:0 14px 14px 0;
+    border-radius:14px;
   }
   .ed-picker-col.open{
     width:380px;overflow-y:auto;overflow-x:hidden;
-    border-left-color:var(--border);
+    border-color:var(--border);
   }
+
+  /* Right-arrows on desktop: move slots + item button point right → panel direction */
+  .ms-chev{transform:rotate(-90deg)}
+  .be-select .ph-caret-down{transform:rotate(-90deg)}
+
+  /* Strategy: hide inline content on desktop (opens in third panel) */
+  .ed-desktop-layout details>*:not(summary){display:none}
+  .ed-desktop-layout details summary{cursor:pointer}
+  .ed-strat-caret{margin-left:auto;flex-shrink:0;font-size:.85rem;color:var(--muted)}
+
+  /* Item picker sheet inside the third panel — strip mobile-only chrome */
+  .ed-picker-col .picker-handle{display:none}
+  .ed-picker-col .picker-sheet{
+    border-radius:0;border:none;max-height:none;padding:0;
+    background:transparent;animation:none;
+  }
+  .ed-picker-col .picker-head{border-radius:0;padding:.5rem 0 .5rem}
   /* Header: title + close button */
   .ed-dp-hdr{
     display:flex;align-items:center;justify-content:space-between;gap:.75rem;
