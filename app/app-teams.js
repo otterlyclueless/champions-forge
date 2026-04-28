@@ -449,8 +449,8 @@ function renderTeams(){
       tmArch+
     '</div>'+
   '</div>'+
-'<div class="vh-actions">'+
-  '<button class="vh-btn vh-btn-md vh-btn-edit" onclick="event.stopPropagation();showTeamEditor(\''+t.id+'\')" aria-label="Edit team">✏️</button>'+
+'<div class="vh-actions" onclick="event.stopPropagation()">'+
+  '<button class="vh-btn vh-btn-md vh-btn-edit" onclick="showTeamEditor(\''+t.id+'\')" aria-label="Edit team">✏️</button>'+
   '<div class="om-wrap">'+
     '<button class="vh-btn vh-btn-md vh-btn-more" onclick="event.stopPropagation();toggleTmlOm(\''+t.id+'\')" aria-label="More">⋮</button>'+
       '<div class="om-menu" id="tmlOm-'+t.id+'">'+
@@ -467,8 +467,8 @@ function renderTeams(){
   }).join('')+'</div>';
 }
 
-function closeAllTmlOms(){document.querySelectorAll('[id^="tmlOm-"]').forEach(function(m){m.classList.remove('open')})}
-function toggleTmlOm(id){var m=document.getElementById('tmlOm-'+id);if(!m)return;var wasOpen=m.classList.contains('open');closeAllTmlOms();if(!wasOpen)m.classList.add('open')}
+function closeAllTmlOms(){document.querySelectorAll('[id^="tmlOm-"]').forEach(function(m){m.classList.remove('open');var c=m.closest('.tml-card');if(c)c.classList.remove('om-active')})}
+function toggleTmlOm(id){var m=document.getElementById('tmlOm-'+id);if(!m)return;var wasOpen=m.classList.contains('open');closeAllTmlOms();if(!wasOpen){m.classList.add('open');var c=m.closest('.tml-card');if(c)c.classList.add('om-active')}}
 document.addEventListener('click',function(e){if(!e.target.closest('.om-wrap')){closeAllTmlOms();closeAllBldOms()}});
 
 // Team member stat helpers — reuse Drop 2/3 bsCalcStatFor / bsGetCalcStatsFor
