@@ -3287,6 +3287,18 @@ body.share-loading [onclick="tdPillShare()"]::after{
   /* ── Global page head ── */
   .pg-head{padding:1.1rem 1.5rem .85rem}
 
+  /* ── Items page: multi-col grid, no-scroll filters, bigger sprites ── */
+  /* Grid on the outer container — .it-filter rows span full width, cards flow into cols */
+  .items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:0 1.25rem;padding:.85rem 2.5rem 2rem;max-width:none;align-content:start}
+  .items-grid .it-filter{grid-column:1/-1;overflow-x:visible;flex-wrap:wrap;padding:.3rem 0 .55rem}
+  /* Wider search area */
+  #pg-items>div{padding:.65rem 2.5rem .4rem!important}
+  /* Bigger sprites, polished cards */
+  .it-card{border-radius:16px;padding:1rem;gap:.85rem;transition:border-color .15s,transform .18s,box-shadow .18s}
+  .it-card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.25);border-color:var(--border2)}
+  .it-sprite{width:60px;height:60px}
+  .it-name{font-size:.92rem;font-weight:800}
+
   /* ── Dashboard: 4-across stat cards — bigger, more wow ── */
   .da-stats{grid-template-columns:repeat(4,1fr);padding:1.2rem 1.5rem 1rem;gap:.85rem}
   .da-stat{padding:1.3rem 1.5rem;min-height:124px;border-radius:16px;transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s}
