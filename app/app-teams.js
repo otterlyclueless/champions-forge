@@ -436,7 +436,7 @@ function renderTeams(){
     for(var i=visibleMembers.length;i<rosterSize;i++){mems+='<div class="tml-mem"><div class="tml-mem-empty">+</div></div>'}
     var safeName=t.name.replace(/'/g,"\\'");
     var tmCol=t.team_theme?TM_THEME_COLORS[t.team_theme]||null:null;
-    var tmCardStyle=tmCol?'border-left:3px solid '+tmCol+';':'';
+    var tmCardStyle=tmCol?'border-left:3px solid '+tmCol+';--tm-col:'+tmCol+';':'';
     var tmIcon=t.team_icon?'<span class="tml-icon-badge">'+t.team_icon+'</span>':'';
     var tmArch=t.team_archetype?'<span class="tml-arch-pill">'+t.team_archetype+'</span>':'';
     return '<div class="tml-card" style="'+tmCardStyle+'" onclick="showTeamDetail(\''+t.id+'\')">'+
