@@ -1358,6 +1358,29 @@ function confirmDelBuild(id,name){
 }
 async function delBuild(id){try{await rm('builds',{'id':'eq.'+id},true);closeCm();toast('Build deleted');await loadBuilds();renderBuilds();renderDash()}catch(e){toast(e.message,'err')}}
 function closeCm(){authMode='login';document.getElementById('confirmMod').classList.remove('open');resetConfirmMod()}
+function showMoveDetail(name){
+  var m=allMoveIndex[name];
+  var col=m&&TC[m.type]?TC[m.type].m:'var(--surface2)';
+  var catIcon=m&&m.category==='Physical'?'⚔️':m&&m.category==='Special'?'✨':'🛡️';
+  var html='<div style="margin-bottom:.65rem;display:flex;align-items:center;gap:.55rem">'+
+    '<span class="type-pill" style="background:'+col+';font-size:.78rem;padding:4px 14px">'+(m?m.type:'Unknown')+'</span>'+
+    '<span style="font-size:.82rem;font-weight:700;color:var(--muted)">'+catIcon+' '+(m?m.category:'Unknown')+'</span>'+
+  '</div>'+
+  '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;margin-bottom:.75rem">'+
+    '<div style="text-align:center;background:var(--surface);border-radius:10px;padding:.5rem"><div style="font-size:.56rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-bottom:.1rem">Power</div><div style="font-size:1.05rem;font-weight:900">'+((m&&m.power>0)?m.power:'—')+'</div></div>'+
+    '<div style="text-align:center;background:var(--surface);border-radius:10px;padding:.5rem"><div style="font-size:.56rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-bottom:.1rem">Accuracy</div><div style="font-size:1.05rem;font-weight:900">'+((m&&m.accuracy)?m.accuracy+'%':'—')+'</div></div>'+
+    '<div style="text-align:center;background:var(--surface);border-radius:10px;padding:.5rem"><div style="font-size:.56rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-bottom:.1rem">PP</div><div style="font-size:1.05rem;font-weight:900">'+((m&&m.pp)?m.pp:'—')+'</div></div>'+
+  '</div>'+
+  (m&&m.short?'<div style="font-size:.82rem;color:var(--text2);line-height:1.55;text-align:left">'+m.short+'</div>':'<div style="font-size:.8rem;color:var(--muted)">No move data available.</div>');
+  resetConfirmMod();
+  document.getElementById('cmEmoji').textContent=col!=='var(--surface2)'?'🎯':'❓';
+  document.getElementById('cmTitle').textContent=name;
+  document.getElementById('cmMsg').innerHTML=html;
+  document.getElementById('cmBtn').textContent='Close';
+  document.getElementById('cmBtn').onclick=closeCm;
+  document.getElementById('cmBtn').className='btn btn-ghost';
+  document.getElementById('confirmMod').classList.add('open');
+}
 function showLoginModal(msg){
   var isSignup=authMode==='signup';
   // Drop F.1: in-modal mode toggle so public-view visitors (where the sidebar
