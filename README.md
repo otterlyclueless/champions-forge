@@ -103,7 +103,9 @@ Nature mods     1.1 increased / 0.9 decreased / 1.0 neutral
 ## 🛠 Stack
 
 - **Frontend** — Vanilla HTML/JS/CSS PWA, **no framework, no build step**
-- **Modular JS** — `app/app-core.js` (shared utils + auth) · `-dashboard` · `-pokedex` · `-builds` · `-teams` · `-profile` · `-pickers` · `-router` · `-init` (bootstrap)
+- **Modular JS** — section files under `app/` for core shell, builds, teams, items/reference/profile, pickers, public routes, sharing, and bootstrap. See `app/README.md`.
+- **Modular CSS** — section files under `styles/`, loaded directly by `index.html` in cascade order. See `styles/README.md`.
+- **Housekeeping check** — run `scripts/check-paths.sh` after moving files to verify linked JS/CSS paths and JavaScript syntax.
 - **Backend** — [Supabase](https://supabase.com) (PostgreSQL + Row-Level Security + Auth)
 - **Auth** — email/password, instant activation (no confirmation step), refresh-token flow via `authFetch()` wrapper
 - **Hosting** — GitHub Pages (auto-deploys from `main`)
@@ -140,7 +142,7 @@ To fork against your own Supabase project:
 
 1. Create a project at [supabase.com](https://supabase.com)
 2. Run the SQL migrations (see `sql/` directory)
-3. Replace `API` + `ANON` at the top of `app/app-core.js` with your project URL + anon key
+3. Replace `API` + `ANON` at the top of `app/core/core.js` with your project URL + anon key
 4. Import reference data via the admin panel or direct SQL
 
 ## 🗺 Roadmap

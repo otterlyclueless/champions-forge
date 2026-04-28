@@ -1,0 +1,35 @@
+/* #SECTION: TEAMS */
+/* ═══════ TEAMS ═══════ */
+
+.teams-grid{display:flex;flex-direction:column;gap:1rem;padding:0 2rem 2rem}
+.tm-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1rem}
+.tm-card:hover{border-color:var(--border2)}
+.tm-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.7rem}
+.tm-name{font-weight:700;font-size:1rem}
+.tm-fmt{padding:2px 8px;border-radius:6px;font-size:.7rem;font-weight:600}
+.fmt-s{background:var(--green-bg);color:var(--green)}.fmt-d{background:var(--blue-bg);color:var(--blue)}
+.tm-members{display:flex;gap:.6rem;flex-wrap:wrap}
+.tm-mem{display:flex;align-items:center;gap:.4rem;padding:.4rem .6rem;background:var(--surface);border:1px solid var(--border);border-radius:10px}
+.tm-mem img{width:36px;height:36px;object-fit:contain}
+.tm-mem-name{font-weight:600;font-size:.78rem}.tm-mem-role{font-size:.62rem;color:var(--muted)}
+/* Subsection: Team editor */
+.te-roster{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-top:.5rem}
+.te-slot{display:flex;flex-direction:column;align-items:center;padding:.8rem;border-radius:12px;border:2px dashed var(--border);min-height:110px;justify-content:center}
+.te-slot.filled{border-style:solid;border-color:var(--green);background:var(--green-bg)}
+.te-slot img{width:56px;height:56px;object-fit:contain}
+.te-slot span{font-size:.65rem;font-weight:600;text-align:center;margin-top:3px}
+.te-slot .te-rm{font-size:.6rem;color:var(--red);cursor:pointer;margin-top:2px}
+.te-builds{display:grid;grid-template-columns:1fr;gap:.5rem;max-height:600px;overflow-y:auto}
+.te-bld{display:flex;align-items:center;gap:.5rem;padding:.5rem;border-radius:8px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;transition:all .15s}
+.te-bld:hover{border-color:var(--red)}.te-bld.picked{border-color:var(--green);background:var(--green-bg)}
+.te-bld img{width:44px;height:44px;object-fit:contain}
+
+.te-bld-info{font-size:.72rem;font-weight:600}.te-bld-meta{font-size:.6rem;color:var(--muted)}
+
+/* Subsection: Team detail */
+.team-member-card{overflow:hidden}
+.team-member-right{min-width:0}
+.team-member-moves{flex-wrap:wrap}
+.team-member-stats{min-width:0}
+
+ 

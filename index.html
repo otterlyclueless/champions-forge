@@ -20,7 +20,19 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles/base/01-base.css">
+<link rel="stylesheet" href="styles/views/02-pokedex.css">
+<link rel="stylesheet" href="styles/views/03-builds.css">
+<link rel="stylesheet" href="styles/views/04-teams.css">
+<link rel="stylesheet" href="styles/views/05-items.css">
+<link rel="stylesheet" href="styles/views/06-reference.css">
+<link rel="stylesheet" href="styles/views/07-profile.css">
+<link rel="stylesheet" href="styles/responsive/08-mobile.css">
+<link rel="stylesheet" href="styles/public/09-public.css">
+<link rel="stylesheet" href="styles/share/10-share.css">
+<link rel="stylesheet" href="styles/components/11-social-profile.css">
+<link rel="stylesheet" href="styles/components/12-team-build-picker.css">
+<link rel="stylesheet" href="styles/responsive/13-desktop.css">
 <title>Champions Forge</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
@@ -295,14 +307,34 @@
 <!-- Drop F.2.1 v5: html-to-image for rendering share cards. -->
 <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js" defer></script>
 
-<script src="app/app-core.js"></script>
-<script src="app/app-dashboard.js"></script>
-<script src="app/app-pokedex.js"></script>
-<script src="app/app-builds.js"></script>
-<script src="app/app-teams.js"></script>
-<script src="app/app-profile.js"></script>
-<script src="app/app-pickers.js"></script>
-<script src="app/app-router.js"></script>
-<script src="app/app-init.js"></script>
+<script src="app/core/core.js"></script>
+<script src="app/core/dashboard.js"></script>
+<script src="app/core/pokedex.js"></script>
+<script src="app/builds/stats.js"></script>
+<script src="app/builds/main.js"></script>
+<script src="app/builds/sharing.js"></script>
+<script src="app/builds/detail.js"></script>
+<script src="app/builds/utils.js"></script>
+<script src="app/teams/main.js"></script>
+<script src="app/teams/sharing.js"></script>
+<script src="app/teams/views.js"></script>
+<script src="app/teams/detail.js"></script>
+<script src="app/teams/coverage.js"></script>
+<script src="app/teams/battle-log.js"></script>
+<script src="app/items/items.js"></script>
+<script src="app/reference/reference.js"></script>
+<script src="app/profile/profile.js"></script>
+<script src="app/pickers/editor-panel.js"></script>
+<script src="app/teams/build-picker.js"></script>
+<script src="app/pickers/ability-nature.js"></script>
+<script src="app/pickers/item-picker.js"></script>
+<script src="app/pickers/move-picker.js"></script>
+<script src="app/pickers/archetype-picker.js"></script>
+<script src="app/public/router-core.js"></script>
+<script src="app/public/renderers.js"></script>
+<script src="app/public/social.js"></script>
+<script src="app/share/share.js"></script>
+<script src="app/public/router-boot.js"></script>
+<script src="app/core/init.js"></script>
 </body>
 </html>
