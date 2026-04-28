@@ -3311,6 +3311,25 @@ body.share-loading [onclick="tdPillShare()"]::after{
 
   /* Quick-btns: slightly larger on desktop */
   .pb-quick-btn{width:26px;height:26px;font-size:.8rem}
+
+  /* ── Pokédex detail panel ── */
+  /* Wider panel — more room for stats, abilities, type chart */
+  .panel-ct{max-width:560px}
+  /* Taller hero with bigger sprite */
+  .panel-art{height:400px;padding:1.5rem 1.2rem 2.2rem}
+  .panel-art img{width:200px;height:200px;margin-bottom:2.5rem}
+  .panel-art-types .type-pill{font-size:.78rem;padding:4px 14px}
+  /* Panel header: bolder name */
+  .p-header{padding:1.2rem 1.5rem .9rem}
+  .p-header h2{font-size:1.35rem;font-weight:900;letter-spacing:-.02em}
+  /* Abilities section */
+  .dex-abl-section{padding:.9rem 1.5rem 1rem}
+  .dex-abl-name{font-size:.85rem}
+  /* Collapsible section toggles */
+  .sec-tog{padding:.75rem 1.5rem}
+  .sec-tog .sl{font-size:.88rem}
+  /* Section content */
+  .sec-body{padding:0 1.5rem 1.2rem}
 }
 
 /* ═══════ WIDESCREEN (1600px+) ═══════ */
