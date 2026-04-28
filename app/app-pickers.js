@@ -47,15 +47,24 @@ function _edStrategyClick(e){
   e.preventDefault();
   var b=editBuildId?allBuilds.find(function(x){return x.id===editBuildId}):null;
   var html=
-    '<div class="ed-dp-strat-body">'+
-      '<div class="ed-dp-strat-row"><label class="ed-label">Win Condition</label>'+
-      '<textarea class="ed-textarea ed-dp-strat-ta" id="edWin">'+(b?b.win_condition||'':'')+'</textarea></div>'+
-      '<div class="ed-dp-strat-row"><label class="ed-label">Strengths</label>'+
-      '<textarea class="ed-textarea ed-dp-strat-ta" id="edStr">'+(b?b.strengths||'':'')+'</textarea></div>'+
-      '<div class="ed-dp-strat-row"><label class="ed-label">Weaknesses</label>'+
-      '<textarea class="ed-textarea ed-dp-strat-ta" id="edWeak">'+(b?b.weaknesses||'':'')+'</textarea></div>'+
-    '</div>';
+    '<div><label class="ed-label">Win Condition</label>'+
+    '<textarea class="ed-textarea ed-dp-strat-ta" id="edWin">'+(b?b.win_condition||'':'')+'</textarea></div>'+
+    '<div style="margin-top:.6rem"><label class="ed-label">Strengths</label>'+
+    '<textarea class="ed-textarea ed-dp-strat-ta" id="edStr">'+(b?b.strengths||'':'')+'</textarea></div>'+
+    '<div style="margin-top:.6rem"><label class="ed-label">Weaknesses</label>'+
+    '<textarea class="ed-textarea ed-dp-strat-ta" id="edWeak">'+(b?b.weaknesses||'':'')+'</textarea></div>';
   _edDeskPicker(html,'Strategy');
+  // Size textareas to fill the panel height evenly
+  requestAnimationFrame(function(){
+    var col=document.getElementById('edPickerCol');
+    if(!col)return;
+    var available=col.getBoundingClientRect().height - 54 - 24 - 3*32 - 2*10; // header + padding + labels + gaps
+    var taH=Math.max(Math.floor(available/3), 60);
+    ['edWin','edStr','edWeak'].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el)el.style.height=taH+'px';
+    });
+  });
   return false;
 }
 
