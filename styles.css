@@ -3524,33 +3524,40 @@ body.share-loading [onclick="tdPillShare()"]::after{
 
   /* ── Team detail hero banner ── */
   .td-hero{
-    display:flex;align-items:flex-end;justify-content:center;gap:.75rem;
-    padding:1.5rem 2.5rem 1.1rem;
+    display:flex;align-items:flex-end;justify-content:space-around;gap:1rem;
+    padding:1.75rem 2.5rem 1.35rem;
     background:var(--bg2);border-bottom:1px solid var(--border);
   }
-  .td-hero-mem{display:flex;flex-direction:column;align-items:center;flex:1;max-width:130px;cursor:pointer}
-  .td-hero-img{width:96px;height:96px;object-fit:contain;filter:drop-shadow(0 4px 12px rgba(0,0,0,.38));transition:transform .18s}
-  .td-hero-mem:hover .td-hero-img{transform:translateY(-4px) scale(1.05)}
-  .td-hero-name{font-size:.7rem;font-weight:700;margin-top:.4rem;text-align:center;color:var(--muted)}
-  .td-hero-empty-img{width:96px;height:96px;border-radius:16px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted2);font-size:1.4rem}
+  .td-hero-mem{display:flex;flex-direction:column;align-items:center;flex:1;max-width:150px;cursor:pointer}
+  .td-hero-img{width:112px;height:112px;object-fit:contain;filter:drop-shadow(0 4px 14px rgba(0,0,0,.38));transition:transform .18s}
+  .td-hero-mem:hover .td-hero-img{transform:translateY(-5px) scale(1.06)}
+  .td-hero-name{font-size:.75rem;font-weight:700;margin-top:.5rem;text-align:center;color:var(--muted)}
+  .td-hero-empty-img{width:112px;height:112px;border-radius:18px;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;color:var(--muted2);font-size:1.5rem}
   .td-hero-slot-empty .td-hero-name{opacity:.35}
 
-  /* ── Team detail: 2-column member grid — full available width ── */
+  /* ── Team detail: 2-column member grid ── */
   .td-stack{max-width:none;margin:0;padding:1rem 2.5rem 2rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem}
   .td-stack>:not(.td-member){grid-column:1/-1}
-  .td-mem-head{padding:.9rem 1rem}
+  /* Odd last member spans full width so it doesn't leave an empty half-row */
+  .td-member:last-child:nth-child(odd){grid-column:1/-1}
+  .td-mem-head{padding:.9rem 1.1rem}
   .td-mem-img{width:72px;height:72px}
   .td-mem-compact-stats{font-size:.67rem;gap:8px}
-  /* Empty slots: taller on desktop so right col fills the space */
+  /* Empty slots: taller on desktop */
   .td-empty-slot{padding:2rem 1.25rem;font-size:.85rem}
 
-  /* ── Team editor: left/right 2-col split — full width ── */
+  /* ── Team editor: left/right 2-col split ── */
   .td-stack.te-editor{display:flex;flex-direction:row;align-items:flex-start;gap:1.5rem;max-width:none;margin:0}
-  .te-left{width:400px;flex-shrink:0;position:sticky;top:0;align-self:flex-start;display:flex;flex-direction:column;gap:.85rem;max-height:calc(100vh - 130px);overflow-y:auto}
+  .te-left{width:460px;flex-shrink:0;position:sticky;top:0;align-self:flex-start;display:flex;flex-direction:column;gap:.85rem;max-height:calc(100vh - 130px);overflow-y:auto}
   .te-left::-webkit-scrollbar{width:0}
   .te-right{flex:1;min-width:0;display:flex;flex-direction:column;gap:.85rem}
-  /* Empty add-slot buttons fill the right col height */
   .te-right .td-empty-slot{padding:2.25rem 1.25rem}
+  /* Identity pickers: wrap on desktop instead of horizontal scroll */
+  .te-left .ti-picker{overflow-x:visible;flex-wrap:wrap;padding-bottom:0}
+  /* Form inputs: more comfortable padding in left col */
+  .te-left .ed-input,.te-left .ed-select{padding:.6rem .8rem;font-size:.88rem}
+  .te-left .ed-textarea{padding:.6rem .8rem;font-size:.88rem;min-height:90px}
+  .te-left .ed-label{font-size:.65rem;margin-top:.7rem}
 
   /* ── Build editor Step 1: Pokémon picker — WOW factor ── */
   .epc-grid{grid-template-columns:repeat(5,1fr);gap:.7rem;margin-top:.6rem}
