@@ -62,14 +62,38 @@ function renderDash(){
   // Signed-out state
   if(!usr){
     c.innerHTML=stats+
-      '<div class="da-section" style="padding-top:.5rem">'+
-        '<div class="card" style="text-align:center;padding:1.3rem;max-width:420px;margin:0 auto">'+
-          '<div style="margin-bottom:.5rem;font-size:1.8rem">🔐</div>'+
-          '<h3 style="font-size:1rem;font-weight:700;margin-bottom:.3rem">Save your progress</h3>'+
-          '<p style="font-size:.82rem;color:var(--muted);line-height:1.5">Sign in or create an account to save your builds, teams, items, and Pokédex progress.</p>'+
-          '<div style="display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-top:.9rem">'+
-            '<button class="btn btn-red" onclick="authMode=\'login\';showLoginModal()">Sign In</button>'+
-            '<button class="btn btn-ghost" onclick="authMode=\'signup\';showLoginModal()">Sign Up</button>'+
+      '<div class="da-signout-wrap">'+
+        '<div class="da-signout-main">'+
+          '<div class="card da-signout-card">'+
+            '<div class="da-signout-icon">⚔️</div>'+
+            '<h3 class="da-signout-title">Start your journey</h3>'+
+            '<p class="da-signout-desc">Sign in or create an account to save your builds, teams, items, and Pokédex progress. Free to play.</p>'+
+            '<div class="da-signout-btns">'+
+              '<button class="btn btn-red" onclick="authMode=\'login\';showLoginModal()">Sign In</button>'+
+              '<button class="btn btn-ghost" onclick="authMode=\'signup\';showLoginModal()">Create Account</button>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="da-signout-feats">'+
+          '<div class="da-signout-feat">'+
+            '<div class="da-signout-feat-icon" style="color:var(--red)"><i class="ph-bold ph-book-open-text"></i></div>'+
+            '<div class="da-signout-feat-title">Pokédex</div>'+
+            '<div class="da-signout-feat-desc">Track 261 Pokémon including Megas, Regionals and shiny variants</div>'+
+          '</div>'+
+          '<div class="da-signout-feat">'+
+            '<div class="da-signout-feat-icon" style="color:var(--blue)"><i class="ph-bold ph-sword"></i></div>'+
+            '<div class="da-signout-feat-title">Builds</div>'+
+            '<div class="da-signout-feat-desc">Create competitive builds with full SP allocation and stat calculator</div>'+
+          '</div>'+
+          '<div class="da-signout-feat">'+
+            '<div class="da-signout-feat-icon" style="color:var(--gold)"><i class="ph-bold ph-trophy"></i></div>'+
+            '<div class="da-signout-feat-title">Teams</div>'+
+            '<div class="da-signout-feat-desc">Assemble 6-Pokémon rosters and analyse your type coverage</div>'+
+          '</div>'+
+          '<div class="da-signout-feat">'+
+            '<div class="da-signout-feat-icon" style="color:var(--purple)"><i class="ph-bold ph-users-three"></i></div>'+
+            '<div class="da-signout-feat-title">Community</div>'+
+            '<div class="da-signout-feat-desc">Share builds, follow friends and discover the meta</div>'+
           '</div>'+
         '</div>'+
       '</div>';
