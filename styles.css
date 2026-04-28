@@ -3383,15 +3383,33 @@ body.share-loading [onclick="tdPillShare()"]::after{
   /* Section content */
   .sec-body{padding:0 1.5rem 1.2rem}
 
-  /* ── Build editor Step 2: 2-column layout ── */
-  /* Stat calc on left (sticky so it stays visible while scrolling moves/strategy) */
-  /* Build Name + Moves + Strategy on the right */
-  .editor{padding:1rem 1.5rem 2rem;max-width:1100px;margin:0 auto}
+  /* ── Build editor Step 2: full-width 2-column layout ── */
+  /* No max-width — fills the content area edge to edge */
+  .editor{padding:1rem 1.5rem 2rem}
   .ed-desktop-layout{flex-direction:row;align-items:flex-start;gap:1.25rem;margin-top:1.25rem}
-  .ed-left-col{width:400px;flex-shrink:0;position:sticky;top:0;align-self:flex-start;max-height:calc(100vh - 80px);overflow-y:auto}
+  .ed-left-col{width:420px;flex-shrink:0;position:sticky;top:0;align-self:flex-start;max-height:calc(100vh - 140px);overflow-y:auto}
   .ed-right-col{flex:1;min-width:0}
-  /* Slightly larger stat section on desktop */
   .ed-left-col .ed-card h3{font-size:1rem}
+
+  /* ── Selected Pokémon card: premium desktop treatment ── */
+  .sel-card{padding:1rem 1.2rem;border-radius:18px;border-width:1.5px}
+  .sel-content{padding:.45rem .5rem;border-radius:14px;gap:.9rem}
+  .sel-img{width:90px;height:90px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.25))}
+  .sel-name{font-size:1.2rem;font-weight:900;letter-spacing:-.02em}
+  .sel-dex{font-size:.65rem;margin-top:3px}
+  .sel-types{margin-top:6px;gap:5px}
+  .sel-types .type-pill{font-size:11px;padding:3px 11px}
+  .sel-btn{padding:.45rem .8rem;font-size:.72rem;min-height:36px;border-radius:10px}
+  .sel-bg{opacity:.2}
+
+  /* ── Save bar: desktop — premium, right-aligned, not full-width ── */
+  .save-bar{padding:.85rem 1.5rem;background:color-mix(in srgb,var(--bg2) 94%,transparent);border-top:1px solid var(--border2);justify-content:flex-end;gap:.65rem}
+  .save-bar .btn{flex:0 0 auto;min-width:130px;padding:.65rem 1.6rem;font-size:.88rem;border-radius:12px;font-weight:700}
+  /* Cancel: ghost outline, not full width */
+  .save-bar .btn-ghost{border-color:var(--border2);color:var(--text2)}
+  .save-bar .btn-ghost:hover{border-color:var(--red);color:var(--red)}
+  /* Save: red with stronger shadow */
+  .save-bar .btn-red{box-shadow:0 4px 14px rgba(239,68,68,.35)}
 
   /* ── Builds list: 2-column grid ── */
   .bld-stack{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;padding:1rem 1.5rem 2rem}
