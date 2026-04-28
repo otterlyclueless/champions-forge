@@ -1,7 +1,7 @@
 /* #SECTION: THEME VARIABLES */
 /* ═══════ THEME VARIABLES ═══════ */
 
-:root{--sw:230px;--sw-c:68px}
+:root{--sw:230px;--sw-c:84px}
 [data-theme="dark"]{
   --bg:#111318;--bg2:#1a1d24;--surface:#22262f;--surface2:#2a2f3a;--surface3:#333a47;
   --border:#2e3542;--border2:#3d4556;--text:#eaf0f6;--text2:#c0ccda;--muted:#7a8899;--muted2:#555f6d;
@@ -45,10 +45,16 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;t
 /* Collapsed sidebar: bigger centred icons, hide labels/counts cleanly */
 .sb.c .sb-item{padding:.6rem;justify-content:center;gap:0}
 .sb.c .sb-label,.sb.c .sb-count{display:none}
-.sb.c .sb-icon{width:40px;height:40px;border-radius:10px;font-size:1.2rem}
-.sb.c .sb-toggle{width:40px;height:40px}
+.sb.c .sb-icon{width:44px;height:44px;border-radius:11px;font-size:1.25rem}
+.sb.c .sb-toggle{width:44px;height:44px}
 .sb.c .sb-brand{justify-content:center;padding:.9rem .5rem}
 .sb.c .sb-brand-text,.sb.c .sb-brand-sub{display:none}
+/* Collapsed footer: hide user row, icon-only signout, stack theme buttons */
+.sb.c .user-p{display:none}
+.sb.c .sb-signout{justify-content:center;gap:0;padding:.55rem;width:100%;font-size:1.1rem}
+.sb.c .sb-signout .sb-signout-label{display:none}
+.sb.c .theme-row{flex-direction:column;gap:.28rem;align-items:center}
+.sb.c .theme-btn{width:44px;height:36px}
 .sb-brand{padding:1rem;display:flex;align-items:center;gap:.65rem;border-bottom:1px solid var(--border);min-height:60px}
 .sb-logo{width:36px;height:36px;border-radius:10px;overflow:hidden;flex-shrink:0;box-shadow:0 2px 8px rgba(245,158,11,.3)}
 .sb-logo img{width:100%;height:100%;object-fit:contain}
