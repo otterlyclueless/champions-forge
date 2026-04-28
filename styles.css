@@ -3567,19 +3567,20 @@ body.share-loading [onclick="tdPillShare()"]::after{
   .epc-filter-scroll{overflow-x:visible;flex-wrap:wrap;padding-bottom:0}
 
   /* ── Reference page ── */
-  /* Tab bar + search blocks: wider padding */
-  .ref-tab-bar{padding:0 1.5rem}
-  .ref-search-block{padding:.65rem 1.5rem .5rem}
-  .abl-alpha-hdr{padding:.5rem 1.5rem .15rem}
+  /* Tab bar: more breathing room on desktop */
+  .ref-tab-bar{padding:0 2.5rem}
+  .ref-tab{padding:.95rem .7rem;font-size:.86rem}
+  .ref-search-block{padding:.9rem 2.5rem .7rem}
+  .abl-alpha-hdr{padding:.6rem 2.5rem .2rem}
   /* Abilities: 2-column grid — alpha headers span both cols */
-  .abl-list{display:grid;grid-template-columns:1fr 1fr;padding:0 1.5rem 2rem;gap:0 1.5rem}
+  .abl-list{display:grid;grid-template-columns:1fr 1fr;padding:0 2.5rem 2rem;gap:0 2rem}
   .abl-alpha-hdr{grid-column:1/-1}
-  .abl-card{padding:.8rem .6rem .8rem 0}
+  .abl-card{padding:.88rem .8rem .88rem 0}
   .abl-card:hover{filter:brightness(1.08);background:var(--surface2)}
   /* Natures: 5 columns */
-  .nat-hybrid-grid{grid-template-columns:repeat(5,1fr)!important;padding:.7rem 1.5rem 2rem;gap:.65rem}
+  .nat-hybrid-grid{grid-template-columns:repeat(5,1fr)!important;padding:.7rem 2.5rem 2rem;gap:.65rem}
   /* Archetype list: 3-column */
-  .ref-arch-list{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;padding:.7rem 1.5rem 2rem}
+  .ref-arch-list{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;padding:.7rem 2.5rem 2rem}
   /* Reference detail sheet → centred modal on desktop */
   .ref-det-ov{align-items:center;justify-content:center}
   .ref-det-sheet{border-radius:20px!important;max-height:82vh;width:520px;max-width:90vw;transform:translateY(16px) scale(.97);padding-bottom:1.5rem}
