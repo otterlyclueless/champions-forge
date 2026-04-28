@@ -47,12 +47,14 @@ function _edStrategyClick(e){
   e.preventDefault();
   var b=editBuildId?allBuilds.find(function(x){return x.id===editBuildId}):null;
   var html=
-    '<div><label class="ed-label">Win Condition</label>'+
-    '<textarea class="ed-textarea" id="edWin" style="min-height:80px;resize:vertical">'+(b?b.win_condition||'':'')+'</textarea></div>'+
-    '<div style="margin-top:.7rem"><label class="ed-label">Strengths</label>'+
-    '<textarea class="ed-textarea" id="edStr" style="min-height:60px;resize:vertical">'+(b?b.strengths||'':'')+'</textarea></div>'+
-    '<div style="margin-top:.7rem"><label class="ed-label">Weaknesses</label>'+
-    '<textarea class="ed-textarea" id="edWeak" style="min-height:60px;resize:vertical">'+(b?b.weaknesses||'':'')+'</textarea></div>';
+    '<div class="ed-dp-strat-body">'+
+      '<div class="ed-dp-strat-row"><label class="ed-label">Win Condition</label>'+
+      '<textarea class="ed-textarea ed-dp-strat-ta" id="edWin">'+(b?b.win_condition||'':'')+'</textarea></div>'+
+      '<div class="ed-dp-strat-row"><label class="ed-label">Strengths</label>'+
+      '<textarea class="ed-textarea ed-dp-strat-ta" id="edStr">'+(b?b.strengths||'':'')+'</textarea></div>'+
+      '<div class="ed-dp-strat-row"><label class="ed-label">Weaknesses</label>'+
+      '<textarea class="ed-textarea ed-dp-strat-ta" id="edWeak">'+(b?b.weaknesses||'':'')+'</textarea></div>'+
+    '</div>';
   _edDeskPicker(html,'Strategy');
   return false;
 }
