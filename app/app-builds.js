@@ -590,7 +590,7 @@ function renderEditorForm(c){
         '<div class="ed-row" style="margin-top:.5rem"><div><label class="ed-label">Move 3</label>'+msSlotField(3,ms[2],fs)+'</div><div><label class="ed-label">Move 4</label>'+msSlotField(4,ms[3],fs)+'</div></div>';
       })()+
     '</div>'+
-    '<details class="ed-card" style="margin-top:1rem"><summary style="font-size:.9rem;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center">Strategy <span style="color:var(--muted);font-size:.72rem;font-weight:500">optional</span></summary>'+
+    '<details class="ed-card" style="margin-top:1rem"><summary style="font-size:.9rem;font-weight:700;cursor:pointer;list-style:none;display:flex;align-items:center;gap:.4rem" onclick="return _edStrategyClick(event)">Strategy <span style="color:var(--muted);font-size:.72rem;font-weight:500;flex:1">optional</span><i class="ph-bold ph-caret-right ed-strat-caret"></i></summary>'+
       '<div style="margin-top:.7rem"><label class="ed-label">Win Condition</label><textarea class="ed-textarea" id="edWin">'+(b?b.win_condition||'':'')+'</textarea></div>'+
       '<div class="ed-row" style="margin-top:.5rem"><div><label class="ed-label">Strengths</label><textarea class="ed-textarea" id="edStr">'+(b?b.strengths||'':'')+'</textarea></div><div><label class="ed-label">Weaknesses</label><textarea class="ed-textarea" id="edWeak">'+(b?b.weaknesses||'':'')+'</textarea></div></div>'+
     '</details>'+
