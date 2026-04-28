@@ -384,6 +384,10 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;t
 /* Subsection: Build editor */
 .editor{padding:1rem 2rem 2rem}
 .ed-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+/* Desktop 2-column layout: stat calc left (sticky), build details right */
+.ed-desktop-layout{display:flex;flex-direction:column;gap:1rem;margin-top:1rem}
+.ed-left-col,.ed-right-col{display:flex;flex-direction:column;gap:1rem}
+.ed-left-col>.ed-card,.ed-right-col>.ed-card,.ed-right-col>details{margin-top:0!important}
 .ed-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.1rem}
 .ed-card h3{font-size:.9rem;font-weight:700;margin-bottom:.8rem}
 .ed-label{display:block;font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.3rem;margin-top:.6rem}
@@ -3378,6 +3382,16 @@ body.share-loading [onclick="tdPillShare()"]::after{
   .sec-tog .sl{font-size:.88rem}
   /* Section content */
   .sec-body{padding:0 1.5rem 1.2rem}
+
+  /* ── Build editor Step 2: 2-column layout ── */
+  /* Stat calc on left (sticky so it stays visible while scrolling moves/strategy) */
+  /* Build Name + Moves + Strategy on the right */
+  .editor{padding:1rem 1.5rem 2rem;max-width:1100px;margin:0 auto}
+  .ed-desktop-layout{flex-direction:row;align-items:flex-start;gap:1.25rem;margin-top:1.25rem}
+  .ed-left-col{width:400px;flex-shrink:0;position:sticky;top:0;align-self:flex-start;max-height:calc(100vh - 80px);overflow-y:auto}
+  .ed-right-col{flex:1;min-width:0}
+  /* Slightly larger stat section on desktop */
+  .ed-left-col .ed-card h3{font-size:1rem}
 
   /* ── Builds list: 2-column grid ── */
   .bld-stack{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;padding:1rem 1.5rem 2rem}
