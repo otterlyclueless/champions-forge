@@ -11,37 +11,26 @@
 var ablPickerCache={};
 
 // ─── Desktop Finder-window picker (≥1024px only) ─────────────────────────────
-// On desktop, pickers render inline inside .ed-right-col instead of overlays.
-// Mobile behavior is completely unchanged.
+// On desktop, pickers open as a THIRD column — stat calc | form | picker.
+// The form stays fully visible. Mobile behavior is completely unchanged.
 function _edDeskPicker(html,title){
   if(window.innerWidth<1024)return false;
-  var right=document.querySelector('.ed-right-col');
-  if(!right)return false;
-  if(!right._formHtml)right._formHtml=right.innerHTML;
-  right.style.transition='opacity .18s ease';
-  right.style.opacity='0';
-  setTimeout(function(){
-    right.innerHTML=
-      '<div class="ed-dp-wrap">'+
-        '<div class="ed-dp-hdr">'+
-          '<button class="ed-dp-back" onclick="_edDeskClose()">← Build Details</button>'+
-          '<span class="ed-dp-title">'+title+'</span>'+
-        '</div>'+
-        html+
-      '</div>';
-    right.style.opacity='1';
-  },180);
+  var col=document.getElementById('edPickerCol');
+  if(!col)return false;
+  col.innerHTML=
+    '<div class="ed-dp-hdr">'+
+      '<span class="ed-dp-title">'+title+'</span>'+
+      '<button class="ed-dp-close" onclick="_edDeskClose()">✕</button>'+
+    '</div>'+
+    '<div class="ed-dp-body">'+html+'</div>';
+  col.classList.add('open');
   return true;
 }
 function _edDeskClose(){
-  var right=document.querySelector('.ed-right-col');
-  if(!right||!right._formHtml)return;
-  right.style.opacity='0';
-  setTimeout(function(){
-    right.innerHTML=right._formHtml;
-    right._formHtml=null;
-    right.style.opacity='1';
-  },180);
+  var col=document.getElementById('edPickerCol');
+  if(!col)return;
+  col.classList.remove('open');
+  setTimeout(function(){col.innerHTML='';},300);
 }
 
 // ═══════════════════════════════════════
@@ -957,6 +946,23 @@ var _archPkCatIcons={Offense:'ph-sword',Setup:'ph-trend-up',Defense:'ph-shield',
 var _archPkCatOrder=['Offense','Setup','Defense','Support','VGC'];
 
 function openArchPicker(){
+  // Desktop: render as third panel
+  var archContent='<div class="arch-pk-list" id="archPkList">'+_archPickerRows()+'</div>'+
+    '<div class="arch-pk-custom">'+
+      '<div class="arch-pk-custom-label"><i class="ph-bold ph-pencil"></i> Custom</div>'+
+      '<div class="arch-pk-custom-row">'+
+        '<input class="arch-pk-custom-input" id="archCustomIn" type="text" placeholder="Type a custom archetype…" maxlength="40" value="'+(edSelArch&&!BLD_ARCHETYPES.find(function(a){return a.name===edSelArch;})?edSelArch:'')+'" autocomplete="off">'+
+        '<button class="arch-pk-custom-btn" onclick="_archPickCustom()" type="button">Use</button>'+
+      '</div>'+
+    '</div>';
+  if(_edDeskPicker(archContent,'Archetype')){
+    setTimeout(function(){
+      var inp=document.getElementById('archCustomIn');
+      if(inp)inp.onkeydown=function(e){if(e.key==='Enter')_archPickCustom();};
+    },0);
+    return;
+  }
+  // Mobile: bottom-sheet overlay
   var ov=document.getElementById('archPickerOv');
   if(!ov){
     ov=document.createElement('div');ov.id='archPickerOv';
@@ -1023,7 +1029,8 @@ function _archPickCustom(){
 
 function pickArch(name){
   selBldArch(name);
-  closeArchPicker();
+  _edDeskClose(); // desktop: close third panel
+  closeArchPicker(); // mobile: close overlay
 }
 
 function closeArchPicker(){
