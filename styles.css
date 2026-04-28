@@ -2920,6 +2920,20 @@ body.share-loading [onclick="tdPillShare()"]::after{
 /* Drop G.3: ability editor warning icon */
 .ed-abl-warn-icon{color:var(--gold);font-size:.85rem;margin-left:auto;margin-right:.2rem;flex-shrink:0}
 
+/* ── Signed-out home layout ── */
+.da-signout-wrap{padding:.5rem 1rem 2rem}
+.da-signout-card{text-align:center;padding:1.4rem 1.2rem}
+.da-signout-icon{font-size:2rem;margin-bottom:.5rem}
+.da-signout-title{font-size:1.05rem;font-weight:800;margin-bottom:.4rem}
+.da-signout-desc{font-size:.82rem;color:var(--muted);line-height:1.55}
+.da-signout-btns{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-top:1rem}
+.da-signout-feats{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-top:.75rem}
+.da-signout-feat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:.85rem 1rem}
+.da-signout-feat-icon{font-size:1.3rem;margin-bottom:.3rem}
+.da-signout-feat-icon i{font-size:1.3rem}
+.da-signout-feat-title{font-size:.82rem;font-weight:800;margin-bottom:.2rem}
+.da-signout-feat-desc{font-size:.72rem;color:var(--muted);line-height:1.45}
+
 /* Quick actions — compact single row */
 .da-quick-row{display:flex;gap:.4rem;padding:0 1rem .9rem}
 .da-qrow-btn{flex:1;padding:.55rem .3rem .5rem;border-radius:11px;border:1px solid var(--border);background:var(--card);text-align:center;cursor:pointer;font-family:inherit;transition:all .12s}
@@ -3279,6 +3293,23 @@ body.share-loading [onclick="tdPillShare()"]::after{
 
   /* Hide mobile notif/search header buttons — not needed with sidebar + wide layout */
   .da-hd-btns{display:none!important}
+
+  /* ── Signed-out home: 2-column desktop layout ── */
+  .da-signout-wrap{display:flex;gap:1.5rem;padding:.6rem 1.5rem 2.5rem;align-items:flex-start}
+  .da-signout-main{width:360px;flex-shrink:0}
+  .da-signout-card{text-align:left;padding:2rem 1.8rem}
+  .da-signout-icon{font-size:2.5rem}
+  .da-signout-title{font-size:1.45rem;font-weight:900;letter-spacing:-.025em;margin-bottom:.5rem}
+  .da-signout-desc{font-size:.88rem;max-width:none;line-height:1.6}
+  .da-signout-btns{justify-content:flex-start;margin-top:1.3rem;gap:.65rem}
+  .da-signout-btns .btn{padding:.65rem 1.5rem;font-size:.88rem;min-height:42px}
+  .da-signout-feats{flex:1;grid-template-columns:1fr 1fr;gap:.85rem;margin-top:0;align-content:start}
+  .da-signout-feat{padding:1.15rem 1.25rem;border-radius:16px;transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s}
+  .da-signout-feat:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.22)}
+  .da-signout-feat-icon{font-size:1.5rem;margin-bottom:.5rem}
+  .da-signout-feat-icon i{font-size:1.5rem}
+  .da-signout-feat-title{font-size:.95rem;font-weight:900;letter-spacing:-.01em;margin-bottom:.28rem}
+  .da-signout-feat-desc{font-size:.78rem;line-height:1.5}
 
   /* ── Pokédex: single-row filter bar ── */
   .dex-filter-bar{display:flex;align-items:center;gap:.75rem;padding:.75rem 1.5rem .6rem;flex-wrap:nowrap;position:relative}
