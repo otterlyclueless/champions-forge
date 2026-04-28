@@ -1,0 +1,250 @@
+/* #SECTION: TEAM BUILD PICKER */
+/* Slot-aware build picker used by Teams editor */
+
+.tbp-sheet{
+  width:100%;
+  max-width:560px;
+  max-height:88vh;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-bottom:none;
+  border-radius:22px 22px 0 0;
+  box-shadow:var(--shadow-lg);
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+.tbp-head{
+  position:sticky;
+  top:0;
+  background:var(--bg2);
+  z-index:2;
+  border-bottom:1px solid var(--border);
+  padding:.7rem .9rem .8rem;
+}
+
+.tbp-title{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:.75rem;
+  margin-bottom:.7rem;
+}
+
+.tbp-title span{
+  font-weight:900;
+  font-size:1rem;
+}
+
+.tbp-sub{
+  font-size:.74rem;
+  color:var(--muted);
+  margin-top:2px;
+  line-height:1.35;
+}
+
+.tbp-tabs{
+  display:flex;
+  gap:.35rem;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:.55rem 0 .15rem;
+  justify-content:flex-start;
+  align-items:center;
+}
+
+.tbp-type-tabs{
+  padding:.25rem 0 .05rem;
+}
+
+.tbp-tabs::-webkit-scrollbar{
+  display:none;
+}
+
+.tbp-tabs .it-pill{
+  flex:0 0 auto;
+  font-size:.66rem;
+  padding:.36rem .68rem;
+}
+
+.tbp-tab-sep{
+  width:1px;
+  height:22px;
+  background:var(--border);
+  flex:0 0 1px;
+  margin:0 .15rem;
+}
+
+.tbp-body{
+  overflow:auto;
+  padding:.75rem .9rem 1rem;
+  flex:1;
+  background:linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%);
+}
+
+.tbp-list{
+  display:flex;
+  flex-direction:column;
+  gap:.5rem;
+}
+
+.tbp-build-row{
+  width:100%;
+  display:grid;
+  grid-template-columns:48px minmax(0,1fr);
+  grid-template-areas:
+    "sprite info"
+    "sprite meta";
+  gap:.2rem .65rem;
+  text-align:left;
+  padding:.65rem .7rem;
+  border-radius:14px;
+  border:1.5px solid var(--border);
+  background:var(--surface);
+  color:var(--text);
+  font-family:inherit;
+  cursor:pointer;
+  transition:transform .12s,border-color .12s,background .12s;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.tbp-build-row:active{
+  transform:scale(.98);
+}
+
+.tbp-build-row.selected{
+  border-color:var(--green);
+  background:var(--green-bg);
+}
+
+.tbp-build-row.already{
+  border-color:var(--gold);
+  background:var(--gold-bg);
+  opacity:.78;
+}
+
+.tbp-sprite{
+  grid-area:sprite;
+  width:48px;
+  height:48px;
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 48px;
+  overflow:hidden;
+  align-self:center;
+}
+
+.tbp-sprite img{
+  width:42px;
+  height:42px;
+  object-fit:contain;
+}
+
+.tbp-info{
+  grid-area:info;
+  min-width:0;
+}
+
+.tbp-name{
+  display:flex;
+  align-items:center;
+  gap:.35rem;
+  min-width:0;
+  font-size:.82rem;
+  font-weight:900;
+  line-height:1.15;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.tbp-name span:first-child{
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.tbp-build-name{
+  font-size:.68rem;
+  color:var(--muted);
+  font-weight:700;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  margin-top:1px;
+}
+
+.tbp-meta{
+  font-size:.63rem;
+  color:var(--muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  margin-top:2px;
+}
+
+.tbp-shiny{
+  color:var(--purple);
+  font-size:.72rem;
+}
+
+.tbp-right{
+  grid-area:meta;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:.35rem;
+  flex-wrap:wrap;
+  min-width:0;
+}
+
+.tbp-types{
+  display:flex;
+  gap:3px;
+  justify-content:flex-start;
+  flex:0 0 auto;
+}
+
+.tbp-format{
+  font-size:.58rem;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  color:var(--muted);
+  font-weight:900;
+  text-align:left;
+  flex:0 0 auto;
+}
+
+.tbp-already{
+  font-size:.58rem;
+  color:var(--gold);
+  font-weight:900;
+  flex:0 0 auto;
+}
+
+@media(max-width:520px){
+  .tbp-sheet{
+    max-width:none;
+    max-height:90vh;
+    border-radius:20px 20px 0 0;
+  }
+
+  .tbp-build-row{
+    grid-template-columns:46px minmax(0,1fr);
+    padding:.65rem;
+  }
+
+  .tbp-sprite{
+    width:46px;
+    height:46px;
+    flex-basis:46px;
+  }
+
+  .tbp-sprite img{
+    width:40px;
+    height:40px;
+  }
+}
+ 

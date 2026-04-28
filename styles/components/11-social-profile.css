@@ -1,0 +1,308 @@
+/* #SECTION: DROP F.3 — USERNAME MODAL */
+/* ══════════════════════════════════════════════════════════════════
+   Bottom-sheet modal triggered when the user tries to make a build
+   or team public without having set a username. Slides up from the
+   bottom, distinct from the centered #confirmMod.
+   ══════════════════════════════════════════════════════════════════ */
+
+.un-sheet{
+  width:100%;
+  background:var(--bg2);
+  border-top:1px solid var(--border);
+  border-radius:20px 20px 0 0;
+  padding:1.25rem 1.25rem calc(env(safe-area-inset-bottom,0px) + 1.75rem);
+}
+.un-sheet-handle{
+  width:36px;height:4px;border-radius:2px;
+  background:var(--border);margin:0 auto 1.25rem;
+}
+.un-sheet-title{
+  font-size:1.05rem;font-weight:800;color:var(--text);
+  margin-bottom:.35rem;
+}
+.un-sheet-desc{
+  font-size:.8rem;color:var(--muted);line-height:1.5;
+  margin-bottom:1.1rem;
+}
+.un-input-wrap{position:relative;margin-bottom:.45rem}
+.un-prefix{
+  position:absolute;left:.85rem;top:50%;transform:translateY(-50%);
+  color:var(--muted);font-size:.9rem;font-weight:700;pointer-events:none;
+}
+.un-input{
+  width:100%;
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:10px;padding:.75rem .85rem .75rem 1.65rem;
+  font-family:inherit;font-size:.95rem;font-weight:600;
+  color:var(--text);outline:none;
+  transition:border-color .18s;
+}
+.un-input:focus{border-color:var(--red)}
+.un-input.un-ok{border-color:#10b981}
+.un-input.un-err{border-color:#ef4444}
+.un-hint{
+  font-size:.72rem;min-height:1.1rem;
+  padding:0 .1rem;margin-bottom:.35rem;
+  display:flex;align-items:center;gap:.3rem;
+}
+.un-hint.ok{color:#10b981}
+.un-hint.err{color:#ef4444}
+.un-hint.neutral{color:var(--muted)}
+.un-format{font-size:.68rem;color:var(--muted2);margin-bottom:1.1rem}
+.un-save-btn{width:100%;padding:.85rem;font-size:.9rem;font-weight:800;border-radius:12px}
+.un-save-btn:disabled{opacity:.4;cursor:not-allowed}
+.un-cancel-btn{
+  width:100%;padding:.65rem;
+  background:transparent;border:none;
+  font-family:inherit;font-size:.84rem;font-weight:600;
+  color:var(--muted);cursor:pointer;margin-top:.4rem;
+}
+
+/* The username modal uses a bottom-sheet layout — override the centered flexbox */
+#usernameMod{align-items:flex-end}
+
+/* #SECTION: DROP F.3 — PUBLIC SOCIAL ROW (Likes + Copy) */
+/* ══════════════════════════════════════════════════════════════════
+   Social action row beneath the content sections on public detail
+   views. Shown only to signed-in viewers who are NOT the content
+   owner. Uses .pub-section padding (0 1.1rem) for edge alignment.
+   ══════════════════════════════════════════════════════════════════ */
+
+.pub-social-row{
+  padding:0 1.1rem;
+  margin-top:1rem;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:.5rem;
+}
+.like-btn{
+  display:flex;align-items:center;justify-content:center;gap:.45rem;
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:12px;padding:.65rem .5rem;
+  font-family:inherit;font-size:.84rem;font-weight:700;
+  color:var(--text2);cursor:pointer;min-height:44px;
+  transition:all .15s;
+}
+.like-btn svg{flex-shrink:0}
+.like-btn.liked{
+  background:rgba(239,68,68,.08);
+  border-color:rgba(239,68,68,.35);
+  color:#ef4444;
+}
+@keyframes likePopIn{0%{transform:scale(1)}40%{transform:scale(1.3)}70%{transform:scale(.92)}100%{transform:scale(1)}}
+.like-btn.pop{animation:likePopIn .28s ease}
+.copy-btn{
+  display:flex;align-items:center;justify-content:center;gap:.4rem;
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:12px;padding:.65rem .5rem;
+  font-family:inherit;font-size:.84rem;font-weight:700;
+  color:var(--text);cursor:pointer;min-height:44px;
+  transition:all .15s;
+}
+.copy-btn svg{flex-shrink:0;color:#a78bfa}
+
+/* Profile page — Account section (Sign Out + Delete Account) */
+/* Profile collapsible sections */
+.prof-section{border-top:1px solid var(--border)}
+.prof-sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1rem;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;transition:background .12s}
+.prof-sec-hdr:active{background:var(--surface)}
+.prof-sec-left{font-size:1.05rem;font-weight:700;display:flex;align-items:center;gap:.4rem}
+.prof-sec-badge{font-size:.72rem;font-weight:500;color:var(--muted)}
+.prof-sec-chev{font-size:.85rem;color:var(--muted);transition:transform .2s;display:inline-block}
+.prof-sec-chev.open{transform:rotate(180deg)}
+.prof-sec-body{display:none}
+.prof-sec-body.open{display:block}
+
+/* Social summary stats */
+.prof-social-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;padding:.65rem 1rem .5rem}
+.prof-ss-item{text-align:center;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.55rem .4rem}
+.prof-ss-val{font-size:1.35rem;font-weight:900;line-height:1.1;color:var(--text)}
+.prof-ss-lbl{font-size:.57rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-top:.15rem}
+
+/* Achievement filters */
+.prof-ach-filters{display:flex;gap:.35rem;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:.5rem 1rem .5rem;border-bottom:1px solid var(--border)}
+.prof-ach-filters::-webkit-scrollbar{display:none}
+.prof-ach-pill{padding:.25rem .65rem;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);font-size:.68rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:inherit;transition:all .12s;-webkit-tap-highlight-color:transparent}
+.prof-ach-pill.active{border-color:var(--red);background:var(--red-bg);color:var(--red)}
+
+/* Account section */
+/* More sheet footer — theme toggle + support */
+.more-sheet-footer{border-top:1px solid var(--border);padding:.75rem 1rem;display:flex;flex-direction:column;gap:.55rem}
+.more-sheet-theme-row{display:flex;align-items:center;justify-content:space-between}
+.more-sheet-theme-label{font-size:.78rem;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:.35rem}
+.ms-theme-btns{display:flex;gap:.3rem}
+.ms-theme-btn{padding:.3rem .7rem;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-family:inherit;font-size:.72rem;font-weight:700;cursor:pointer;transition:all .12s}
+.ms-theme-btn.active{border-color:var(--gold);background:var(--gold-bg);color:var(--gold)}
+.more-sheet-support{display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.55rem .75rem;border-radius:10px;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-size:.78rem;font-weight:700;text-decoration:none;font-family:inherit;transition:all .12s;-webkit-tap-highlight-color:transparent}
+.more-sheet-support:hover{border-color:var(--gold);color:var(--gold)}
+/* Profile support button */
+.prof-support-btn{display:flex;align-items:center;justify-content:center;gap:.4rem;padding:.6rem .75rem;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:.82rem;font-weight:700;text-decoration:none;font-family:inherit;transition:all .12s;-webkit-tap-highlight-color:transparent}
+.prof-support-btn:hover{border-color:var(--gold);color:var(--gold)}
+.prof-account-section{padding-bottom:2rem}
+.prof-account-btns{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.6rem}
+.prof-account-actions{padding:.6rem 1rem .4rem;display:flex;flex-direction:column;gap:.5rem}
+.prof-account-row{display:flex;align-items:center;gap:.4rem;padding:.5rem .65rem;border-radius:10px;background:var(--surface);font-size:.78rem;color:var(--muted)}
+.prof-account-email{display:flex;align-items:center;gap:.4rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prof-danger-card{margin:.2rem 1rem .6rem;background:color-mix(in srgb,var(--red) 6%,var(--surface));border:1px solid color-mix(in srgb,var(--red) 25%,var(--border));border-radius:12px;padding:.8rem 1rem}
+.prof-danger-label{font-size:.8rem;font-weight:800;color:var(--red);display:flex;align-items:center;gap:.35rem;margin-bottom:.3rem}
+.prof-signout-btn{display:flex;align-items:center;gap:.4rem;font-size:.84rem}
+.prof-delete-btn{
+  display:flex;align-items:center;gap:.4rem;
+  font-size:.84rem;font-weight:700;
+  background:transparent;
+  border:1.5px solid rgba(239,68,68,.35);
+  border-radius:10px;padding:.55rem 1rem;
+  color:#ef4444;cursor:pointer;font-family:inherit;
+  transition:all .15s;
+}
+.prof-delete-btn:hover{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.6)}
+.prof-delete-hint{font-size:.72rem;color:var(--muted2);line-height:1.5;max-width:360px}
+
+/* Profile trainer card — username display row */
+.tc-username{
+  display:flex;align-items:center;gap:.3rem;
+  font-size:.82rem;font-weight:700;color:var(--muted);
+  margin-top:.35rem;
+}
+.tc-un-at{color:var(--red);font-weight:800}
+.tc-un-edit{
+  background:none;border:none;cursor:pointer;
+  font-size:.75rem;padding:0 .15rem;opacity:.6;
+  line-height:1;
+}
+.tc-un-edit:hover{opacity:1}
+.tc-un-set{
+  background:none;border:none;cursor:pointer;
+  font-size:.78rem;font-weight:700;color:var(--red);
+  padding:.25rem 0;margin-top:.3rem;display:block;
+}
+.tc-un-set:hover{opacity:.8}
+/* Drop H — nature picker button in build editor (was missing from styles after I.1/I.2 overwrites) */
+.ed-nat-btn{width:100%;padding:.6rem .9rem;border-radius:11px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:.6rem;min-height:44px;transition:border-color .15s,box-shadow .15s;text-align:left;-webkit-tap-highlight-color:transparent}
+.ed-nat-btn:hover{border-color:var(--border2)}
+.ed-nat-btn:active{border-color:var(--red);box-shadow:0 0 0 3px var(--red-bg)}
+.ed-nat-btn-left{flex:1;display:flex;align-items:center;gap:.5rem;min-width:0;overflow:hidden}
+.ed-nat-btn-name{font-size:.85rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ed-nat-btn.empty .ed-nat-btn-name{color:var(--muted);font-weight:500}
+.ed-nat-btn-chips{display:flex;gap:3px;align-items:center;flex-shrink:0}
+.ed-nat-btn-chip{font-size:.68rem;font-weight:800;padding:.1rem .35rem;border-radius:5px;white-space:nowrap}
+.ed-nat-btn i{color:var(--muted);font-size:.8rem;flex-shrink:0;margin-left:auto}
+/* Drop H — nature picker SHEET (was missing) */
+.nat-pk-sheet{background:var(--bg2);border-radius:20px 20px 0 0;width:100%;max-height:78vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -4px 30px rgba(0,0,0,.35)}
+.nat-pk-handle{padding:10px 0 4px;display:flex;justify-content:center;flex-shrink:0}
+.nat-pk-handle::before{content:'';width:32px;height:4px;background:var(--border2);border-radius:2px;display:block}
+.nat-pk-head{padding:2px 1rem 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid var(--border)}
+.nat-pk-title{font-size:1rem;font-weight:800;color:var(--text)}
+.nat-pk-close{width:28px;height:28px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-size:.78rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.nat-pk-list{flex:1;overflow-y:auto;padding:.3rem 0 1rem}
+.nat-pk-list::-webkit-scrollbar{display:none}
+.nat-pk-none{display:flex;align-items:center;padding:.7rem 1rem;cursor:pointer;border-radius:10px;margin:.2rem .5rem;transition:background .12s;-webkit-tap-highlight-color:transparent}
+.nat-pk-none:active{background:var(--surface)}
+.nat-pk-none.sel{background:var(--surface);outline:1.5px solid var(--red)}
+.nat-pk-none-lbl{font-size:.85rem;font-weight:600;color:var(--muted);flex:1}
+.nat-pk-grp{font-size:.6rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;padding:.65rem 1rem .2rem;margin-top:.15rem}
+.nat-pk-row{display:flex;align-items:center;gap:.55rem;padding:.55rem 1rem;cursor:pointer;border-radius:10px;margin:0 .5rem .12rem;transition:background .12s;-webkit-tap-highlight-color:transparent}
+.nat-pk-row:active{background:var(--surface)}
+.nat-pk-row.sel{background:var(--surface);outline:1.5px solid var(--red)}
+.nat-pk-row-left{flex:1;min-width:0}
+.nat-pk-row-name{font-size:.85rem;font-weight:700;color:var(--text)}
+.nat-pk-row-arch{font-size:.62rem;color:var(--muted);margin-top:1px}
+.nat-pk-row-eq{flex-shrink:0;width:58px}
+
+/* ══════════════════════════════════════════════
+   Drop I.3 — Home Feed
+   ══════════════════════════════════════════════ */
+
+/* Page header row (Home page — title + bell + search) */
+.pg-head-row{display:flex;align-items:center;justify-content:space-between}
+.da-hd-btns{display:flex;gap:.4rem;align-items:center}
+.da-hd-btn{width:36px;height:36px;border-radius:11px;border:1px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;color:var(--muted);font-family:inherit;transition:background .12s}
+.da-hd-btn:active{background:var(--surface)}
+.da-hd-btn i{font-size:1.05rem}
+.da-notif-pip{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--red);border-radius:50%;border:2px solid var(--bg);display:none}
+.da-notif-pip.show{display:block}
+
+/* Friends stat card (replaces Shiny Dex) */
+.da-stat.da-friends{background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(139,92,246,.04));color:var(--purple)}
+/* Shiny count tucked inside Collection card */
+.da-stat-shiny-row{font-size:.58rem;font-weight:700;color:var(--purple);opacity:.8;margin-top:.2rem}
+/* Feed section divider labels (Your Activity, Discover) */
+.da-feed-section{font-size:.62rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:.65rem .1rem .3rem}
+/* Drop G.3: ability editor warning icon */
+.ed-abl-warn-icon{color:var(--gold);font-size:.85rem;margin-left:auto;margin-right:.2rem;flex-shrink:0}
+
+/* ── Signed-out home layout ── */
+.da-signout-wrap{padding:.5rem 1rem 2rem}
+.da-signout-card{text-align:center;padding:1.4rem 1.2rem}
+.da-signout-icon{font-size:2rem;margin-bottom:.5rem}
+.da-signout-title{font-size:1.05rem;font-weight:800;margin-bottom:.4rem}
+.da-signout-desc{font-size:.82rem;color:var(--muted);line-height:1.55}
+.da-signout-btns{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;margin-top:1rem}
+.da-signout-feats{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-top:.75rem}
+.da-signout-feat{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:.85rem 1rem}
+.da-signout-feat-icon{font-size:1.3rem;margin-bottom:.3rem}
+.da-signout-feat-icon i{font-size:1.3rem}
+.da-signout-feat-title{font-size:.82rem;font-weight:800;margin-bottom:.2rem}
+.da-signout-feat-desc{font-size:.72rem;color:var(--muted);line-height:1.45}
+
+/* Quick actions — compact single row */
+.da-quick-row{display:flex;gap:.4rem;padding:0 1rem .9rem}
+.da-qrow-btn{flex:1;padding:.55rem .3rem .5rem;border-radius:11px;border:1px solid var(--border);background:var(--card);text-align:center;cursor:pointer;font-family:inherit;transition:all .12s}
+.da-qrow-btn:active{transform:scale(.96);background:var(--surface)}
+.da-qrow-icon{font-size:1rem;margin-bottom:.18rem}
+.da-qrow-lbl{font-size:.58rem;font-weight:700;color:var(--muted)}
+
+/* Activity feed rows (same density as .da-build) */
+.da-feed-row{display:flex;align-items:center;gap:.65rem;padding:.65rem .7rem;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:.45rem;cursor:default;transition:border-color .15s}
+.da-feed-row.tappable{cursor:pointer}
+.da-feed-row.tappable:active{border-color:var(--border2)}
+.da-feed-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;color:#fff;flex-shrink:0;line-height:1}
+.da-feed-img{width:38px;height:38px;object-fit:contain;border-radius:50%;background:var(--surface);padding:2px;flex-shrink:0}
+.da-feed-text{flex:1;min-width:0}
+.da-feed-name{font-weight:700;font-size:.78rem;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.da-feed-sub{font-size:.62rem;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.da-feed-right{display:flex;flex-direction:column;align-items:flex-end;gap:.15rem;flex-shrink:0}
+.da-feed-ts{font-size:.6rem;font-weight:600;color:var(--muted)}
+.da-feed-chevron{color:var(--border2);font-size:.9rem;flex-shrink:0;margin-left:.1rem}
+
+/* Home overlay sheets (notifications + search) */
+.home-sheet-ov{position:fixed;inset:0;z-index:320;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(2px)}
+.home-sheet-ov.show{display:flex}
+.home-sheet{background:var(--bg2);border-radius:22px 22px 0 0;width:100%;max-width:600px;max-height:82vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 -8px 40px rgba(0,0,0,.4)}
+.home-sheet-handle{padding:10px 0 4px;display:flex;justify-content:center;flex-shrink:0}
+.home-sheet-handle::before{content:'';width:34px;height:4px;background:var(--border2);border-radius:2px;display:block}
+.home-sheet-top{padding:2px 1rem 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.home-sheet-title{font-size:1.05rem;font-weight:900;color:var(--text)}
+.home-sheet-close{width:28px;height:28px;border-radius:9px;background:var(--surface);border:1px solid var(--border);color:var(--muted);font-size:.72rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.home-sheet-body{flex:1;overflow-y:auto;padding:0 1rem .5rem}
+.home-sheet-body::-webkit-scrollbar{display:none}
+
+/* Notification rows */
+.home-notif-row{display:flex;align-items:center;gap:.6rem;padding:.6rem .65rem;background:var(--surface);border-radius:11px;margin-bottom:.4rem}
+.home-notif-unread{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0}
+.home-notif-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;color:#fff;flex-shrink:0}
+.home-notif-text{flex:1;min-width:0}
+.home-notif-name{font-weight:700;font-size:.75rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.home-notif-sub{font-size:.62rem;color:var(--muted);margin-top:1px}
+.home-notif-ts{font-size:.6rem;font-weight:600;color:var(--muted);flex-shrink:0}
+
+/* Search input + tabs */
+.home-search-input-wrap{padding:0 1rem .65rem;flex-shrink:0}
+.home-search-input{width:100%;height:40px;border-radius:12px;background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:.82rem;font-weight:600;padding:0 .7rem;font-family:inherit;outline:none}
+.home-search-input::placeholder{color:var(--muted)}
+.home-search-tabs{display:flex;gap:.3rem;padding:0 1rem .7rem;flex-shrink:0}
+.home-stab{padding:.26rem .65rem;border-radius:20px;font-size:.68rem;font-weight:700;background:var(--surface);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-family:inherit;transition:all .12s}
+.home-stab.active{background:var(--red);border-color:var(--red);color:#fff}
+
+/* Ability detail collapsible Pokémon list */
+.abl-pkmn-details{width:100%}
+.abl-pkmn-summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:.6rem;cursor:pointer;font-size:.56rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:.55rem;user-select:none}
+.abl-pkmn-summary::-webkit-details-marker{display:none}
+.abl-pkmn-summary::after{content:'▾';font-size:.62rem;color:var(--muted);transition:transform .15s ease}
+.abl-pkmn-details[open] .abl-pkmn-summary::after{transform:rotate(180deg)}
+.abl-pkmn-count{font-weight:600;color:var(--muted);margin-left:auto;font-size:.54rem}
+.abl-pkmn-detail-body{padding-top:.05rem}
+
+.epc-picker-toggles{display:flex;align-items:center;gap:.35rem;flex-shrink:0}
+.epc-picker-toggles .shiny-btn{white-space:nowrap}
+
