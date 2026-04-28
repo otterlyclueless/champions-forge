@@ -93,7 +93,7 @@ function renderDash(){
       '<div class="empty" style="padding:1.5rem 0"><div class="em">⏳</div>Loading…</div>'+
     '</div>';
 
-  c.innerHTML=stats+quick+feed;
+  c.innerHTML=stats+'<div class="da-body"><div class="da-col-side">'+quick+'</div><div class="da-col-main">'+feed+'</div></div>';
 
   // Kick off async feed load (non-blocking)
   _loadActivityFeed();
