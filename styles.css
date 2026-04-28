@@ -3429,11 +3429,10 @@ body.share-loading [onclick="tdPillShare()"]::after{
   }
   .ed-picker-col .picker-head{border-radius:0;padding:.5rem 0 .5rem}
 
-  /* Panel body stretches to fill col height so strategy textareas expand */
-  .ed-picker-col .ed-dp-body{display:flex;flex-direction:column;height:calc(100% - 54px);overflow:hidden}
-  .ed-dp-strat-body{flex:1;display:flex;flex-direction:column;gap:.55rem;overflow:hidden}
-  .ed-dp-strat-row{flex:1;display:flex;flex-direction:column;min-height:0}
-  .ed-dp-strat-ta{flex:1;resize:none;min-height:0!important}
+  /* Panel body: just padding — parent panel's overflow-y:auto handles scrolling */
+  .ed-picker-col .ed-dp-body{padding:.75rem 1.1rem .75rem}
+  /* Strategy textareas — heights set by JS in _edStrategyClick to fill the panel */
+  .ed-dp-strat-ta{resize:vertical;width:100%}
 
   /* Stat col: tighter card padding so hex fits without scrolling */
   .ed-left-col .ed-card{padding:.75rem .85rem}
