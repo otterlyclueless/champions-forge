@@ -3316,8 +3316,8 @@ body.share-loading [onclick="tdPillShare()"]::after{
   /* Wider panel — more room for stats, abilities, type chart */
   .panel-ct{max-width:560px}
   /* Taller hero with bigger sprite */
-  .panel-art{height:400px;padding:1.5rem 1.2rem 2.2rem}
-  .panel-art img{width:200px;height:200px;margin-bottom:2.5rem}
+  .panel-art{height:440px;padding:1.5rem 1.2rem 2.2rem}
+  .panel-art img{width:250px;height:250px;margin-bottom:2.5rem}
   .panel-art-types .type-pill{font-size:.78rem;padding:4px 14px}
   /* Panel header: bolder name */
   .p-header{padding:1.2rem 1.5rem .9rem}
