@@ -576,7 +576,7 @@ function tdRenderMember(m,slot,editorMode){
         (statData?'<div class="td-bs-total"><span class="td-bs-total-label">Lv50 Total</span><span class="td-bs-total-val '+bstCls+'">'+bst+'</span></div>':'')+
       '</div>'+
       (tags||moves?'<div class="td-mem-foot">'+(tags?'<div class="td-mem-tags">'+tags+'</div>':'')+(moves?'<div class="td-mem-moves">'+moves+'</div>':'')+'</div>':'')+
-      (editorMode?'<div class="td-mem-editor-actions"><button onclick="event.stopPropagation();openTeamBuildPicker('+slot+')">🔄 Change Build</button><button class="td-remove" onclick="event.stopPropagation();removeTeamMember(\''+(m.build_id||m.id)+'\')">✕ Remove</button></div>':'<div style="padding:.5rem .85rem .85rem;border-top:1px solid var(--border)"><button class="btn btn-ghost" style="width:100%;min-height:40px;font-size:.78rem" onclick="event.stopPropagation();showBuildDetail(\''+(m.build_id||m.id)+'\')">View build detail →</button></div>')+
+      (editorMode?'<div class="td-mem-editor-actions"><button onclick="event.stopPropagation();openTeamBuildPicker('+slot+')">🔄 Change Build</button><button class="td-remove" onclick="event.stopPropagation();removeTeamMember(\''+(m.build_id||m.id)+'\')">✕ Remove</button></div>':'<div style="padding:.5rem .85rem .85rem;border-top:1px solid var(--border)"><button class="btn btn-ghost" style="width:100%;min-height:40px;font-size:.78rem" onclick="event.stopPropagation();showBuildDetail(\''+(m.build_id||m.id)+'\',\'team\')">View build detail →</button></div>')+
     '</div></div>'+
   '</div>';
 }
