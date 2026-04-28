@@ -3276,15 +3276,15 @@ body.share-loading [onclick="tdPillShare()"]::after{
     grid-template-columns:repeat(6,1fr);padding:.65rem;gap:.3rem;
   }
 
-  /* ── Pokédex: 4-column grid ── */
-  .dex-grid{grid-template-columns:repeat(4,1fr);max-width:none;padding:.85rem 1.5rem 1.5rem;gap:.65rem}
-  .pb-card-art{height:116px}
-  .pb-card-art img{width:96px;height:96px}
+  /* ── Pokédex: 4-column grid, generous card art ── */
+  .dex-grid{grid-template-columns:repeat(4,1fr);max-width:none;padding:.85rem 1.5rem 1.5rem;gap:.75rem}
+  .pb-card-art{height:152px}
+  .pb-card-art img{width:128px;height:128px}
 }
 
-/* ═══════ WIDESCREEN (1440px+) ═══════ */
+/* ═══════ WIDESCREEN (1600px+) ═══════ */
 
-@media(min-width:1440px){
-  /* Pokédex: 5 columns */
+@media(min-width:1600px){
+  /* Pokédex: 5 columns at true widescreen — cards stay generous */
   .dex-grid{grid-template-columns:repeat(5,1fr)}
 }
