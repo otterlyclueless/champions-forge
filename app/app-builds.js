@@ -1171,6 +1171,7 @@ function renderBuildDetail(c){
     '<span class="vh-back" onclick="showBuildBack()">← '+(b.pokemon_name||'?')+'</span>'+
     '<div class="vh-actions" onclick="event.stopPropagation()">'+
       '<button class="vh-btn vh-btn-sm vh-btn-edit" onclick="showBuildEditor(\''+b.id+'\')" aria-label="Edit build">✏️</button>'+
+      '<button class="vh-btn vh-btn-sm" onclick="confirmDelBuild(\''+b.id+'\',\''+safeName+'\')" aria-label="Delete build" style="color:var(--red);border-color:color-mix(in srgb,var(--red) 30%,var(--border))"><i class="ph-bold ph-trash"></i></button>'+
       '<div class="om-wrap">'+
         '<button class="vh-btn vh-btn-sm vh-btn-more" onclick="toggleBldOm(\'bd-'+b.id+'\')" aria-label="More">⋮</button>'+
         '<div class="om-menu" id="bldOm-bd-'+b.id+'">'+
