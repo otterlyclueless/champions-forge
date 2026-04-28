@@ -656,16 +656,17 @@ function renderTeamEditor(c){
     '<button class="btn btn-ghost" style="min-height:38px;padding:.35rem .7rem;font-size:.72rem;flex-shrink:0" onclick="collapseAllTdMembers()">Collapse all</button>'+
   '</div>';
 
-  c.innerHTML=hdr+'<div class="td-stack" style="padding-bottom:6rem">'+
-    teamInfo+
-    tmIdentityHtml()+
-    '<div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 .2rem;margin-top:.3rem"><div style="font-weight:800;font-size:.9rem">Roster <span style="color:var(--muted);font-weight:500;font-size:.78rem;margin-left:.3rem">'+selBuildIds.length+' / '+teamRosterSize+'</span></div><span class="td-fmt '+fmtCls+'">'+fmtLabel+'</span></div>'+
-    viewToggle+
-    memberCards+
-    emptySlots+
-    teamEditorCoverageHtml()+
-    // Drop F.2: Share card (only renders when editing an existing team)
-    tmShareSectionHtml()+
+  c.innerHTML=hdr+'<div class="td-stack te-editor" style="padding-bottom:6rem">'+
+    '<div class="te-left">'+teamInfo+tmIdentityHtml()+'</div>'+
+    '<div class="te-right">'+
+      '<div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 .2rem;margin-top:.3rem"><div style="font-weight:800;font-size:.9rem">Roster <span style="color:var(--muted);font-weight:500;font-size:.78rem;margin-left:.3rem">'+selBuildIds.length+' / '+teamRosterSize+'</span></div><span class="td-fmt '+fmtCls+'">'+fmtLabel+'</span></div>'+
+      viewToggle+
+      memberCards+
+      emptySlots+
+      teamEditorCoverageHtml()+
+      // Drop F.2: Share card (only renders when editing an existing team)
+      tmShareSectionHtml()+
+    '</div>'+
   '</div>'+
   '<div class="save-bar"><button class="btn btn-ghost" onclick="showTeamList()">Cancel</button><button class="btn btn-red" onclick="saveTeam()">💾 Save Team</button></div>';
 }
@@ -728,7 +729,16 @@ var hdr='<div class="pg-head" style="'+tdHeadStyle+'"><div class="vh-title-row">
     return '<div style="display:flex;align-items:center;gap:.5rem;padding:.5rem .7rem;border-radius:10px;background:var(--surface);margin-bottom:.35rem"><span style="font-size:1rem">'+icon+'</span><span style="font-size:.78rem;font-weight:700;color:'+col+'">'+l.result.charAt(0).toUpperCase()+l.result.slice(1)+'</span>'+(l.opponent_notes?'<span style="font-size:.72rem;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+l.opponent_notes+'</span>':'<span style="flex:1"></span>')+'<span style="font-size:.65rem;color:var(--muted)">'+ds+'</span><button style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:.7rem" onclick="event.stopPropagation();delBattle(\''+l.id+'\')">✕</button></div>';
   }).join(''):'<p style="color:var(--muted);font-size:.78rem">No battles logged yet</p>';
 
-  c.innerHTML=hdr+'<div class="td-stack">'+
+  // Hero banner — 6 sprites at a glance (hidden on mobile via CSS)
+  var heroHtml='<div class="td-hero">'+
+    detailMembers.map(function(m){
+      var img=m.is_shiny&&m.shiny_url?m.shiny_url:(m.image_url||'');
+      return '<div class="td-hero-mem"><img class="td-hero-img" src="'+img+'" onerror="this.style.opacity=\'0.15\'"><div class="td-hero-name">'+(m.pokemon_name||'')+'</div></div>';
+    }).join('')+
+    (function(){var e='';for(var i=detailMembers.length;i<rosterSize;i++){e+='<div class="td-hero-mem td-hero-slot-empty"><div class="td-hero-empty-img"><i class="ph-bold ph-plus"></i></div><div class="td-hero-name" style="opacity:.3">Slot '+(i+1)+'</div></div>'}return e})()+
+  '</div>';
+
+  c.innerHTML=hdr+heroHtml+'<div class="td-stack">'+
     // Drop F.2: Public pill (only renders when team is public)
     tdPublicPillHtml(t)+
     viewToggle+
