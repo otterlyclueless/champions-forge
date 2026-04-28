@@ -408,13 +408,36 @@ function renderBuilds(){
     bImg=b.is_shiny&&b.shiny_url?b.shiny_url:(b.image_url||'');
     t1=TC[b.type_1]||TC.Normal;t2=b.type_2?TC[b.type_2]:null;
     safeName=(b.build_name||'this build').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    var _dex=String(b.dex_number||0).padStart(4,'0');
+    var _heroGrad=t2?'linear-gradient(150deg,'+t1.m+'88,'+t2.m+'88)':'linear-gradient(150deg,'+t1.m+'66,'+t1.d+'88)';
+    // Mini stat bars — use full Lv50 calc for accuracy
+    var _bldPoke=allPkmn.find(function(x){return x.id===b.pokemon_id});
+    var _bldNat=b.nature_name?allNatures.find(function(n){return n.name===b.nature_name}):null;
+    var _bldSP={hp:b.hp_sp||0,atk:b.atk_sp||0,def:b.def_sp||0,spa:b.spa_sp||0,spd:b.spd_sp||0,spe:b.spe_sp||0};
+    var _bldStats=bsGetCalcStatsFor(_bldPoke,_bldSP,_bldNat);
+    var _miniStats='<div class="bld-mini-stats">'+_bldStats.map(function(st){var pct=Math.min(st.calc/280*100,100);return'<div class="bld-stat-row"><div class="bld-stat-lbl">'+BSN[st.key]+'</div><div class="bld-stat-track"><div class="bld-stat-fill" style="width:'+pct+'%;background:'+BSC[st.key]+'"></div></div><div class="bld-stat-val" style="color:'+BSC[st.key]+'">'+st.calc+'</div></div>'}).join('')+'</div>';
+    // Type-coloured move pills (desktop only)
+    var _movePills='<div class="bld-move-pills">'+[b.move_1,b.move_2,b.move_3,b.move_4].filter(Boolean).map(function(m){var mi=allMoveIndex[m];var tc=mi&&TC[mi.type]?TC[mi.type].m:'var(--surface2)';return'<span class="bld-move-pill" style="background:'+tc+'">'+m+'</span>';}).join('')+'</div>';
     return '<div class="bld-card'+(b.is_favourite?' fav-card':'')+'" onclick="showBuildDetail(\''+b.id+'\')">'+
+      // Art header — desktop only, hidden on mobile via CSS
+      '<div class="bld-art" style="background:'+_heroGrad+'">'+
+        '<div class="bld-art-dex">#'+_dex+'</div>'+
+        '<div class="bld-art-badges">'+
+          (b.is_favourite?'<span class="bld-art-fav">⭐</span>':'')+
+          (b.is_shiny?'<span class="bld-art-shiny">✦ Shiny</span>':'')+
+        '</div>'+
+        '<img class="bld-art-sprite" src="'+bImg+'" onerror="this.style.opacity=\'0.2\'">'+
+        '<div class="bld-art-types">'+
+          '<span class="type-pill" style="background:'+t1.m+'">'+b.type_1+'</span>'+
+          (t2?'<span class="type-pill" style="background:'+t2.m+'">'+b.type_2+'</span>':'')+
+        '</div>'+
+      '</div>'+
       '<div class="bld-head">'+
         '<div class="bld-head-left">'+
           '<img class="bld-head-img" src="'+bImg+'" onerror="this.style.opacity=\'0.2\'">'+
           '<div class="bld-head-text">'+
             '<div class="bld-name">'+(b.is_favourite?'<span class="fav-star">⭐</span> ':'')+b.build_name+(b.is_shiny?' <span style="color:var(--purple);font-size:.68rem">✦</span>':'')+'</div>'+
-            '<div class="bld-pkmn">'+(b.pokemon_name||'?')+' · #'+String(b.dex_number||0).padStart(4,'0')+
+            '<div class="bld-pkmn">'+(b.pokemon_name||'?')+' · #'+_dex+
               ' <span class="type-pill" style="background:'+t1.m+'">'+b.type_1+'</span>'+(t2?' <span class="type-pill" style="background:'+t2.m+'">'+b.type_2+'</span>':'')+
             '</div>'+
           '</div>'+
@@ -435,7 +458,8 @@ function renderBuilds(){
         '</div>'+
       '</div>'+
       '<div class="bld-tags">'+(b.battle_format?'<span class="btag btag-fmt">'+b.battle_format+'</span>':'')+(b.archetype?'<span class="btag btag-arch" style="--ac:'+archColour(b.archetype)+'">'+b.archetype+'</span>':'')+(b.item_name?'<span class="btag btag-item">'+b.item_name+'</span>':'')+(b.nature_name?'<span class="btag btag-nat">'+b.nature_name+'</span>':'')+(b.ability?'<span class="btag btag-abi">'+b.ability+'</span>':'')+bldMoveWarnPill(b)+bldAbiWarnPill(b)+'</div>'+
-      '<div class="bld-moves"><div class="bmove">'+(b.move_1||'—')+'</div><div class="bmove">'+(b.move_2||'—')+'</div><div class="bmove">'+(b.move_3||'—')+'</div><div class="bmove">'+(b.move_4||'—')+'</div></div>'+
+      _miniStats+
+      _movePills+
     '</div>';
   }).join('')+'</div>';
 }
@@ -1171,6 +1195,7 @@ function renderBuildDetail(c){
     '<span class="vh-back" onclick="showBuildBack()">← '+(b.pokemon_name||'?')+'</span>'+
     '<div class="vh-actions" onclick="event.stopPropagation()">'+
       '<button class="vh-btn vh-btn-sm vh-btn-edit" onclick="showBuildEditor(\''+b.id+'\')" aria-label="Edit build">✏️</button>'+
+      '<button class="vh-btn vh-btn-sm" onclick="confirmDelBuild(\''+b.id+'\',\''+safeName+'\')" aria-label="Delete build" style="color:var(--red);border-color:color-mix(in srgb,var(--red) 30%,var(--border))"><i class="ph-bold ph-trash"></i></button>'+
       '<div class="om-wrap">'+
         '<button class="vh-btn vh-btn-sm vh-btn-more" onclick="toggleBldOm(\'bd-'+b.id+'\')" aria-label="More">⋮</button>'+
         '<div class="om-menu" id="bldOm-bd-'+b.id+'">'+
@@ -1189,48 +1214,49 @@ function renderBuildDetail(c){
   // Drop G.3: pre-compute ability legality for use in detail rendering
   var _ablState=b.ability?abilityLegalityState(b.ability,b.pokemon_id):'empty';
   c.innerHTML=hdr+'<div class="bd-stack">'+
-    // Drop F.2: Public pill (only renders when build is public)
+    // Drop F.2: Public pill spans full width above the 2-col
     bdPublicPillHtml(b)+
-    // Hero art
-    '<div class="bd-hero card'+(isShiny?' shiny-holo':'')+'" style="background:'+heroGrad+'">'+
-      '<div class="bd-hero-dex">#'+String(b.dex_number||0).padStart(4,'0')+'</div>'+
-      '<img src="'+bImg+'" onerror="this.style.opacity=\'0.2\'">'+
-      '<div class="bd-hero-types"><span class="type-pill" style="background:'+t1.m+'">'+b.type_1+'</span>'+(t2?'<span class="type-pill" style="background:'+t2.m+'">'+b.type_2+'</span>':'')+'</div>'+
-      (isShiny?'<div class="bd-shiny-badge">✦ Shiny Variant</div>':'')+
+    '<div class="bd-desktop-wrap">'+
+      // ── Left col: art + tags + config + type effectiveness ──
+      '<div class="bd-left">'+
+        '<div class="bd-hero card'+(isShiny?' shiny-holo':'')+'" style="background:'+heroGrad+'">'+
+          '<div class="bd-hero-dex">#'+String(b.dex_number||0).padStart(4,'0')+'</div>'+
+          '<img src="'+bImg+'" onerror="this.style.opacity=\'0.2\'">'+
+          '<div class="bd-hero-types"><span class="type-pill" style="background:'+t1.m+'">'+b.type_1+'</span>'+(t2?'<span class="type-pill" style="background:'+t2.m+'">'+b.type_2+'</span>':'')+'</div>'+
+          (isShiny?'<div class="bd-shiny-badge">✦ Shiny Variant</div>':'')+
+        '</div>'+
+        '<div class="bd-summary">'+(b.battle_format?'<span class="btag btag-fmt">'+b.battle_format+'</span>':'')+(b.archetype?'<span class="btag btag-arch" style="--ac:'+archColour(b.archetype)+'">'+b.archetype+'</span>':'')+(b.item_name?'<span class="btag btag-item">'+b.item_name+'</span>':'')+(b.nature_name?'<span class="btag btag-nat">'+b.nature_name+'</span>':'')+(b.ability?'<span class="btag btag-abi'+(_ablState==='illegal'?' btag-warn':'')+'">'+(_ablState==='illegal'?'<i class="ph-fill ph-warning"></i> ':'')+b.ability+'</span>':'')+'</div>'+
+        '<div class="card"><h3 style="font-size:.85rem;font-weight:800;margin-bottom:.7rem">⚙️ Configuration</h3>'+
+          '<div class="bd-config">'+
+            '<span class="bd-config-label">Ability</span><span class="bd-config-val">'+(b.ability||'—')+(_ablState==='illegal'?' <span style="color:var(--gold)" title="Not a valid ability for this Pok\u00e9mon"><i class="ph-fill ph-warning"></i></span>':'')+'</span>'+
+            '<span class="bd-config-label">Item</span><span class="bd-config-val">'+(b.item_name||'—')+'</span>'+
+            '<span class="bd-config-label">Nature</span><span class="bd-config-val">'+natDetail+'</span>'+
+            '<span class="bd-config-label">Archetype</span><span class="bd-config-val">'+(b.archetype||'—')+'</span>'+
+          '</div></div>'+
+        '<div class="card"><h3 style="font-size:.85rem;font-weight:800;margin-bottom:.7rem">⚡ Type Effectiveness</h3>'+renderMatchupHtml(b.type_1,b.type_2)+'</div>'+
+      '</div>'+
+      // ── Right col: stats + moves + strategy ──
+      '<div class="bd-right">'+
+        '<div class="card"><h3 style="font-size:.85rem;font-weight:800;margin-bottom:.7rem">📊 Stats</h3>'+
+          '<div class="bs-view-toggle"><button class="bs-view-btn'+(bdView==='bars'?' active':'')+'" data-view="bars" onclick="bdSwitchView(\'bars\')">📊 Bars</button><button class="bs-view-btn'+(bdView==='hex'?' active':'')+'" data-view="hex" onclick="bdSwitchView(\'hex\')">⬢ Hex</button></div>'+
+          '<div class="bs-view'+(bdView==='bars'?' active':'')+'" id="bd-barsView">'+barsHtml+'</div>'+
+          '<div class="bs-view'+(bdView==='hex'?' active':'')+'" id="bd-hexView">'+hexHtml+'</div>'+
+          '<div class="bs-total"><span class="bs-total-label">Lv50 Stat Total</span><span class="bs-total-val '+bstCls+'">'+bstTotal+'</span></div>'+
+          '<div class="bd-sp-bar-wrap"><span class="bd-sp-label">SP Used</span><div class="bd-sp-track"><div class="bd-sp-fill" style="width:'+spPct+'%"></div></div><span class="bd-sp-val">'+totalSP+' / '+SP_MAX+'</span></div>'+
+          '<div style="font-size:.58rem;color:var(--muted);margin-top:4px;text-align:right">Lv50 · IVs max (31) · <code style="font-family:inherit;background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.56rem;color:var(--text2)">1 SP = +1 stat</code></div>'+
+        '</div>'+
+        '<div class="card"><h3 style="font-size:.85rem;font-weight:800;margin-bottom:.7rem">🎯 Moveset</h3>'+
+          '<div class="bd-moves" id="bdMoves">'+(function(){var ms=[b.move_1,b.move_2,b.move_3,b.move_4];var fs=movesetFontSize(ms);return ms.map(function(m){return bdMoveCard(m,b.pokemon_id,fs)}).join('')})()+'</div>'+
+        '</div>'+
+        (b.win_condition||b.strengths||b.weaknesses?
+          '<details class="card bd-strategy" open><summary>💡 Strategy</summary><div style="margin-top:.7rem">'+
+            (b.win_condition?'<div style="margin-bottom:.7rem"><div class="bd-strat-label" style="color:var(--gold)">Win Condition</div><div class="bd-strat-text">'+b.win_condition+'</div></div>':'')+
+            '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">'+
+              (b.strengths?'<div><div class="bd-strat-label" style="color:var(--green)">Strengths</div><div class="bd-strat-text">'+b.strengths.replace(/\n/g,'<br>')+'</div></div>':'')+
+              (b.weaknesses?'<div><div class="bd-strat-label" style="color:var(--red)">Weaknesses</div><div class="bd-strat-text">'+b.weaknesses.replace(/\n/g,'<br>')+'</div></div>':'')+
+            '</div></div></details>':'')+
+      '</div>'+
     '</div>'+
-    // Summary tags
-    '<div class="bd-summary">'+(b.battle_format?'<span class="btag btag-fmt">'+b.battle_format+'</span>':'')+(b.archetype?'<span class="btag btag-arch" style="--ac:'+archColour(b.archetype)+'">'+b.archetype+'</span>':'')+(b.item_name?'<span class="btag btag-item">'+b.item_name+'</span>':'')+(b.nature_name?'<span class="btag btag-nat">'+b.nature_name+'</span>':'')+(b.ability?'<span class="btag btag-abi'+(_ablState==='illegal'?' btag-warn':'')+'">'+(_ablState==='illegal'?'<i class="ph-fill ph-warning"></i> ':'')+b.ability+'</span>':'')+'</div>'+
-    // Configuration
-    '<div class="card"><h3 style="font-size:.85rem;font-weight:800;margin-bottom:.7rem">⚙️ Configuration</h3>'+
-      '<div class="bd-config">'+
-        '<span class="bd-config-label">Ability</span><span class="bd-config-val">'+(b.ability||'—')+(_ablState==='illegal'?' <span style="color:var(--gold)" title="Not a valid ability for this Pok\u00e9mon"><i class="ph-fill ph-warning"></i></span>':'')+'</span>'+
-        '<span class="bd-config-label">Item</span><span class="bd-config-val">'+(b.item_name||'—')+'</span>'+
-        '<span class="bd-config-label">Nature</span><span class="bd-config-val">'+natDetail+'</span>'+
-        '<span class="bd-config-label">Archetype</span><span class="bd-config-val">'+(b.archetype||'—')+'</span>'+
-      '</div></div>'+
-    // Stats with bars/hex toggle
-    '<div class="card"><h3 style="font-size:.85rem;font-weight:800;margin-bottom:.7rem">📊 Stats</h3>'+
-      '<div class="bs-view-toggle"><button class="bs-view-btn'+(bdView==='bars'?' active':'')+'" data-view="bars" onclick="bdSwitchView(\'bars\')">📊 Bars</button><button class="bs-view-btn'+(bdView==='hex'?' active':'')+'" data-view="hex" onclick="bdSwitchView(\'hex\')">⬢ Hex</button></div>'+
-      '<div class="bs-view'+(bdView==='bars'?' active':'')+'" id="bd-barsView">'+barsHtml+'</div>'+
-      '<div class="bs-view'+(bdView==='hex'?' active':'')+'" id="bd-hexView">'+hexHtml+'</div>'+
-      '<div class="bs-total"><span class="bs-total-label">Lv50 Stat Total</span><span class="bs-total-val '+bstCls+'">'+bstTotal+'</span></div>'+
-      '<div class="bd-sp-bar-wrap"><span class="bd-sp-label">SP Used</span><div class="bd-sp-track"><div class="bd-sp-fill" style="width:'+spPct+'%"></div></div><span class="bd-sp-val">'+totalSP+' / '+SP_MAX+'</span></div>'+
-      '<div style="font-size:.58rem;color:var(--muted);margin-top:4px;text-align:right">Lv50 · IVs max (31) · <code style="font-family:inherit;background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.56rem;color:var(--text2)">1 SP = +1 stat</code></div>'+
-    '</div>'+
-    // Moves
-    '<div class="card"><h3 style="font-size:.85rem;font-weight:800;margin-bottom:.7rem">🎯 Moveset</h3>'+
-      '<div class="bd-moves" id="bdMoves">'+(function(){var ms=[b.move_1,b.move_2,b.move_3,b.move_4];var fs=movesetFontSize(ms);return ms.map(function(m){return bdMoveCard(m,b.pokemon_id,fs)}).join('')})()+'</div>'+
-    '</div>'+
-    // Strategy (collapsible)
-    (b.win_condition||b.strengths||b.weaknesses?
-      '<details class="card bd-strategy" open><summary>💡 Strategy</summary><div style="margin-top:.7rem">'+
-        (b.win_condition?'<div style="margin-bottom:.7rem"><div class="bd-strat-label" style="color:var(--gold)">Win Condition</div><div class="bd-strat-text">'+b.win_condition+'</div></div>':'')+
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">'+
-          (b.strengths?'<div><div class="bd-strat-label" style="color:var(--green)">Strengths</div><div class="bd-strat-text">'+b.strengths.replace(/\n/g,'<br>')+'</div></div>':'')+
-          (b.weaknesses?'<div><div class="bd-strat-label" style="color:var(--red)">Weaknesses</div><div class="bd-strat-text">'+b.weaknesses.replace(/\n/g,'<br>')+'</div></div>':'')+
-        '</div></div></details>':'')+
-    // Matchups
-    '<div class="card"><h3 style="font-size:.85rem;font-weight:800;margin-bottom:.7rem">⚡ Type Effectiveness</h3>'+renderMatchupHtml(b.type_1,b.type_2)+'</div>'+
   '</div>'
 }
 
@@ -1332,6 +1358,29 @@ function confirmDelBuild(id,name){
 }
 async function delBuild(id){try{await rm('builds',{'id':'eq.'+id},true);closeCm();toast('Build deleted');await loadBuilds();renderBuilds();renderDash()}catch(e){toast(e.message,'err')}}
 function closeCm(){authMode='login';document.getElementById('confirmMod').classList.remove('open');resetConfirmMod()}
+function showMoveDetail(name){
+  var m=allMoveIndex[name];
+  var col=m&&TC[m.type]?TC[m.type].m:'var(--surface2)';
+  var catIcon=m&&m.category==='Physical'?'⚔️':m&&m.category==='Special'?'✨':'🛡️';
+  var html='<div style="margin-bottom:.65rem;display:flex;align-items:center;gap:.55rem">'+
+    '<span class="type-pill" style="background:'+col+';font-size:.78rem;padding:4px 14px">'+(m?m.type:'Unknown')+'</span>'+
+    '<span style="font-size:.82rem;font-weight:700;color:var(--muted)">'+catIcon+' '+(m?m.category:'Unknown')+'</span>'+
+  '</div>'+
+  '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;margin-bottom:.75rem">'+
+    '<div style="text-align:center;background:var(--surface);border-radius:10px;padding:.5rem"><div style="font-size:.56rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-bottom:.1rem">Power</div><div style="font-size:1.05rem;font-weight:900">'+((m&&m.power>0)?m.power:'—')+'</div></div>'+
+    '<div style="text-align:center;background:var(--surface);border-radius:10px;padding:.5rem"><div style="font-size:.56rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-bottom:.1rem">Accuracy</div><div style="font-size:1.05rem;font-weight:900">'+((m&&m.accuracy)?m.accuracy+'%':'—')+'</div></div>'+
+    '<div style="text-align:center;background:var(--surface);border-radius:10px;padding:.5rem"><div style="font-size:.56rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-bottom:.1rem">PP</div><div style="font-size:1.05rem;font-weight:900">'+((m&&m.pp)?m.pp:'—')+'</div></div>'+
+  '</div>'+
+  (m&&m.short?'<div style="font-size:.82rem;color:var(--text2);line-height:1.55;text-align:left">'+m.short+'</div>':'<div style="font-size:.8rem;color:var(--muted)">No move data available.</div>');
+  resetConfirmMod();
+  document.getElementById('cmEmoji').textContent=col!=='var(--surface2)'?'🎯':'❓';
+  document.getElementById('cmTitle').textContent=name;
+  document.getElementById('cmMsg').innerHTML=html;
+  document.getElementById('cmBtn').textContent='Close';
+  document.getElementById('cmBtn').onclick=closeCm;
+  document.getElementById('cmBtn').className='btn btn-ghost';
+  document.getElementById('confirmMod').classList.add('open');
+}
 function showLoginModal(msg){
   var isSignup=authMode==='signup';
   // Drop F.1: in-modal mode toggle so public-view visitors (where the sidebar

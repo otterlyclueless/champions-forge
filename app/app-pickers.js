@@ -698,12 +698,13 @@ function msRefreshSlots(){
 // Passes a shared font-size so every card in the grid stays visually uniform.
 function bdMoveCard(name,pokemonId,fontSize){
   var fs=fontSize?' style="font-size:'+fontSize+'"':'';
+  var safeN=(name||'').replace(/'/g,"\\'");
   if(!name)return '<div class="bd-move bd-move-empty"'+fs+'>—</div>';
   var state=moveLegalityState(name,pokemonId);
   var m=allMoveIndex[name];
   // Unknown: no type info, plain card + warning badge
   if(state==='unknown'||!m||!TC[m.type]){
-    return '<div class="bd-move bd-move-plain bd-move-warn"'+fs+' title="Unknown move name — not in Champions">'+
+    return '<div class="bd-move bd-move-plain bd-move-warn"'+fs+' title="Unknown move name — not in Champions" onclick="event.stopPropagation();showMoveDetail(\''+safeN+'\')">'+
       '<i class="ph-fill ph-warning bd-move-flag"></i>'+
       '<span class="bd-move-name">'+name+'</span>'+
     '</div>';
@@ -718,7 +719,7 @@ function bdMoveCard(name,pokemonId,fontSize){
   }
   var bgStyle='background:linear-gradient(135deg,'+col.m+','+col.d+')';
   var style=fontSize?(' style="'+bgStyle+';font-size:'+fontSize+'"'):(' style="'+bgStyle+'"');
-  return '<div class="bd-move bd-move-typed'+warnCls+'"'+style+'>'+
+  return '<div class="bd-move bd-move-typed'+warnCls+'"'+style+' onclick="event.stopPropagation();showMoveDetail(\''+safeN+'\')">'+
     warnIcon+
     '<span class="bd-move-name">'+name+'</span>'+
   '</div>';

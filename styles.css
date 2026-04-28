@@ -334,6 +334,14 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;t
 
 /* Build list — vertical stack matching Teams (.tml-stack) */
 .bld-stack{padding:.9rem 1rem 1.5rem;display:flex;flex-direction:column;gap:.75rem}
+/* Art header hidden on mobile — shown on desktop */
+.bld-art{display:none}
+/* Mini stats + move pills hidden on mobile */
+.bld-mini-stats{display:none}
+.bld-move-pills{display:none}
+/* Desktop wrap: column on mobile */
+.bd-desktop-wrap{display:flex;flex-direction:column;gap:.85rem}
+.bd-left,.bd-right{display:flex;flex-direction:column;gap:.85rem}
 .bld-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1rem;cursor:pointer;transition:border-color .15s;position:relative}
 .bld-card:active{border-color:var(--border2);transform:scale(.995)}
 .bld-card.fav-card{border-color:color-mix(in srgb,var(--gold) 40%,var(--border))}
@@ -917,10 +925,14 @@ body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;t
 /* ═══════ TEAMS MOBILE-FIRST (list + detail + editor) ═══════ */
 /* Team list cards */
 .tml-stack{padding:.9rem 1rem 1.5rem;display:flex;flex-direction:column;gap:.75rem}
-.tml-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1rem;cursor:pointer;transition:border-color .15s;position:relative;overflow:hidden;--tm-col:transparent}
+.tml-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1rem;cursor:pointer;transition:border-color .15s;position:relative;--tm-col:transparent}
 /* Theme gradient wash — visible when --tm-col is set via inline style */
 .tml-card::before{content:'';position:absolute;inset:0;border-radius:16px;pointer-events:none;background:linear-gradient(135deg,color-mix(in srgb,var(--tm-col) 22%,transparent) 0%,transparent 58%);z-index:0}
 .tml-card>*{position:relative;z-index:1}
+/* Lift card with open overflow menu above siblings (fixes dropdown clipping) */
+.tml-card:has(.om-menu.open),.bld-card:has(.om-menu.open){z-index:10}
+/* Build cards also need isolation so transform doesn't trap om-menu stacking context */
+.bld-card{isolation:isolate}
 .tml-card:active{border-color:var(--border2);transform:scale(.995)}
 .tml-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;margin-bottom:.7rem}
 .tml-head-text{flex:1;min-width:0}
@@ -3275,6 +3287,18 @@ body.share-loading [onclick="tdPillShare()"]::after{
   /* ── Global page head ── */
   .pg-head{padding:1.1rem 1.5rem .85rem}
 
+  /* ── Items page: multi-col grid, no-scroll filters, bigger sprites ── */
+  /* Grid on the outer container — .it-filter rows span full width, cards flow into cols */
+  .items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:0 1.25rem;padding:.85rem 2.5rem 2rem;max-width:none;align-content:start}
+  .items-grid .it-filter{grid-column:1/-1;overflow-x:visible;flex-wrap:wrap;padding:.3rem 0 .55rem}
+  /* Wider search area */
+  #pg-items>div{padding:.65rem 2.5rem .4rem!important}
+  /* Bigger sprites, polished cards */
+  .it-card{border-radius:16px;padding:1rem;gap:.85rem;transition:border-color .15s,transform .18s,box-shadow .18s}
+  .it-card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.25);border-color:var(--border2)}
+  .it-sprite{width:60px;height:60px}
+  .it-name{font-size:.92rem;font-weight:800}
+
   /* ── Dashboard: 4-across stat cards — bigger, more wow ── */
   .da-stats{grid-template-columns:repeat(4,1fr);padding:1.2rem 1.5rem 1rem;gap:.85rem}
   .da-stat{padding:1.3rem 1.5rem;min-height:124px;border-radius:16px;transition:transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s}
@@ -3511,21 +3535,52 @@ body.share-loading [onclick="tdPillShare()"]::after{
   /* Save: red with stronger shadow */
   .save-bar .btn-red{box-shadow:0 4px 14px rgba(239,68,68,.35)}
 
-  /* ── Builds list: 2-column grid ── */
-  .bld-stack{display:grid;grid-template-columns:1fr 1fr;gap:.85rem;padding:1rem 1.5rem 2rem}
-  .bld-card{transition:border-color .15s,transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s}
-  .bld-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.25);border-color:var(--border2)}
-  /* Bigger avatar in build list cards */
-  .bld-head-img{width:68px;height:68px;border-radius:14px}
+  /* ── Builds list: art-header cards, auto-fill grid ── */
+  .bld-stack{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:1.25rem;padding:1.5rem 2.5rem 2rem}
+  .bld-card{border-radius:18px;transition:border-color .15s,transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s}
+  .bld-card:hover{transform:translateY(-4px);box-shadow:0 14px 36px rgba(0,0,0,.35);border-color:var(--border2)}
+  /* Art header: show on desktop, 160px tall */
+  .bld-art{display:flex;height:160px;position:relative;overflow:hidden;align-items:flex-end;justify-content:center;padding-bottom:.65rem}
+  .bld-art-sprite{width:130px;height:130px;object-fit:contain;filter:drop-shadow(0 5px 14px rgba(0,0,0,.55));position:relative;z-index:2}
+  .bld-art-dex{position:absolute;top:-8px;right:2px;font-size:5rem;font-weight:900;opacity:.07;pointer-events:none;font-family:monospace;color:var(--text);z-index:1}
+  .bld-art-types{position:absolute;bottom:.7rem;left:.85rem;display:flex;gap:.32rem;z-index:3}
+  .bld-art-types .type-pill{font-size:.7rem;padding:3px 10px}
+  .bld-art-badges{position:absolute;top:.65rem;right:.75rem;display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;z-index:3}
+  .bld-art-fav{font-size:.95rem;line-height:1}
+  .bld-art-shiny{font-size:.62rem;font-weight:800;color:var(--purple);background:rgba(139,92,246,.2);padding:2px 7px;border-radius:6px;border:1px solid rgba(139,92,246,.25)}
+  /* Hide mobile sprite+text row — art section takes over on desktop */
+  .bld-head-left{display:none}
+  /* Mini stat bars */
+  .bld-mini-stats{display:flex;flex-direction:column;gap:4px;margin-bottom:.7rem}
+  .bld-stat-row{display:flex;align-items:center;gap:.4rem}
+  .bld-stat-lbl{width:26px;font-size:.56rem;font-weight:800;color:var(--muted2);text-align:right;flex-shrink:0;letter-spacing:.02em}
+  .bld-stat-track{flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden}
+  .bld-stat-fill{height:100%;border-radius:3px}
+  .bld-stat-val{width:28px;font-size:.63rem;font-weight:800;text-align:right;font-variant-numeric:tabular-nums;flex-shrink:0}
+  /* Type-coloured move pills */
+  .bld-move-pills{display:flex;flex-wrap:wrap;gap:.35rem}
+  .bld-move-pill{font-size:.65rem;font-weight:700;padding:3px 9px;border-radius:7px;color:#fff;white-space:nowrap}
+  /* Move body: padding tweak with art section showing */
+  .bld-card .bld-body-area{padding-top:.85rem}
 
-  /* ── Build detail: constrained width + bigger hero ── */
-  .bd-stack{max-width:880px;margin:0 auto;padding:1rem 1.5rem 2rem}
-  .bd-hero{min-height:320px;padding:1.5rem 1rem 1.2rem;border-radius:18px}
-  .bd-hero img{width:200px;height:200px}
-  .bd-hero-types .type-pill{font-size:.78rem;padding:4px 14px}
-  /* 4-wide move grid on desktop (4 slots → single row) */
-  .bd-moves{grid-template-columns:repeat(4,1fr);gap:10px}
-  .bd-move{height:60px;min-height:60px;max-height:60px;border-radius:12px}
+  /* ── Build detail: 2-col layout — full viewport height ── */
+  .bd-stack{max-width:none;margin:0;padding:0;display:flex;flex-direction:column;flex:1}
+  .bd-desktop-wrap{display:flex;flex-direction:row;align-items:stretch;flex:1}
+  /* Left col: wider art panel, stretches full height */
+  .bd-left{width:380px;flex-shrink:0;border-right:1px solid var(--border);background:var(--bg2);display:flex;flex-direction:column}
+  .bd-left .bd-hero{border-radius:0!important;border:none!important;min-height:300px;padding:2rem 1.5rem 1.5rem}
+  .bd-left .bd-hero img{width:220px;height:220px}
+  .bd-left .bd-summary{padding:.75rem 1.4rem;border-bottom:1px solid var(--border)}
+  /* Only strip card styling from non-hero cards — preserves inline gradient on hero */
+  .bd-left .card:not(.bd-hero){border-radius:0!important;border:none!important;border-bottom:1px solid var(--border)!important;background:transparent!important;padding:1rem 1.4rem}
+  /* Right col: scrollable detail */
+  .bd-right{flex:1;min-width:0;padding:1.35rem 2rem 3rem;display:flex;flex-direction:column;gap:1rem;overflow-y:auto}
+  /* 4-wide move grid in right col */
+  .bd-right .bd-moves{grid-template-columns:repeat(4,1fr);gap:10px}
+  .bd-right .bd-move{height:60px;min-height:60px;max-height:60px;border-radius:12px;cursor:pointer}
+  /* Hex chart: bigger in the wide right col */
+  .bd-right .bs-hex-wrap{display:flex;justify-content:center}
+  .bd-right .bs-hex-svg{max-width:460px}
 
   /* ── Teams list: auto-fill so 1 team = full width, 2+ = 2 cols ── */
   .tml-stack{display:grid;grid-template-columns:repeat(auto-fill,minmax(480px,1fr));gap:1.25rem;padding:1.25rem 2.5rem 2rem}
