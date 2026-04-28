@@ -3405,6 +3405,52 @@ body.share-loading [onclick="tdPillShare()"]::after{
      everything else (summary, toggles, action-bars) spans full width */
   .td-stack{max-width:960px;margin:0 auto;padding:1rem 1.5rem 2rem;display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
   .td-stack>:not(.td-member){grid-column:1/-1}
+
+  /* ── Build editor Step 1: Pokémon picker — WOW factor ── */
+  .epc-grid{grid-template-columns:repeat(5,1fr);gap:.7rem;margin-top:.6rem}
+
+  /* Cards: premium feel matching the Pokédex grid treatment */
+  .epc-card{
+    border-radius:16px;border-width:1.5px;
+    overflow:visible;           /* allows shiny holo to extend */
+    transition:border-color .15s,transform .2s cubic-bezier(.34,1.56,.64,1),box-shadow .2s;
+  }
+  .epc-card:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.3);border-color:var(--border2)}
+  .epc-card.selected{border-color:var(--green);box-shadow:0 0 0 2.5px var(--green),0 8px 24px rgba(34,197,94,.25)}
+
+  /* Art: tall with inset shadow so sprite floats above gradient */
+  .epc-art{height:140px;overflow:hidden;border-radius:0}
+  .epc-art img{width:118px;height:118px}
+  /* Amplify the Pokéball watermark on desktop */
+  .epc-art .wm{opacity:.1}
+  /* Inset shadow depth on art */
+  .epc-card .epc-art{box-shadow:inset 0 -24px 32px rgba(0,0,0,.22),inset 0 0 0 1px rgba(255,255,255,.05)}
+
+  /* Text: bolder and more legible */
+  .epc-name{font-size:.82rem;font-weight:900;letter-spacing:-.015em}
+  .epc-dex{font-size:.62rem;font-weight:700}
+  .epc-top{padding:.5rem .6rem .25rem}
+  .epc-bot{padding:.38rem .6rem .55rem;gap:4px}
+  .epc-bot .type-pill{font-size:9.5px;padding:2px 8px}
+
+  /* Shiny holo — same fix as pb-card (overflow:visible + transparent border) */
+  .epc-card.shiny-holo{border:2.5px solid transparent;background-clip:padding-box}
+  .epc-card.shiny-holo::after{
+    content:'';position:absolute;inset:-2.5px;border-radius:18px;
+    background:linear-gradient(135deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3,#54a0ff,#5f27cd,#ff6b6b);
+    background-size:300% 300%;animation:holoShift 3s ease infinite;
+    z-index:-1;opacity:.88;
+  }
+  .epc-card.shiny-holo::before{
+    content:'';position:absolute;inset:-2.5px;border-radius:18px;
+    background:linear-gradient(135deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3,#54a0ff,#5f27cd,#ff6b6b);
+    background-size:300% 300%;animation:holoShift 3s ease infinite;
+    filter:blur(8px);opacity:.45;z-index:-1;
+  }
+  .epc-card.shiny-holo:hover{box-shadow:0 12px 40px rgba(139,92,246,.35),0 4px 16px rgba(0,0,0,.3)}
+
+  /* Filter rows: no scrolling needed on desktop — all pills visible */
+  .epc-filter-scroll{overflow-x:visible;flex-wrap:wrap;padding-bottom:0}
 }
 
 /* ═══════ WIDESCREEN (1600px+) ═══════ */
@@ -3412,4 +3458,6 @@ body.share-loading [onclick="tdPillShare()"]::after{
 @media(min-width:1600px){
   /* Pokédex: 5 columns at true widescreen */
   .dex-grid{grid-template-columns:repeat(5,1fr)}
+  /* Build picker: 6 columns at widescreen */
+  .epc-grid{grid-template-columns:repeat(6,1fr)}
 }
